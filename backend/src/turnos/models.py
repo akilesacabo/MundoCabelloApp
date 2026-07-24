@@ -3,12 +3,30 @@ from __future__ import annotations
 from datetime import datetime
 from decimal import Decimal
 
-from sqlalchemy import ForeignKey, Numeric, String, Text, func
+from sqlalchemy import Boolean, ForeignKey, Numeric, String, Text, UniqueConstraint, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from src.models import Base
 from src.staff.models import Staff
 from src.turnos.constants import ServicioEstado, SituacionTurno
+
+
+class ClienteProfile(Base):
+    """Ficha permanente del cliente, única por cédula normalizada."""
+
+    __tablename__ = "cliente_perfil"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    cedula: Mapped[str] = mapped_column(String(20), unique=True, index=True)
+    nombre: Mapped[str] = mapped_column(String(128), index=True)
+    telefono: Mapped[str] = mapped_column(String(25))
+    direccion: Mapped[str] = mapped_column(String(255))
+    created_at: Mapped[datetime] = mapped_column(server_default=func.now())
+    updated_at: Mapped[datetime] = mapped_column(
+        server_default=func.now(), onupdate=func.now()
+    )
+
+    turnos: Mapped[list[Cliente]] = relationship(back_populates="perfil")
 
 
 class Cliente(Base):
@@ -18,21 +36,46 @@ class Cliente(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     turno: Mapped[int] = mapped_column(index=True)
+    perfil_id: Mapped[int | None] = mapped_column(
+        ForeignKey("cliente_perfil.id", ondelete="SET NULL"), nullable=True, index=True
+    )
     cedula: Mapped[str] = mapped_column(String(20), index=True)
     nombre: Mapped[str] = mapped_column(String(128))
     telefono: Mapped[str] = mapped_column(String(20))
     direccion: Mapped[str] = mapped_column(String(255))
     observacion: Mapped[str] = mapped_column(Text, default="")
     situacion: Mapped[str] = mapped_column(
-        String(16), default=SituacionTurno.NORMAL, index=True
+        String(16), default=SituacionTurno.PRESENTE, index=True
     )
+    activo: Mapped[bool] = mapped_column(Boolean, default=True, index=True)
     created_at: Mapped[datetime] = mapped_column(server_default=func.now(), index=True)
 
+    perfil: Mapped[ClienteProfile | None] = relationship(back_populates="turnos")
     servicios: Mapped[list[TurnoServicio]] = relationship(
         back_populates="cliente",
         cascade="all, delete-orphan",
         order_by="TurnoServicio.id",
     )
+    etiquetas: Mapped[list[ClienteEtiqueta]] = relationship(
+        back_populates="cliente",
+        cascade="all, delete-orphan",
+        order_by="ClienteEtiqueta.codigo",
+    )
+
+
+class ClienteEtiqueta(Base):
+    """Etiqueta operativa aplicada a una visita/check-in."""
+
+    __tablename__ = "cliente_etiqueta"
+    __table_args__ = (UniqueConstraint("cliente_id", "codigo"),)
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    cliente_id: Mapped[int] = mapped_column(
+        ForeignKey("cliente.id", ondelete="CASCADE"), index=True
+    )
+    codigo: Mapped[str] = mapped_column(String(16), index=True)
+
+    cliente: Mapped[Cliente] = relationship(back_populates="etiquetas")
 
 
 class TurnoServicio(Base):

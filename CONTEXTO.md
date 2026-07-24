@@ -314,3 +314,40 @@ Objetivo: **backend real que refleje la v2** y camino a deploy.
   nombre/precio visibles y sin overflow; selección simultánea de `peluqueria` y
   `manicure` comprobada en navegador sin desbordamiento.
 - Estado: corregido y probado en local. **Pendiente desplegar en producción.**
+
+### Comentarios de operación y check-in (2026-07-24)
+
+- ✅ Repositorio Git creado. Respaldo anterior a estos cambios:
+  `d0ce50e chore: respaldar estado inicial de fase 1`.
+- ✅ Causa de registros repetidos confirmada: el backend insertaba siempre un turno y
+  el botón continuaba habilitado durante la petición. Ahora el backend rechaza con
+  `409` una cédula con turno activo y el frontend bloquea envíos repetidos.
+- ✅ Nueva tabla `cliente_perfil`, única por cédula normalizada. La migración
+  `20260724_profiles` conserva todos los turnos y vincula cada uno con su ficha.
+- ✅ Check-in convertido en tres pasos: cliente, servicios, etiquetas/observación.
+  La búsqueda progresiva comienza con cuatro caracteres y devuelve máximo ocho fichas.
+- ✅ Etiquetas admitidas: `INT`, `F`, `CORTO`, `LAVADO`, `AC`, `TC`, `XL`, `CM`, `DC`.
+  Se pueden registrar en check-in y editar desde la tarjeta del turno.
+- ✅ Situaciones operativas: `presente`, `ausente`, `estafa`. La migración convirtió
+  todos los valores anteriores `normal` a `presente`.
+- ✅ Estado manual del equipo admite Disponible, Ocupado y En pausa. Los especialistas
+  con servicio activo siguen apareciendo Ocupados; un estado manual Ocupado/En pausa
+  impide nuevas asignaciones.
+- ✅ Interfaces separadas: asignaciones (`admin.html`), estado del equipo
+  (`admin-team.html`), clientes (`admin-clients.html`) y edición de especialistas
+  (`admin-staff.html`). La navegación superior se genera según el rol y empieza con
+  Nuevo check-in.
+- ✅ Cola pública explica la atención simultánea y separa los números atendidos de los
+  próximos turnos.
+- ✅ Base local migrada: 4 turnos existentes, 2 perfiles únicos, 0 situaciones
+  `normal` y 0 turnos sin perfil. Respaldo temporal:
+  `/private/tmp/peluq-before-20260724.db`.
+- ✅ Verificación automática: 26 tests, Ruff limpio y sintaxis JavaScript limpia.
+- ✅ Inspección real en navegador: el check-in mantuvo el menú administrativo, buscó
+  `2548` y completó la ficha de Ámbar; recorrió los tres pasos y mostró el `409` del
+  turno #14 sin borrar el formulario. El panel cargó 4 turnos, la pantalla de equipo
+  81 especialistas/81 controles de estado, clientes 2/2 y la cola mostró #13 en
+  atención y #14–#16 en espera. Consola sin errores.
+- ⏸ Pendiente: despliegue en producción.
+- Decisión de Juan Pablo, 2026-07-24: estos comentarios se entregan en un commit
+  separado del respaldo inicial.

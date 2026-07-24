@@ -3,7 +3,7 @@ from decimal import Decimal
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from src.turnos.constants import ServicioEstado, SituacionTurno, TurnoEstado
+from src.turnos.constants import EtiquetaCodigo, ServicioEstado, SituacionTurno, TurnoEstado
 
 
 class CheckInRequest(BaseModel):
@@ -19,6 +19,7 @@ class CheckInRequest(BaseModel):
     telefono: str = Field(min_length=7, max_length=25)
     direccion: str = Field(min_length=2, max_length=255)
     observacion: str = Field(default="", max_length=1000)
+    etiquetas: list[EtiquetaCodigo] = Field(default_factory=list, max_length=9)
     service_ids: list[int] = Field(min_length=1)
 
 
@@ -52,7 +53,9 @@ class ClienteRead(BaseModel):
     telefono: str
     direccion: str
     observacion: str
+    etiquetas: list[EtiquetaCodigo]
     situacion: SituacionTurno
+    activo: bool
     created_at: datetime
     estado: TurnoEstado
     servicios: list[TurnoServicioRead]
@@ -80,10 +83,22 @@ class SituacionUpdate(BaseModel):
 
 
 class ClienteProfileRead(BaseModel):
+    id: int
     cedula: str
     nombre: str
     telefono: str
     direccion: str
+
+
+class ClienteProfileSummary(ClienteProfileRead):
+    visitas: int
+    ultima_visita: datetime | None
+    etiquetas: list[EtiquetaCodigo] = Field(default_factory=list)
+
+
+class TurnoDetailsUpdate(BaseModel):
+    observacion: str = Field(default="", max_length=1000)
+    etiquetas: list[EtiquetaCodigo] = Field(default_factory=list, max_length=9)
 
 
 class PublicQueueRead(BaseModel):

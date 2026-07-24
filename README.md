@@ -10,7 +10,7 @@ registro de clientes y la gestión visual de la cola con asignación
 | Fase | Estado | Descripción |
 |---|---|---|
 | 0 — Mockups navegables | ✅ Listo | 4 pantallas extraídas de Stitch, servibles como spec visual |
-| 1 — Backend FastAPI | ✅ Listo | API con 4 dominios, 4 tests passing, lint limpio |
+| 1 — Backend FastAPI | ✅ Local | API, roles, perfiles de clientes, cola y 26 tests |
 
 **Próximas fases** (no en este commit):
 - 2 — Frontend React + Vite + Tailwind
@@ -80,7 +80,12 @@ uvicorn src.main:app --reload
 Servir el repositorio y abrir:
 
 - `app/login.html`: acceso de administración y especialistas.
-- `app/admin.html`: turnos y alta sencilla de especialistas/servicios.
+- `app/admin.html`: asignación de servicios a especialistas.
+- `app/admin-team.html`: estado general y disponibilidad del equipo.
+- `app/admin-clients.html`: base de clientes existentes.
+- `app/admin-staff.html`: alta y edición de especialistas.
+- `app/admin-services.html`: alta y edición de servicios y productos.
+- `app/checkin.html`: check-in guiado en tres pasos con búsqueda y etiquetas.
 - `app/specialist.html`: clientes asignados al especialista autenticado.
 - `app/queue.html`: cola pública con animación discreta al avanzar.
 

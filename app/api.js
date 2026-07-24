@@ -19,3 +19,29 @@ function sessionRole(){
 }
 function sessionHome(){return sessionRole()==='admin'?'admin.html':sessionRole()==='especialista'?'specialist.html':'login.html'}
 function logout(){localStorage.removeItem('peluq_token');localStorage.removeItem('peluq_role');location.href='login.html'}
+function applyRoleNavigation(){
+  const nav=document.querySelector('.dashboard-nav');
+  if(!nav)return;
+  document.body.classList.add('top-nav-page');
+  const role=sessionRole();
+  const links=role==='admin'?[
+    ['checkin.html','＋','Nuevo check-in'],
+    ['admin.html','◎','Asignar clientes'],
+    ['admin-team.html','◷','Estado del equipo'],
+    ['admin-clients.html','♧','Clientes'],
+    ['admin-staff.html','♙','Editar especialistas'],
+    ['admin-services.html','✦','Servicios y productos'],
+    ['queue.html','◉','Cola pública']
+  ]:role==='especialista'?[
+    ['checkin.html','＋','Nuevo check-in'],
+    ['specialist.html','◎','Mis clientes'],
+    ['queue.html','◉','Cola pública']
+  ]:[
+    ['checkin.html','＋','Nuevo check-in'],
+    ['queue.html','◉','Cola pública'],
+    ['login.html','↗','Acceso del equipo']
+  ];
+  const current=location.pathname.split('/').pop()||'login.html';
+  nav.innerHTML=links.map(([href,icon,label])=>`<a class="${href===current?'active':''}" href="${href}"><span>${icon}</span>${label}</a>`).join('');
+}
+applyRoleNavigation();

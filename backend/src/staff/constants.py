@@ -2,9 +2,10 @@ from enum import StrEnum
 
 
 class ManualStatus(StrEnum):
-    """Estado manual del especialista. OCUPADO es derivado (no se guarda)."""
+    """Estado manual elegido desde el panel."""
 
     DISPONIBLE = "disponible"
+    OCUPADO = "ocupado"
     BREAK = "break"
 
 

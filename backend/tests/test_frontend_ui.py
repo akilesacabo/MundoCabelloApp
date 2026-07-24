@@ -25,12 +25,11 @@ def test_admin_dashboard_prioritizes_status_and_assignment():
 
     assert 'class="metric-grid"' in html
     assert "Clientes activos" in html
-    assert "Especialistas" in html
+    assert "assignment-only" in html
     assert "Progreso de asignación" in html
     assert "/staff/eligible?area=" in html
     assert "/services/${serviceId}/assign" in html
-    assert 'href="admin-staff.html"' in html
-    assert 'href="admin-services.html"' in html
+    assert "applyRoleNavigation()" in (APP_DIR / "api.js").read_text()
 
 
 def test_public_queue_preserves_and_recognizes_team_session():
@@ -40,7 +39,7 @@ def test_public_queue_preserves_and_recognizes_team_session():
 
     assert "function sessionRole()" in api_js
     assert "sessionHome()" in queue_html
-    assert "Volver al panel" in queue_html
+    assert "Volver a asignaciones" in queue_html
     assert "localStorage.setItem('peluq_role',x.role)" in login_html
     assert "localStorage.removeItem('peluq_role')" in api_js
 
@@ -54,6 +53,39 @@ def test_checkin_uses_searchable_checkbox_picker_instead_of_native_multiselect()
     assert "selectedIds" in html
     assert "group.area.key" in html
     assert "multiple" not in html
+
+
+def test_checkin_is_three_steps_with_live_client_search_and_submit_lock():
+    html = (APP_DIR / "checkin.html").read_text()
+
+    assert 'data-step="1"' in html
+    assert 'data-step="2"' in html
+    assert 'data-step="3"' in html
+    assert "/queue/client-search?q=" in html
+    assert "if(submitting)return" in html
+    assert 'name="etiquetas"' in html
+
+
+def test_admin_has_separate_assignment_team_and_client_database_screens():
+    assignment = (APP_DIR / "admin.html").read_text()
+    team = (APP_DIR / "admin-team.html").read_text()
+    clients = (APP_DIR / "admin-clients.html").read_text()
+    api_js = (APP_DIR / "api.js").read_text()
+
+    assert "assignment-only" in assignment
+    assert "/manual-status" in team
+    assert "/queue/clients" in clients
+    assert "['checkin.html','＋','Nuevo check-in']" in api_js
+    assert "admin-team.html" in api_js
+    assert "admin-clients.html" in api_js
+
+
+def test_public_queue_explains_parallel_attention():
+    html = (APP_DIR / "queue.html").read_text()
+
+    assert "La atención ocurre en paralelo" in html
+    assert "¿Cómo leer esta pantalla?" in html
+    assert "Después siguen" in html
 
 
 def test_staff_areas_use_visual_multi_selection():
@@ -84,7 +116,7 @@ def test_secondary_screens_use_shared_modern_design():
         "queue.html",
     ):
         html = (APP_DIR / filename).read_text()
-        assert 'class="modern-page"' in html
+        assert 'class="modern-page' in html
 
     css = (APP_DIR / "styles.css").read_text()
     assert "prefers-reduced-motion" in css
@@ -92,18 +124,30 @@ def test_secondary_screens_use_shared_modern_design():
 
 
 def test_all_screens_expose_role_appropriate_navigation():
-    expected_links = {
-        "login.html": ("checkin.html", "queue.html"),
-        "queue.html": ("checkin.html", "login.html"),
-        "checkin.html": ("queue.html", "login.html"),
-        "admin.html": ("checkin.html", "queue.html", "admin-staff.html", "admin-services.html"),
-        "admin-staff.html": ("admin.html", "queue.html", "admin-services.html"),
-        "admin-services.html": ("admin.html", "queue.html", "admin-staff.html"),
-        "specialist.html": ("checkin.html", "queue.html"),
-    }
-
-    for filename, links in expected_links.items():
+    filenames = (
+        "login.html",
+        "queue.html",
+        "checkin.html",
+        "admin.html",
+        "admin-staff.html",
+        "admin-services.html",
+        "specialist.html",
+        "admin-team.html",
+        "admin-clients.html",
+    )
+    for filename in filenames:
         html = (APP_DIR / filename).read_text()
         assert "site-nav" in html
-        for link in links:
-            assert f'href="{link}"' in html
+
+    api_js = (APP_DIR / "api.js").read_text()
+    for link in (
+        "checkin.html",
+        "queue.html",
+        "admin.html",
+        "admin-team.html",
+        "admin-clients.html",
+        "admin-staff.html",
+        "admin-services.html",
+        "specialist.html",
+    ):
+        assert link in api_js

@@ -1,8 +1,7 @@
-"""Staff con áreas múltiples y estado efectivo derivado.
+"""Staff con áreas múltiples y estado efectivo.
 
-OCUPADO no se guarda: se calcula preguntando si el especialista tiene ≥1
-servicio en estado EN_ATENCION. Los estados manuales (DISPONIBLE, BREAK)
-sí viven en la columna `manual_status`.
+El panel guarda DISPONIBLE, OCUPADO o BREAK. Un servicio EN_ATENCION siempre
+tiene prioridad y mantiene el estado efectivo OCUPADO.
 """
 from __future__ import annotations
 

@@ -12,9 +12,11 @@ from src.turnos.schemas import (
     ChangeSpecialistRequest,
     CheckInRequest,
     ClienteProfileRead,
+    ClienteProfileSummary,
     ClienteRead,
     PublicQueueRead,
     SituacionUpdate,
+    TurnoDetailsUpdate,
 )
 
 router = APIRouter(prefix="/queue", tags=["turnos"])
@@ -50,6 +52,22 @@ async def specialist_queue(db: DbSession, user: CurrentUser) -> list[ClienteRead
     if user.role != "especialista":
         raise PermissionDenied("Esta vista corresponde a especialistas.")
     return await turnos_service.assigned_to_staff(db, int(user.subject))
+
+
+@router.get("/client-search", response_model=list[ClienteProfileRead])
+async def search_clientes(
+    q: Annotated[str, Query(min_length=4, max_length=30)],
+    db: DbSession,
+) -> list[ClienteProfileRead]:
+    """Autocompletado de recepción. Devuelve como máximo ocho coincidencias."""
+    return await turnos_service.search_profiles(db, q)
+
+
+@router.get("/clients", response_model=list[ClienteProfileSummary])
+async def list_client_profiles(
+    db: DbSession, admin: AdminUser
+) -> list[ClienteProfileSummary]:
+    return await turnos_service.list_profiles(db)
 
 
 @router.get("/{cliente_id}", response_model=ClienteRead)
@@ -117,3 +135,13 @@ async def set_situacion(
     cliente_id: int, payload: SituacionUpdate, db: DbSession, admin: AdminUser
 ) -> ClienteRead:
     return await turnos_service.update_situacion(db, cliente_id, payload)
+
+
+@router.patch("/{cliente_id}/details", response_model=ClienteRead)
+async def set_turno_details(
+    cliente_id: int,
+    payload: TurnoDetailsUpdate,
+    db: DbSession,
+    admin: AdminUser,
+) -> ClienteRead:
+    return await turnos_service.update_details(db, cliente_id, payload)

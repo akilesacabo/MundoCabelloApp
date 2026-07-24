@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="es">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>Clientes · Mundo del Cabello</title><link rel="stylesheet" href="styles.css"></head>
+<body class="modern-page top-nav-page">
+  <div class="app-shell">
+    <aside class="app-sidebar">
+      <a class="dashboard-logo" href="admin.html"><span class="logo-mark">M</span><span><b>Mundo</b><small>del Cabello</small></span></a>
+      <nav class="site-nav dashboard-nav" aria-label="Navegación principal"></nav>
+      <div class="sidebar-profile"><div class="profile-avatar">AD</div><div><b>Administración</b><small>Base de clientes</small></div><button onclick="logout()">↗</button></div>
+    </aside>
+    <div class="app-content"><main class="app-main">
+      <div class="page-heading"><span class="section-kicker">BASE DE CLIENTES</span><h1>Clientes registrados</h1><p class="muted">Una ficha por cédula, con sus datos actuales y resumen de visitas.</p></div>
+      <div class="filter-bar"><div class="search-field"><span>⌕</span><input id="clientSearch" type="search" placeholder="Buscar por nombre, cédula o teléfono"></div><span id="clientCount" class="result-count"></span></div>
+      <section id="clientList" class="client-database" aria-live="polite"></section>
+    </main></div>
+  </div>
+  <script src="api.js"></script>
+  <script>
+    let clients=[];const normalize=value=>String(value).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();const escapeHtml=value=>String(value).replace(/[&<>'"]/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[char]));
+    function render(){const term=normalize(clientSearch.value);const rows=clients.filter(client=>normalize(`${client.nombre} ${client.cedula} ${client.telefono}`).includes(term));clientCount.textContent=`${rows.length} de ${clients.length}`;clientList.innerHTML=rows.length?rows.map(client=>`<article class="card client-profile-card"><span class="tag">${client.visitas} visita${client.visitas===1?'':'s'}</span><h2>${escapeHtml(client.nombre)}</h2><div class="profile-contact"><span><b>Cédula:</b> ${escapeHtml(client.cedula)}</span><span><b>Teléfono:</b> ${escapeHtml(client.telefono)}</span><span><b>Dirección:</b> ${escapeHtml(client.direccion)}</span><span><b>Última visita:</b> ${client.ultima_visita?new Date(client.ultima_visita).toLocaleDateString('es-VE'):'Sin visitas'}</span></div><div class="tag-actions">${client.etiquetas.length?client.etiquetas.map(code=>`<span class="tag">${escapeHtml(code)}</span>`).join(''):'<span class="muted">Sin etiquetas recientes</span>'}</div></article>`).join(''):'<div class="card empty-state"><h2>No hay clientes registrados</h2><p class="muted">Los perfiles aparecerán después del primer check-in.</p></div>'}
+    clientSearch.oninput=render;async function load(){try{clients=await api('/queue/clients');render()}catch(error){clientList.textContent=error.message}}load();
+  </script>
+</body>
+</html>

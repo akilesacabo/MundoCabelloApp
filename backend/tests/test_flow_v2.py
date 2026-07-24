@@ -47,6 +47,7 @@ async def test_checkin_creates_pending_services(api):
             "telefono": "+584141234567",
             "direccion": "Av Principal 123",
             "observacion": "prefiere secado",
+            "etiquetas": ["F", "TC"],
             "service_ids": [api["corte_id"], api["hidra_id"]],
         },
     )
@@ -54,6 +55,9 @@ async def test_checkin_creates_pending_services(api):
     body = r.json()
     assert body["estado"] == "en_espera"
     assert body["observacion"] == "prefiere secado"
+    assert body["etiquetas"] == ["F", "TC"]
+    assert body["situacion"] == "presente"
+    assert body["activo"] is True
     assert body["turno"] >= 13
     assert len(body["servicios"]) == 2
     for sv in body["servicios"]:
@@ -157,6 +161,12 @@ async def test_change_specialist_requires_pin(api):
     )
     assert r.status_code == 422
 
+    await ac.patch(
+        "/api/staff/3/manual-status",
+        json={"manual_status": "disponible"},
+        headers=api["admin_headers"],
+    )
+
     # PIN correcto + motivo → cambio y log
     r = await ac.post(
         f"/api/queue/{cli['id']}/services/{corte_sv['id']}/change-specialist",
@@ -209,6 +219,126 @@ async def test_toggle_en_prueba_and_manual_status(api):
         headers=api["admin_headers"],
     )
     assert r.json()["status"] == "break"
+
+
+async def test_manual_busy_status_is_selectable_and_excluded_from_eligible(api):
+    ac = api["ac"]
+    changed = await ac.patch(
+        "/api/staff/1/manual-status",
+        json={"manual_status": "ocupado"},
+        headers=api["admin_headers"],
+    )
+    assert changed.status_code == 200
+    assert changed.json()["manual_status"] == "ocupado"
+    assert changed.json()["status"] == "ocupado"
+
+    eligible = await ac.get("/api/staff/eligible", params={"area": "peluqueria"})
+    assert 1 not in {row["numero"] for row in eligible.json()}
+
+    client = await _checkin(ac, api)
+    service = next(
+        item for item in client["servicios"] if item["area_key"] == "peluqueria"
+    )
+    rejected = await ac.post(
+        f"/api/queue/{client['id']}/services/{service['id']}/assign",
+        json={"staff_numero": 1},
+        headers=api["admin_headers"],
+    )
+    assert rejected.status_code == 400
+    assert "no está disponible" in rejected.json()["detail"]
+
+
+async def test_progressive_profile_search_client_database_and_duplicate_guard(api):
+    ac = api["ac"]
+    created = await ac.post(
+        "/api/queue/checkin",
+        json={
+            "cedula": "V-25.482.938",
+            "nombre": "Ambar Vegas",
+            "telefono": "04145551212",
+            "direccion": "Los Palos Grandes",
+            "observacion": "Primera visita",
+            "etiquetas": ["XL", "CM"],
+            "service_ids": [api["corte_id"]],
+        },
+    )
+    assert created.status_code == 201, created.text
+
+    matches = await ac.get("/api/queue/client-search", params={"q": "2548"})
+    assert matches.status_code == 200
+    assert matches.json()[0]["nombre"] == "Ambar Vegas"
+    assert matches.json()[0]["cedula"] == "V-25482938"
+
+    profiles = await ac.get(
+        "/api/queue/clients", headers=api["admin_headers"]
+    )
+    assert profiles.status_code == 200
+    profile = next(row for row in profiles.json() if row["cedula"] == "V-25482938")
+    assert profile["visitas"] == 1
+    assert profile["etiquetas"] == ["CM", "XL"]
+
+    duplicate = await ac.post(
+        "/api/queue/checkin",
+        json={
+            "cedula": "V25482938",
+            "nombre": "Ambar Vegas",
+            "telefono": "04145551212",
+            "direccion": "Los Palos Grandes",
+            "service_ids": [api["corte_id"]],
+        },
+    )
+    assert duplicate.status_code == 409
+    assert "turno activo" in duplicate.json()["detail"]
+
+
+async def test_admin_can_update_visit_tags_and_observation(api):
+    client = await _checkin(api["ac"], api)
+    updated = await api["ac"].patch(
+        f"/api/queue/{client['id']}/details",
+        json={"observacion": "Usar producto suave", "etiquetas": ["F", "AC"]},
+        headers=api["admin_headers"],
+    )
+    assert updated.status_code == 200
+    assert updated.json()["observacion"] == "Usar producto suave"
+    assert updated.json()["etiquetas"] == ["AC", "F"]
+
+
+async def test_finished_or_estafa_turn_is_not_active(api):
+    ac = api["ac"]
+    client = await ac.post(
+        "/api/queue/checkin",
+        json={
+            "cedula": "V-19990000",
+            "nombre": "Cliente Final",
+            "telefono": "04141112222",
+            "direccion": "Calle Final",
+            "service_ids": [api["corte_id"]],
+        },
+    )
+    body = client.json()
+    service = body["servicios"][0]
+    await ac.post(
+        f"/api/queue/{body['id']}/services/{service['id']}/assign",
+        json={"staff_numero": 1},
+        headers=api["admin_headers"],
+    )
+    finished = await ac.post(
+        f"/api/queue/{body['id']}/services/{service['id']}/finish",
+        headers=api["admin_headers"],
+    )
+    assert finished.json()["activo"] is False
+
+    repeated = await ac.post(
+        "/api/queue/checkin",
+        json={
+            "cedula": "V19990000",
+            "nombre": "Cliente Final",
+            "telefono": "04141112222",
+            "direccion": "Calle Final",
+            "service_ids": [api["corte_id"]],
+        },
+    )
+    assert repeated.status_code == 201
 
 
 async def test_roles_public_queue_and_operational_situation(api):

@@ -16,6 +16,31 @@ class TurnoEstado(StrEnum):
 
 
 class SituacionTurno(StrEnum):
-    NORMAL = "normal"
+    PRESENTE = "presente"
     AUSENTE = "ausente"
     ESTAFA = "estafa"
+
+
+class EtiquetaCodigo(StrEnum):
+    INT = "INT"
+    F = "F"
+    CORTO = "CORTO"
+    LAVADO = "LAVADO"
+    AC = "AC"
+    TC = "TC"
+    XL = "XL"
+    CM = "CM"
+    DC = "DC"
+
+
+ETIQUETA_LABELS = {
+    EtiquetaCodigo.INT: "Interno",
+    EtiquetaCodigo.F: "Cabello fuerte",
+    EtiquetaCodigo.CORTO: "Cabello corto",
+    EtiquetaCodigo.LAVADO: "Cabello limpio",
+    EtiquetaCodigo.AC: "Asesoría de color",
+    EtiquetaCodigo.TC: "Trabajo de color",
+    EtiquetaCodigo.XL: "Cabello largo",
+    EtiquetaCodigo.CM: "Cabello maltratado",
+    EtiquetaCodigo.DC: "Diseño de corte",
+}

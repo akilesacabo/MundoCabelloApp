@@ -4,15 +4,10 @@
   <meta charset="utf-8"><meta name="viewport" content="width=device-width">
   <title>Panel operativo · Administración</title><link rel="stylesheet" href="styles.css">
 </head>
-<body class="admin-dashboard-body">
+<body class="admin-dashboard-body top-nav-page">
   <aside class="dashboard-sidebar">
     <a class="dashboard-logo" href="admin.html" aria-label="Mundo del Cabello, panel"><span class="logo-mark">M</span><span><b>Mundo</b><small>del Cabello</small></span></a>
     <nav class="site-nav dashboard-nav" aria-label="Navegación principal">
-      <a class="active" href="admin.html"><span>⌂</span>Panel operativo</a>
-      <a href="admin-staff.html"><span>♙</span>Especialistas</a>
-      <a href="admin-services.html"><span>✦</span>Servicios y productos</a>
-      <a href="checkin.html"><span>＋</span>Nuevo check-in</a>
-      <a href="queue.html"><span>◉</span>Cola pública</a>
     </nav>
     <div class="sidebar-profile"><div class="profile-avatar">AD</div><div><b>Administración</b><small>Panel principal</small></div><button onclick="logout()" title="Cerrar sesión" aria-label="Cerrar sesión">↗</button></div>
   </aside>
@@ -26,15 +21,18 @@
         <article class="metric-card metric-busy"><div class="metric-icon">◷</div><div><span>En atención</span><b id="metricBusy">—</b><small>Trabajando ahora</small></div></article>
         <article class="metric-card metric-break"><div class="metric-icon">☕</div><div><span>En pausa</span><b id="metricBreak">—</b><small>Fuera temporalmente</small></div></article>
       </section>
-      <div class="dashboard-columns">
+      <div class="dashboard-columns assignment-only">
         <section class="dashboard-section clients-section" aria-labelledby="clients-title"><div class="section-heading"><div><span class="section-kicker">FLUJO DE HOY</span><h2 id="clients-title">Clientes activos</h2></div><span id="clientCount" class="count-badge">0 clientes</span></div><div id="turnos" class="client-list"><div class="dashboard-skeleton"></div></div></section>
-        <section class="dashboard-section team-section" aria-labelledby="staff-title"><div class="section-heading"><div><span class="section-kicker">EQUIPO</span><h2 id="staff-title">Especialistas</h2></div><a href="admin-staff.html">Gestionar →</a></div><div id="staffSummary" class="staff-filter-tabs"></div><div id="staffStatus" class="staff-status-grid"></div></section>
       </div>
     </main>
   </div>
+  <div id="detailsModal" class="modal-backdrop" hidden><section class="edit-modal" role="dialog" aria-modal="true" aria-labelledby="detailsTitle"><div class="modal-heading"><div><span class="section-kicker">DATOS DE LA VISITA</span><h2 id="detailsTitle">Etiquetas y observación</h2></div><button class="close-button" type="button" onclick="closeDetails()" aria-label="Cerrar">×</button></div><form id="detailsForm"><input id="detailsClientId" type="hidden"><div id="detailsTags" class="tag-picker"></div><label>Observación<textarea id="detailsObservation" maxlength="1000" rows="4"></textarea></label><div class="modal-actions"><button type="button" class="secondary" onclick="closeDetails()">Cancelar</button><button type="submit" class="pink-button">Guardar cambios</button></div></form></section></div>
   <script src="api.js"></script>
   <script>
     const statusLabels={disponible:'Disponible',ocupado:'Ocupado',break:'En pausa'};
+    const situationLabels={presente:'Presente',ausente:'Ausente',estafa:'Estafa'};
+    const tagLabels={INT:'Interno',F:'Cabello fuerte',CORTO:'Cabello corto',LAVADO:'Cabello limpio',AC:'Asesoría de color',TC:'Trabajo de color',XL:'Cabello largo',CM:'Cabello maltratado',DC:'Diseño de corte'};
+    let currentQueue=[];
     const escapeHtml=value=>String(value).replace(/[&<>'"]/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[char]));
     async function mark(id,situacion){try{await api(`/queue/${id}/situacion`,{method:'PATCH',body:JSON.stringify({situacion})});await load()}catch(error){alert(error.message)}}
     async function assign(clientId,serviceId,area){
@@ -52,7 +50,7 @@
       }catch(error){return `<p class="assignment-note">${escapeHtml(error.message)}</p>`}
     }
     async function renderClients(queue,staffByNumber){
-      const active=queue.filter(client=>client.estado!=='finalizado');
+      const active=queue.filter(client=>client.activo);
       metricClients.textContent=active.length;clientCount.textContent=`${active.length} ${active.length===1?'cliente':'clientes'}`;
       metricServices.textContent=`${active.reduce((total,client)=>total+client.servicios.filter(service=>service.estado!=='finalizado').length,0)} servicios por completar`;
       if(!active.length){turnos.innerHTML='<div class="card empty-state"><h2>No hay clientes activos</h2><p class="muted">Los nuevos check-ins aparecerán aquí.</p></div>';return}
@@ -62,17 +60,20 @@
           return `<div class="service-assignment area-${escapeHtml(service.area_key)}"><div class="service-info"><span class="area-dot"></span><div><b>${escapeHtml(service.nombre)}</b><div class="service-meta">${escapeHtml(service.area_key)} · ${escapeHtml(service.estado.replace('_',' '))}</div>${assigned?`<div class="assigned-to"><span>${escapeHtml(assigned.initials)}</span> #${assigned.numero} ${escapeHtml(assigned.alias)}</div>`:''}</div></div>${await eligibleOptions(service)}</div>`;
         }));
         const completed=client.servicios.filter(service=>service.staff_numero||service.estado==='finalizado').length;const percent=client.servicios.length?Math.round(completed/client.servicios.length*100):0;const initials=client.nombre.split(' ').slice(0,2).map(part=>part[0]).join('').toUpperCase();
-        return `<article class="client-card" data-search="${escapeHtml(client.nombre.toLowerCase())}"><div class="client-card-header"><div class="client-identity"><div class="client-avatar">${escapeHtml(initials)}</div><div><div class="client-turn">TURNO #${client.turno}</div><h3>${escapeHtml(client.nombre)}</h3></div></div><button class="situation-menu status-${client.situacion}" onclick="this.closest('.client-card').querySelector('.situation-actions').classList.toggle('visible')">${escapeHtml(client.situacion)}⌄</button></div><div class="progress-block"><div><span>Progreso de asignación</span><b>${completed}/${client.servicios.length}</b></div><div class="progress-track"><span style="width:${percent}%"></span></div></div><div class="service-assignment-list">${services.join('')}</div><div class="situation-actions"><span>Cambiar situación</span><button class="secondary" onclick="mark(${client.id},'normal')">Presente</button><button onclick="mark(${client.id},'ausente')">Ausente</button><button class="danger" onclick="mark(${client.id},'estafa')">Estafa</button></div></article>`;
+        const tags=client.etiquetas.map(code=>`<span class="tag">${escapeHtml(code)}</span>`).join('');
+        return `<article class="client-card" data-search="${escapeHtml(`${client.nombre} ${client.cedula}`.toLowerCase())}"><div class="client-card-header"><div class="client-identity"><div class="client-avatar">${escapeHtml(initials)}</div><div><div class="client-turn">TURNO #${client.turno}</div><h3>${escapeHtml(client.nombre)}</h3><div class="tag-actions">${tags||'<span class="muted">Sin etiquetas</span>'}</div></div></div><button class="situation-menu status-${client.situacion}" onclick="this.closest('.client-card').querySelector('.situation-actions').classList.toggle('visible')">${escapeHtml(situationLabels[client.situacion]||client.situacion)}⌄</button></div><div class="progress-block"><div><span>Progreso de asignación</span><b>${completed}/${client.servicios.length}</b></div><div class="progress-track"><span style="width:${percent}%"></span></div></div><div class="service-assignment-list">${services.join('')}</div><div class="situation-actions"><span>Estado y datos de la visita</span><button class="secondary" onclick="mark(${client.id},'presente')">Presente</button><button onclick="mark(${client.id},'ausente')">Ausente</button><button class="danger" onclick="mark(${client.id},'estafa')">Estafa</button><button class="secondary" onclick="openDetails(${client.id})">Etiquetas y observación</button></div></article>`;
       }));turnos.innerHTML=cards.join('');
     }
     function renderStaff(staff){
       const counts=Object.fromEntries(['disponible','ocupado','break'].map(status=>[status,staff.filter(person=>person.status===status).length]));metricAvailable.textContent=counts.disponible;metricBusy.textContent=counts.ocupado;metricBreak.textContent=counts.break;
-      staffSummary.innerHTML=`<button class="active" onclick="filterStaff('all',this)">Todos <b>${staff.length}</b></button>`+['disponible','ocupado','break'].map(status=>`<button onclick="filterStaff('${status}',this)">${statusLabels[status]} <b>${counts[status]}</b></button>`).join('');
-      staffStatus.innerHTML=staff.map(person=>`<article class="staff-status-card" data-status="${person.status}" data-search="${escapeHtml(`${person.alias} ${person.nombre}`.toLowerCase())}"><div class="staff-avatar">${escapeHtml(person.initials)}</div><div class="staff-copy"><b>${escapeHtml(person.alias)}</b><span>${person.areas.map(escapeHtml).join(' · ')}</span></div><span class="staff-state status-${person.status}">${statusLabels[person.status]}</span></article>`).join('');
     }
-    function filterStaff(status,button){document.querySelectorAll('.staff-filter-tabs button').forEach(item=>item.classList.remove('active'));button.classList.add('active');document.querySelectorAll('.staff-status-card').forEach(card=>card.hidden=status!=='all'&&card.dataset.status!==status)}
     dashboardSearch.oninput=()=>{const term=dashboardSearch.value.trim().toLowerCase();document.querySelectorAll('[data-search]').forEach(card=>card.hidden=!card.dataset.search.includes(term))};
-    async function load(){try{const [queue,staff]=await Promise.all([api('/queue'),api('/staff')]);renderStaff(staff);await renderClients(queue,new Map(staff.map(person=>[person.numero,person])))}catch(error){turnos.innerHTML=`<div class="card"><p class="selection-error">${escapeHtml(error.message)}</p></div>`}}
+    detailsTags.innerHTML=Object.entries(tagLabels).map(([code,label])=>`<label class="tag-choice"><input type="checkbox" value="${code}"><b>${code}</b><span>${label}</span></label>`).join('');
+    function openDetails(id){const client=currentQueue.find(row=>row.id===id);if(!client)return;detailsClientId.value=id;detailsObservation.value=client.observacion||'';detailsTags.querySelectorAll('input').forEach(input=>input.checked=client.etiquetas.includes(input.value));detailsModal.hidden=false}
+    function closeDetails(){detailsModal.hidden=true}
+    detailsModal.onclick=event=>{if(event.target===detailsModal)closeDetails()};
+    detailsForm.onsubmit=async event=>{event.preventDefault();const etiquetas=[...detailsTags.querySelectorAll('input:checked')].map(input=>input.value);try{await api(`/queue/${detailsClientId.value}/details`,{method:'PATCH',body:JSON.stringify({observacion:detailsObservation.value,etiquetas})});closeDetails();await load()}catch(error){alert(error.message)}};
+    async function load(){try{const [queue,staff]=await Promise.all([api('/queue'),api('/staff')]);currentQueue=queue;renderStaff(staff);await renderClients(queue,new Map(staff.map(person=>[person.numero,person])))}catch(error){turnos.innerHTML=`<div class="card"><p class="selection-error">${escapeHtml(error.message)}</p></div>`}}
     load();
   </script>
 </body></html>

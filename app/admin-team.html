@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="es">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>Estado del equipo · Mundo del Cabello</title><link rel="stylesheet" href="styles.css"></head>
+<body class="modern-page top-nav-page">
+  <div class="app-shell">
+    <aside class="app-sidebar">
+      <a class="dashboard-logo" href="admin.html"><span class="logo-mark">M</span><span><b>Mundo</b><small>del Cabello</small></span></a>
+      <nav class="site-nav dashboard-nav" aria-label="Navegación principal"></nav>
+      <div class="sidebar-profile"><div class="profile-avatar">AD</div><div><b>Administración</b><small>Estado del equipo</small></div><button onclick="logout()">↗</button></div>
+    </aside>
+    <div class="app-content"><main class="app-main">
+      <div class="page-heading"><span class="section-kicker">EQUIPO EN VIVO</span><h1>Estado de especialistas</h1><p class="muted">Consulta la carga de trabajo y cambia la disponibilidad sin salir de esta pantalla.</p></div>
+      <div class="stats-strip"><div class="stat-chip"><span>Disponibles</span><b id="availableCount">—</b></div><div class="stat-chip"><span>Ocupados</span><b id="busyCount">—</b></div><div class="stat-chip"><span>En pausa</span><b id="breakCount">—</b></div></div>
+      <div class="filter-bar"><div class="search-field"><span>⌕</span><input id="teamSearch" type="search" placeholder="Buscar especialista o cliente"></div><select id="statusFilter"><option value="">Todos los estados</option><option value="disponible">Disponibles</option><option value="ocupado">Ocupados</option><option value="break">En pausa</option></select><span id="teamCount" class="result-count"></span></div>
+      <section id="teamList" class="team-status-list" aria-live="polite"></section>
+    </main></div>
+  </div>
+  <div id="toast" class="toast" hidden></div>
+  <script src="api.js"></script>
+  <script>
+    const labels={disponible:'Disponible',ocupado:'Ocupado',break:'En pausa'};let staff=[];
+    const normalize=value=>String(value).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
+    const escapeHtml=value=>String(value).replace(/[&<>'"]/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[char]));
+    function notify(message){toast.textContent=message;toast.hidden=false;clearTimeout(notify.timer);notify.timer=setTimeout(()=>toast.hidden=true,2400)}
+    async function changeStatus(numero,value){try{const updated=await api(`/staff/${numero}/manual-status`,{method:'PATCH',body:JSON.stringify({manual_status:value})});notify(updated.status==='ocupado'&&value==='disponible'?'Sigue ocupado porque tiene servicios activos.':'Estado actualizado.');await load()}catch(error){notify(error.message)}}
+    function render(){
+      const term=normalize(teamSearch.value),status=statusFilter.value;
+      const rows=staff.filter(person=>(!status||person.status===status)&&normalize(`${person.alias} ${person.nombre} ${person.areas.join(' ')} ${person.activos.map(item=>item.cliente).join(' ')}`).includes(term));
+      availableCount.textContent=staff.filter(person=>person.status==='disponible').length;busyCount.textContent=staff.filter(person=>person.status==='ocupado').length;breakCount.textContent=staff.filter(person=>person.status==='break').length;teamCount.textContent=`${rows.length} de ${staff.length}`;
+      teamList.innerHTML=rows.length?rows.map(person=>`<article class="card team-status-card"><div class="staff-status-head"><div class="staff-avatar">${escapeHtml(person.initials)}</div><div class="staff-copy"><b>#${person.numero} · ${escapeHtml(person.alias)}</b><span>${person.areas.map(escapeHtml).join(' · ')}</span></div><select class="status-select status-${person.status}" aria-label="Estado de ${escapeHtml(person.alias)}" onchange="changeStatus(${person.numero},this.value)"><option value="disponible" ${person.manual_status==='disponible'?'selected':''}>Disponible</option><option value="ocupado" ${person.manual_status==='ocupado'?'selected':''}>Ocupado</option><option value="break" ${person.manual_status==='break'?'selected':''}>En pausa</option></select></div>${person.activos.length?`<div class="active-client-list"><b>Atendiendo ahora</b>${person.activos.map(item=>`<div>Turno #${item.turno} · ${escapeHtml(item.cliente)} · ${escapeHtml(item.servicio)}</div>`).join('')}</div>`:'<div class="active-client-list muted">Sin servicios activos.</div>'}</article>`).join(''):'<div class="card empty-state"><h2>Sin coincidencias</h2><p class="muted">Cambia el filtro o la búsqueda.</p></div>';
+    }
+    teamSearch.oninput=render;statusFilter.onchange=render;
+    async function load(){try{staff=await api('/staff');render()}catch(error){teamList.textContent=error.message}}
+    load();setInterval(load,10000);
+  </script>
+</body>
+</html>

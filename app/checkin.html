@@ -3,117 +3,172 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width">
-  <title>Check-in</title>
+  <title>Nuevo check-in · Mundo del Cabello</title>
   <link rel="stylesheet" href="styles.css">
 </head>
-<body class="modern-page">
-  <div class="app-shell"><aside class="app-sidebar"><a class="dashboard-logo" href="checkin.html"><span class="logo-mark">M</span><span><b>Mundo</b><small>del Cabello</small></span></a><nav class="site-nav dashboard-nav" aria-label="Navegación principal"><a class="active" href="checkin.html"><span>＋</span>Nuevo check-in</a><a href="queue.html"><span>◉</span>Cola pública</a><a href="login.html"><span>↗</span>Acceso del equipo</a></nav><div class="sidebar-profile"><div class="profile-avatar">MC</div><div><b>Recepción</b><small>Registro de clientes</small></div></div></aside>
-  <div class="app-content"><header class="app-topbar"><div class="app-topbar-copy"><b>Recepción</b><span>Una bienvenida rápida y sencilla</span></div><span class="live-indicator"><span></span>Disponible</span></header><main class="app-main"><div class="page-heading"><div><span class="section-kicker">BIENVENIDO</span><h1>Registro de llegada</h1><p class="muted">Encuentra al cliente, confirma sus datos y elige los servicios de hoy.</p></div></div><form id="form" class="checkin-layout">
-    <section class="card"><span class="section-kicker">PASO 1</span><h2>Datos del cliente</h2>
-        <label>Cédula<div class="row"><input id="cedula" name="cedula" required><button type="button" class="secondary" onclick="lookup()">Buscar datos</button></div></label>
-        <label>Nombre<input id="nombre" name="nombre" required></label>
-        <label>Teléfono<input id="telefono" name="telefono" required></label>
-        <label>Dirección<input id="direccion" name="direccion" required></label>
-        <label>Observación<input name="observacion"></label>
+<body class="modern-page top-nav-page">
+  <div class="app-shell">
+    <aside class="app-sidebar">
+      <a class="dashboard-logo" href="checkin.html"><span class="logo-mark">M</span><span><b>Mundo</b><small>del Cabello</small></span></a>
+      <nav class="site-nav dashboard-nav" aria-label="Navegación principal"></nav>
+      <div class="sidebar-profile"><div class="profile-avatar">MC</div><div><b>Recepción</b><small>Registro de clientes</small></div></div>
+    </aside>
+    <div class="app-content">
+      <main class="app-main">
+        <div class="page-heading">
+          <span class="section-kicker">NUEVO CHECK-IN</span>
+          <h1>Registro de llegada</h1>
+          <p class="muted">Completa los tres pasos. El turno se crea solamente al final.</p>
+        </div>
 
-        <p id="message" aria-live="polite"></p></section><section class="card"><span class="section-kicker">PASO 2</span><h2>Servicios para hoy</h2><fieldset class="service-picker">
-          <legend>Servicios</legend>
-          <input id="serviceSearch" type="search" placeholder="Buscar un servicio" aria-label="Buscar servicios">
-          <div id="serviceGroups" class="service-groups"></div>
-          <div class="selection-summary">
-            <strong id="selectionCount">Ningún servicio seleccionado</strong>
-            <button id="clearServices" type="button" class="secondary" disabled>Limpiar selección</button>
-          </div>
-          <div id="selectedServices" class="selected-services"></div>
-          <p id="serviceError" class="selection-error hidden">Selecciona al menos un servicio.</p>
-        </fieldset>
+        <ol class="wizard-progress" aria-label="Progreso del check-in">
+          <li class="active" data-step-indicator="1"><b>1</b><span>Cliente</span></li>
+          <li data-step-indicator="2"><b>2</b><span>Servicios</span></li>
+          <li data-step-indicator="3"><b>3</b><span>Etiquetas y observación</span></li>
+        </ol>
 
-        <button class="pink-button checkin-submit">Confirmar y registrar turno</button></section></form></main></div></div>
+        <form id="form" class="wizard-card card">
+          <section class="wizard-step active" data-step="1">
+            <span class="section-kicker">PASO 1 DE 3</span>
+            <h2>Buscar o registrar cliente</h2>
+            <p class="muted">Escribe al menos cuatro números de la cédula para buscar coincidencias.</p>
+            <div class="form-grid">
+              <label class="full autocomplete-field">Cédula
+                <input id="cedula" name="cedula" required autocomplete="off" inputmode="numeric" placeholder="Ej. V-14.220.100">
+                <div id="clientMatches" class="autocomplete-results" hidden></div>
+              </label>
+              <label>Nombre<input id="nombre" name="nombre" required autocomplete="name"></label>
+              <label>Teléfono<input id="telefono" name="telefono" required autocomplete="tel"></label>
+              <label class="full">Dirección<input id="direccion" name="direccion" required autocomplete="street-address"></label>
+            </div>
+            <p id="clientMessage" class="field-message" aria-live="polite"></p>
+            <div class="wizard-actions"><span></span><button type="button" class="pink-button" onclick="goToStep(2)">Continuar a servicios →</button></div>
+          </section>
+
+          <section class="wizard-step" data-step="2" hidden>
+            <span class="section-kicker">PASO 2 DE 3</span>
+            <h2>Servicios para hoy</h2>
+            <fieldset class="service-picker">
+              <legend class="sr-only">Servicios</legend>
+              <input id="serviceSearch" type="search" placeholder="Buscar un servicio" aria-label="Buscar servicios">
+              <div id="serviceGroups" class="service-groups"></div>
+              <div class="selection-summary">
+                <strong id="selectionCount">Ningún servicio seleccionado</strong>
+                <button id="clearServices" type="button" class="secondary" disabled>Limpiar selección</button>
+              </div>
+              <div id="selectedServices" class="selected-services"></div>
+              <p id="serviceError" class="selection-error hidden">Selecciona al menos un servicio.</p>
+            </fieldset>
+            <div class="wizard-actions"><button type="button" class="secondary" onclick="goToStep(1)">← Volver</button><button type="button" class="pink-button" onclick="goToStep(3)">Continuar →</button></div>
+          </section>
+
+          <section class="wizard-step" data-step="3" hidden>
+            <span class="section-kicker">PASO 3 DE 3</span>
+            <h2>Etiquetas y observación</h2>
+            <p class="muted">Agrega únicamente la información que sea útil para atender esta visita.</p>
+            <fieldset>
+              <legend>Etiquetas del servicio</legend>
+              <div id="tagPicker" class="tag-picker"></div>
+            </fieldset>
+            <label>Observación<textarea id="observacion" name="observacion" maxlength="1000" rows="4" placeholder="Indicaciones adicionales para el equipo"></textarea></label>
+            <div id="checkinSummary" class="checkin-review"></div>
+            <p id="message" class="field-message" aria-live="polite"></p>
+            <div class="wizard-actions"><button type="button" class="secondary" onclick="goToStep(2)">← Volver</button><button id="submitButton" class="pink-button">Guardar y crear turno</button></div>
+          </section>
+        </form>
+      </main>
+    </div>
+  </div>
   <script src="api.js"></script>
   <script>
-    let serviceCatalog = [];
-    const selectedIds = new Set();
-    const normalize = value => String(value).normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+    const TAGS={INT:'Interno',F:'Cabello fuerte',CORTO:'Cabello corto',LAVADO:'Cabello limpio',AC:'Asesoría de color',TC:'Trabajo de color',XL:'Cabello largo',CM:'Cabello maltratado',DC:'Diseño de corte'};
+    let serviceCatalog=[],currentStep=1,lookupTimer,submitting=false;
+    const selectedIds=new Set();
+    const normalize=value=>String(value).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
+    const escapeHtml=value=>String(value).replace(/[&<>'"]/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[char]));
 
-    async function loadServices() {
-      const groups = await api('/services');
-      serviceCatalog = groups.map(group => ({
-        area_key: group.area.key,
-        servicios: group.servicios
-      }));
+    tagPicker.innerHTML=Object.entries(TAGS).map(([code,label])=>`<label class="tag-choice"><input type="checkbox" name="etiquetas" value="${code}"><b>${code}</b><span>${label}</span></label>`).join('');
+
+    function goToStep(step){
+      if(step===2&&!validateClient())return;
+      if(step===3&&!selectedIds.size){serviceError.classList.remove('hidden');serviceSearch.focus();return}
+      currentStep=step;
+      document.querySelectorAll('.wizard-step').forEach(panel=>{const active=+panel.dataset.step===step;panel.hidden=!active;panel.classList.toggle('active',active)});
+      document.querySelectorAll('[data-step-indicator]').forEach(item=>{const value=+item.dataset.stepIndicator;item.classList.toggle('active',value===step);item.classList.toggle('complete',value<step)});
+      if(step===3)renderReview();
+      window.scrollTo({top:0,behavior:'smooth'});
+    }
+
+    function validateClient(){
+      for(const input of [cedula,nombre,telefono,direccion]){if(!input.reportValidity())return false}
+      return true;
+    }
+
+    function renderReview(){
+      const selected=serviceCatalog.flatMap(group=>group.servicios).filter(service=>selectedIds.has(service.id));
+      const tags=[...document.querySelectorAll('[name="etiquetas"]:checked')].map(input=>input.value);
+      checkinSummary.innerHTML=`<b>Resumen del turno</b><span>${escapeHtml(nombre.value)} · ${selected.length} servicio${selected.length===1?'':'s'}</span><div>${selected.map(service=>`<span class="tag">${escapeHtml(service.nombre)}</span>`).join('')}</div><small>${tags.length?`Etiquetas: ${tags.join(', ')}`:'Sin etiquetas'}</small>`;
+    }
+
+    async function loadServices(){
+      const groups=await api('/services');
+      serviceCatalog=groups.map(group=>({area_key:group.area.key,servicios:group.servicios}));
       renderServices();
     }
 
-    function renderServices() {
-      const term = normalize(serviceSearch.value);
-      const groups = serviceCatalog.map(group => ({
-        ...group,
-        servicios: group.servicios.filter(service => normalize(`${service.nombre} ${group.area_key}`).includes(term))
-      })).filter(group => group.servicios.length);
-
-      serviceGroups.innerHTML = groups.length ? groups.map(group => `
-        <section class="service-group">
-          <h3>${group.area_key}</h3>
-          ${group.servicios.map(service => `
-            <label class="service-option">
-              <input type="checkbox" value="${service.id}" ${selectedIds.has(service.id) ? 'checked' : ''}>
-              <span><span>${service.nombre}</span><b>$${service.precio_usd}</b></span>
-            </label>`).join('')}
-        </section>`).join('') : '<p class="muted">No se encontraron servicios.</p>';
-
-      serviceGroups.querySelectorAll('input[type="checkbox"]').forEach(input => {
-        input.onchange = () => {
-          const id = +input.value;
-          input.checked ? selectedIds.add(id) : selectedIds.delete(id);
-          updateSelection();
-        };
-      });
+    function renderServices(){
+      const term=normalize(serviceSearch.value);
+      const groups=serviceCatalog.map(group=>({...group,servicios:group.servicios.filter(service=>normalize(`${service.nombre} ${group.area_key}`).includes(term))})).filter(group=>group.servicios.length);
+      serviceGroups.innerHTML=groups.length?groups.map(group=>`<section class="service-group"><h3>${escapeHtml(group.area_key)}</h3>${group.servicios.map(service=>`<label class="service-option"><input type="checkbox" value="${service.id}" ${selectedIds.has(service.id)?'checked':''}><span><span>${escapeHtml(service.nombre)}</span><b>$${service.precio_usd}</b></span></label>`).join('')}</section>`).join(''):'<p class="muted">No se encontraron servicios.</p>';
+      serviceGroups.querySelectorAll('input[type="checkbox"]').forEach(input=>input.onchange=()=>{const id=+input.value;input.checked?selectedIds.add(id):selectedIds.delete(id);updateSelection()});
       updateSelection();
     }
 
-    function updateSelection() {
-      const selected = serviceCatalog.flatMap(group => group.servicios).filter(service => selectedIds.has(service.id));
-      selectionCount.textContent = selected.length ? `${selected.length} servicio${selected.length === 1 ? '' : 's'} seleccionado${selected.length === 1 ? '' : 's'}` : 'Ningún servicio seleccionado';
-      clearServices.disabled = !selected.length;
-      selectedServices.innerHTML = selected.map(service => `<span class="tag">${service.nombre}</span>`).join('');
-      serviceError.classList.toggle('hidden', selected.length > 0);
+    function updateSelection(){
+      const selected=serviceCatalog.flatMap(group=>group.servicios).filter(service=>selectedIds.has(service.id));
+      selectionCount.textContent=selected.length?`${selected.length} servicio${selected.length===1?'':'s'} seleccionado${selected.length===1?'':'s'}`:'Ningún servicio seleccionado';
+      clearServices.disabled=!selected.length;
+      selectedServices.innerHTML=selected.map(service=>`<span class="tag">${escapeHtml(service.nombre)}</span>`).join('');
+      serviceError.classList.toggle('hidden',selected.length>0);
     }
 
-    serviceSearch.oninput = renderServices;
-    clearServices.onclick = () => { selectedIds.clear(); renderServices(); };
-
-    async function lookup() {
-      try {
-        const person = await api(`/queue/lookup?cedula=${encodeURIComponent(cedula.value)}`, {method: 'POST'});
-        nombre.value = person.nombre;
-        telefono.value = person.telefono;
-        direccion.value = person.direccion;
-        message.textContent = 'Datos encontrados.';
-      } catch (error) { message.textContent = 'Cliente nuevo: completa sus datos.'; }
+    function selectProfile(profile){
+      cedula.value=profile.cedula;nombre.value=profile.nombre;telefono.value=profile.telefono;direccion.value=profile.direccion;
+      clientMatches.hidden=true;clientMessage.textContent=`Cliente existente: ${profile.nombre}. Confirma sus datos antes de continuar.`;
     }
 
-    form.onsubmit = async event => {
+    function renderMatches(matches){
+      clientMatches.innerHTML=matches.length?matches.map((profile,index)=>`<button type="button" data-index="${index}"><b>${escapeHtml(profile.nombre)}</b><span>${escapeHtml(profile.cedula)} · ${escapeHtml(profile.telefono)}</span></button>`).join(''):'<div class="no-match">Sin coincidencias. Completa los datos para registrar un cliente nuevo.</div>';
+      clientMatches.hidden=false;
+      clientMatches.querySelectorAll('button').forEach(button=>button.onclick=()=>selectProfile(matches[+button.dataset.index]));
+    }
+
+    cedula.oninput=()=>{
+      clearTimeout(lookupTimer);clientMessage.textContent='';
+      const query=cedula.value.trim();
+      if(query.replace(/\D/g,'').length<4){clientMatches.hidden=true;return}
+      lookupTimer=setTimeout(async()=>{try{renderMatches(await api(`/queue/client-search?q=${encodeURIComponent(query)}`))}catch(error){clientMatches.hidden=true;clientMessage.textContent=error.message}},250);
+    };
+    document.addEventListener('click',event=>{if(!event.target.closest('.autocomplete-field'))clientMatches.hidden=true});
+    serviceSearch.oninput=renderServices;
+    clearServices.onclick=()=>{selectedIds.clear();renderServices()};
+
+    form.onsubmit=async event=>{
       event.preventDefault();
-      if (!selectedIds.size) {
-        serviceError.classList.remove('hidden');
-        serviceSearch.focus();
-        return;
-      }
-      const data = new FormData(event.target);
-      const payload = {
-        cedula: data.get('cedula'), nombre: data.get('nombre'), telefono: data.get('telefono'),
-        direccion: data.get('direccion'), observacion: data.get('observacion'), service_ids: [...selectedIds]
-      };
-      try {
-        const client = await api('/queue/checkin', {method: 'POST', body: JSON.stringify(payload)});
-        message.innerHTML = `Turno registrado: <b>#${client.turno}</b>`;
-        event.target.reset();
-        selectedIds.clear();
-        renderServices();
-      } catch (error) { message.textContent = error.message; }
+      if(submitting)return;
+      if(currentStep!==3){goToStep(currentStep+1);return}
+      const data=new FormData(form);
+      const payload={cedula:data.get('cedula'),nombre:data.get('nombre'),telefono:data.get('telefono'),direccion:data.get('direccion'),observacion:data.get('observacion'),etiquetas:data.getAll('etiquetas'),service_ids:[...selectedIds]};
+      submitting=true;submitButton.disabled=true;submitButton.textContent='Creando turno…';message.textContent='';
+      try{
+        const client=await api('/queue/checkin',{method:'POST',body:JSON.stringify(payload)});
+        form.reset();selectedIds.clear();renderServices();goToStep(1);
+        clientMessage.innerHTML=`Turno registrado correctamente: <b>#${client.turno}</b>`;
+      }catch(error){message.textContent=error.message}
+      finally{submitting=false;submitButton.disabled=false;submitButton.textContent='Guardar y crear turno'}
     };
 
-    loadServices();
+    loadServices().catch(error=>{serviceGroups.textContent=error.message});
   </script>
 </body>
 </html>

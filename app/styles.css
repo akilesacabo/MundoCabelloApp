@@ -246,3 +246,93 @@ body.modern-page { min-height:100vh;background:radial-gradient(circle at 92% 2%,
 @media (max-width:900px) { .modern-page .app-shell { grid-template-columns:1fr }.modern-page .app-sidebar { position:relative;height:auto;padding:16px }.modern-page .dashboard-logo { padding-bottom:15px }.modern-page .dashboard-nav { display:flex;overflow:auto }.modern-page .dashboard-nav a { flex:0 0 auto }.modern-page .sidebar-profile { display:none }.modern-page .app-topbar { display:none }.modern-page .form-card { position:static }.modern-page .management-layout,.checkin-layout,.public-hero,.queue-stage { grid-template-columns:1fr }.public-art { min-height:300px }.public-hero { padding-top:15px } }
 @media (max-width:620px) { .modern-page .app-main { padding-top:26px }.modern-page .management-layout { grid-template-columns:1fr }.stats-strip { grid-template-columns:1fr 1fr }.form-grid { grid-template-columns:1fr }.form-grid .full { grid-column:auto }.filter-bar { align-items:stretch;flex-direction:column }.public-copy h1 { font-size:2.8rem }.public-art { min-height:240px }.entity-row { align-items:center }.modal-actions { flex-direction:column-reverse }.modal-actions button { width:100% } }
 @media (prefers-reduced-motion:reduce) { *,*::before,*::after { scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important } }
+
+/* Navegación superior compartida y flujos de operación de julio 2026 */
+.top-nav-page .app-shell { display:block }
+.top-nav-page .app-sidebar {
+  position:sticky;top:0;height:auto;min-height:72px;display:flex;flex-direction:row;
+  align-items:center;gap:22px;padding:10px 3vw;z-index:40
+}
+.top-nav-page .dashboard-logo { flex:0 0 auto;padding:0;border:0 }
+.top-nav-page .dashboard-nav { display:flex;align-items:center;gap:4px;overflow-x:auto;margin:0;flex:1;flex-wrap:nowrap;justify-content:flex-start }
+.top-nav-page .dashboard-nav a { flex:0 0 auto;padding:10px 12px }
+.top-nav-page .sidebar-profile { position:static;flex:0 0 auto;padding:0;border:0 }
+.top-nav-page .sidebar-profile button { display:none }
+.top-nav-page .app-topbar { top:72px }
+
+.admin-dashboard-body.top-nav-page .dashboard-sidebar {
+  position:sticky;top:0;width:100%;height:auto;min-height:72px;display:flex;flex-direction:row;
+  align-items:center;gap:22px;padding:10px 3vw;z-index:40;transform:none
+}
+.admin-dashboard-body.top-nav-page .dashboard-logo { flex:0 0 auto;padding:0;border:0 }
+.admin-dashboard-body.top-nav-page .dashboard-nav { display:flex;align-items:center;gap:4px;overflow-x:auto;margin:0;flex:1;flex-wrap:nowrap;justify-content:flex-start }
+.admin-dashboard-body.top-nav-page .dashboard-nav a { flex:0 0 auto;padding:10px 12px }
+.admin-dashboard-body.top-nav-page .sidebar-profile { position:static;flex:0 0 auto;padding:0;border:0 }
+.admin-dashboard-body.top-nav-page .dashboard-shell { margin-left:0 }
+.admin-dashboard-body.top-nav-page .dashboard-topbar { position:sticky;top:72px }
+.admin-dashboard-body.top-nav-page .dashboard-columns.assignment-only { grid-template-columns:minmax(0,1fr) }
+
+.wizard-progress { display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:0 0 18px;padding:0;list-style:none }
+.wizard-progress li { display:flex;align-items:center;gap:9px;padding:12px 14px;border:1px solid #e6dfd9;border-radius:14px;color:#8b8288;background:#ffffffa8;font-size:.75rem;font-weight:700 }
+.wizard-progress li b { display:grid;place-items:center;width:28px;height:28px;border-radius:50%;background:#eee8e3 }
+.wizard-progress li.active { color:#8d3f69;border-color:#dc6fa8;background:#fff }
+.wizard-progress li.active b,.wizard-progress li.complete b { color:#fff;background:#dc6fa8 }
+.wizard-progress li.complete { color:#8d3f69 }
+.wizard-card { padding:28px }
+.wizard-step { animation:page-in .28s ease both }
+.wizard-step[hidden] { display:none }
+.wizard-step h2 { margin:5px 0 5px }
+.wizard-actions { display:flex;justify-content:space-between;gap:12px;margin-top:24px;padding-top:18px;border-top:1px solid #eee8e3 }
+.wizard-actions button { min-width:150px }
+.autocomplete-field { position:relative }
+.autocomplete-results { position:absolute;left:0;right:0;top:calc(100% + 5px);z-index:30;overflow:hidden;border:1px solid #e1d8d3;border-radius:14px;background:#fff;box-shadow:0 18px 46px #24140a22 }
+.autocomplete-results button { display:block;width:100%;padding:11px 14px;text-align:left;color:#1d2330;background:#fff;border-radius:0;border-bottom:1px solid #eee8e3 }
+.autocomplete-results button:hover { transform:none!important;background:#fcf4f8 }
+.autocomplete-results button b,.autocomplete-results button span { display:block }
+.autocomplete-results button span { margin-top:3px;color:#817981;font-size:.7rem }
+.autocomplete-results .no-match { padding:14px;color:#817981;font-size:.76rem }
+.field-message { min-height:22px;margin:10px 0 0;color:#91456e;font-size:.8rem }
+.tag-picker { display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin:8px 0 18px }
+.tag-choice { display:grid!important;grid-template-columns:auto 1fr;align-items:center;column-gap:8px;margin:0;padding:12px;border:1px solid #ddd5cf;border-radius:13px;background:#fcfbfa;cursor:pointer }
+.tag-choice input { grid-row:1/3;width:17px!important;height:17px;padding:0!important;accent-color:#dc6fa8 }
+.tag-choice b { font-size:.78rem;color:#93486e }
+.tag-choice span { color:#817981;font-size:.65rem }
+.tag-choice:has(input:checked) { border-color:#dc6fa8;background:#faeaf2;box-shadow:0 0 0 3px #dc6fa812 }
+.modern-page textarea { width:100%;resize:vertical;padding:12px;border:1px solid #ddd5cf;border-radius:10px;background:#fcfbfa;font:inherit;outline:none }
+.modern-page textarea:focus { background:#fff;border-color:#d66da4;box-shadow:0 0 0 4px #dc6fa817 }
+.checkin-review { display:grid;gap:8px;margin-top:18px;padding:16px;border:1px solid #e6dfd9;border-radius:14px;background:#faf7f5 }
+.checkin-review>span,.checkin-review>small { color:#817981 }
+.tag-actions { display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-top:10px }
+.tag-actions .tag { margin:0 }
+.status-select { width:auto!important;min-width:112px;padding:7px 28px 7px 9px!important;border-radius:99px!important;font-size:.68rem;font-weight:700 }
+.team-status-list { display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px }
+.team-status-card { padding:16px }
+.team-status-card .staff-status-head { display:flex;align-items:center;gap:11px }
+.team-status-card .staff-status-head .staff-copy { flex:1 }
+.active-client-list { margin:12px 0 0;padding:10px;border-radius:11px;background:#f7f2ef;font-size:.7rem }
+.client-database { display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px }
+.client-profile-card { padding:18px }
+.profile-contact { display:grid;gap:4px;margin:12px 0;color:#746d70;font-size:.76rem }
+.queue-explanation { margin-bottom:18px;padding:14px 17px;border-left:4px solid #dc6fa8;border-radius:10px;background:#fff7fb;color:#675d63 }
+.queue-number-list { display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin:22px 0 }
+.queue-number-chip { display:grid;place-items:center;min-width:90px;min-height:90px;padding:12px;border-radius:24px;color:#8a3d66;background:#f8e5ef;font:700 2.6rem Georgia,serif }
+.sr-only { position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0 }
+
+@media (max-width:980px) {
+  .top-nav-page .app-sidebar,.admin-dashboard-body.top-nav-page .dashboard-sidebar { align-items:flex-start;flex-wrap:wrap;gap:8px;padding:10px 4vw }
+  .top-nav-page .dashboard-nav,.admin-dashboard-body.top-nav-page .dashboard-nav { order:3;width:100% }
+  .top-nav-page .sidebar-profile,.admin-dashboard-body.top-nav-page .sidebar-profile { margin-left:auto }
+  .admin-dashboard-body.top-nav-page .dashboard-topbar { top:125px }
+}
+@media (max-width:1400px) {
+  .top-nav-page .sidebar-profile,.admin-dashboard-body.top-nav-page .sidebar-profile { display:none }
+}
+@media (max-width:680px) {
+  .wizard-progress li { justify-content:center;padding:9px }
+  .wizard-progress li span { display:none }
+  .tag-picker { grid-template-columns:1fr 1fr }
+  .wizard-actions { flex-direction:column-reverse }
+  .wizard-actions span { display:none }
+  .wizard-actions button { width:100% }
+  .top-nav-page .sidebar-profile,.admin-dashboard-body.top-nav-page .sidebar-profile { display:none }
+}
