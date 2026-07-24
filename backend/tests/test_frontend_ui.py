@@ -30,6 +30,8 @@ def test_admin_dashboard_prioritizes_status_and_assignment():
     assert "/staff/eligible?area=" in html
     assert "/services/${serviceId}/assign" in html
     assert "applyRoleNavigation()" in (APP_DIR / "api.js").read_text()
+    assert 'onchange="highlightSpecialist(this)"' in html
+    assert "specialist-selected" in html
 
 
 def test_public_queue_preserves_and_recognizes_team_session():
@@ -104,6 +106,15 @@ def test_specialist_has_an_explicit_empty_state():
     assert "No tienes clientes pendientes" in html
     assert "empty-state" in html
     assert 'id="clientSearch"' in html
+
+
+def test_specialist_tablet_controls_have_touch_sized_targets():
+    css = (APP_DIR / "styles.css").read_text()
+
+    assert ".specialist-service button { min-width:104px;min-height:44px" in css
+    assert "@media (min-width:700px) and (max-width:900px)" in css
+    assert ".specialist-grid { grid-template-columns:1fr }" in css
+    assert "@media (hover:none) and (pointer:coarse)" in css
 
 
 def test_secondary_screens_use_shared_modern_design():

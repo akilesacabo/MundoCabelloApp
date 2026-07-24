@@ -351,3 +351,19 @@ Objetivo: **backend real que refleje la v2** y camino a deploy.
 - ⏸ Pendiente: despliegue en producción.
 - Decisión de Juan Pablo, 2026-07-24: estos comentarios se entregan en un commit
   separado del respaldo inicial.
+
+### Selección de especialista y validación en tablet (2026-07-24)
+
+- ✅ Al seleccionar un especialista en una asignación, el menú queda resaltado en rosa,
+  el botón cambia de énfasis y aparece el mensaje `Seleccionado: …`. La asignación
+  todavía requiere pulsar **Asignar**, para evitar cambios accidentales.
+- ✅ La vista del especialista incorpora objetivos táctiles de al menos 44 px y usa
+  una sola columna en tablet vertical; en horizontal aprovecha dos columnas.
+- ✅ Inspección real en navegador a 768×1024 y 1024×768: navegación completa,
+  sin desbordamiento horizontal, botón **Finalizar** de 48 px en vertical y 44 px
+  en horizontal. Consola sin errores ni advertencias.
+- ✅ Verificación automática: 27 tests, Ruff y sintaxis JavaScript limpios.
+- ⏸ No forman parte de este ajuste: limpiar los turnos históricos duplicados #14–#16
+  ni agregar una ficha histórica detallada del cliente. El sistema ya previene nuevos
+  duplicados y ofrece el directorio de clientes solicitado.
+- Estado: implementado y probado en local. **Pendiente desplegar en producción.**

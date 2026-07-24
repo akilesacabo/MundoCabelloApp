@@ -216,6 +216,14 @@ a { color: var(--pink); }
 .metric-card { border-color:#e6dfd9;box-shadow:0 10px 28px #24140a09 }.metric-clients .metric-icon { color:#a33f74;background:#f8e5ef }.metric-available .metric-icon { color:#287257;background:#e4f3eb }.metric-busy .metric-icon { color:#854366;background:#f4e3ec }.metric-break .metric-icon { color:#9a6a25;background:#f8efdf }
 .section-heading a { color:#c2548d }.count-badge { color:#735c68;background:#f2e8ed }.admin-dashboard-body .client-card { border-color:#e6dfd9;box-shadow:0 12px 32px #24140a0a }.admin-dashboard-body .client-card:hover { border-color:#e2bfd1;box-shadow:0 16px 38px #6c304d12 }.client-avatar { color:#7e345b;background:linear-gradient(145deg,#faeaf2,#efbfd7) }.client-turn { color:#bd558c }.progress-block b { color:#a84277 }.progress-track { background:#f1e7ec }.progress-track span { background:linear-gradient(90deg,#c9548f,#e78cba) }
 .admin-dashboard-body .assign-control button { background:#1d2330 }.admin-dashboard-body .assigned-to { color:#a04474 }.assigned-to span { color:#85335e;background:#f6dfeb }.staff-filter-tabs { background:#eee8e3 }.staff-filter-tabs button.active { color:#8e3d68;box-shadow:0 3px 10px #24140a12 }.admin-dashboard-body .staff-status-card { border-color:#e6dfd9;box-shadow:0 5px 18px #24140a06 }.staff-avatar { color:#8a3c66;background:#f5e2ec }.dashboard-skeleton { background:linear-gradient(100deg,#eee8e3 30%,#faf8f6 50%,#eee8e3 70%);background-size:300% 100% }
+.admin-dashboard-body .assign-control select.specialist-selected {
+  color:#81375f;background:#fff0f7;border-color:#dc6fa8;
+  box-shadow:0 0 0 4px #dc6fa81c;font-weight:800
+}
+.admin-dashboard-body .assign-control select.specialist-selected + button {
+  background:linear-gradient(135deg,#a94477,#dc6fa8);
+  box-shadow:0 7px 18px #dc6fa82e
+}
 
 /* Sistema visual compartido para las pantallas secundarias */
 html { scroll-behavior: smooth; }
@@ -239,7 +247,7 @@ body.modern-page { min-height:100vh;background:radial-gradient(circle at 92% 2%,
 .modal-backdrop { position:fixed;inset:0;z-index:100;display:grid;place-items:center;padding:20px;background:#1619238c;backdrop-filter:blur(7px);animation:fade-in .2s ease }.modal-backdrop[hidden] { display:none }.edit-modal { width:min(520px,100%);max-height:90vh;overflow:auto;padding:25px;border:1px solid #ffffff70;border-radius:22px;background:#fff;box-shadow:0 28px 90px #11152255;animation:modal-in .25s ease }.modal-heading { display:flex;justify-content:space-between;align-items:flex-start;gap:16px }.modal-heading h2 { margin:4px 0 0 }.close-button { width:36px;height:36px;padding:0;border-radius:50%;background:#f0ebe7;color:#1d2330 }.modal-actions { display:flex;justify-content:flex-end;gap:9px;margin-top:18px }.toast { position:fixed;right:24px;bottom:24px;z-index:200;padding:12px 17px;border-radius:13px;color:#fff;background:#1d2330;box-shadow:0 15px 40px #1d233044;animation:toast-in .3s ease }.toast[hidden] { display:none }
 .area-picker { display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:7px 0 14px }.area-choice { position:relative;display:flex!important;align-items:center;gap:10px;margin:0;padding:11px 12px;border:1px solid #ddd5cf;border-radius:12px;background:#fcfbfa;cursor:pointer;transition:.18s ease }.area-choice:hover { border-color:#e0afc8;background:#fff8fb }.modern-page .area-choice input { width:17px;height:17px;margin:0;padding:0;accent-color:#dc6fa8;box-shadow:none }.area-choice:has(input:checked) { color:#8b3d67;border-color:#dc6fa8;background:#faeaf2;box-shadow:0 0 0 3px #dc6fa812 }.area-choice span { font-size:.78rem;font-weight:700 }.field-title { display:block;margin:10px 0 6px;font-size:.83rem;font-weight:600 }.field-help { display:block;margin-top:-7px;color:#817981;font-size:.68rem }
 .public-shell { width:min(1120px,92%);margin:0 auto;padding:42px 0 70px }.public-hero { display:grid;grid-template-columns:1.05fr .95fr;gap:35px;align-items:center;min-height:calc(100vh - 160px) }.public-copy h1 { margin:8px 0 14px;font:600 clamp(2.6rem,6vw,5rem)/.96 Georgia,serif;letter-spacing:-.05em }.public-copy p { max-width:540px;color:#6d7077;font-size:1rem;line-height:1.7 }.public-art { position:relative;min-height:430px;border-radius:32px;background:linear-gradient(145deg,#f9e4ef,#efd0df);box-shadow:0 28px 80px #8b3c641b;overflow:hidden }.public-art::before,.public-art::after { content:"";position:absolute;border-radius:50% }.public-art::before { width:300px;height:300px;right:-50px;top:-40px;background:#dc6fa84a }.public-art::after { width:240px;height:240px;left:-50px;bottom:-60px;background:#fff7 }.art-mark { position:absolute;inset:50% auto auto 50%;transform:translate(-50%,-50%);font:600 9rem Georgia,serif;color:#8f41691c }.glass-card { position:absolute;left:8%;right:8%;bottom:9%;padding:22px;border:1px solid #fff9;border-radius:20px;background:#ffffffe0;box-shadow:0 20px 50px #7e345b1a;backdrop-filter:blur(10px) }
-.form-grid { display:grid;grid-template-columns:1fr 1fr;gap:0 14px }.form-grid .full { grid-column:1/-1 }.checkin-layout { display:grid;grid-template-columns:minmax(280px,.72fr) minmax(0,1.28fr);gap:22px;align-items:start }.checkin-layout .service-picker { margin:0;border:0;padding:0 }.checkin-submit { width:100%;margin-top:14px }.specialist-grid { display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:15px }.specialist-card { position:relative;overflow:hidden }.specialist-service { display:flex;justify-content:space-between;align-items:center;gap:12px;padding:12px 0;border-top:1px solid #eee8e3 }.specialist-service button { padding:7px 10px;font-size:.72rem }.filter-bar { display:flex;gap:10px;align-items:center;margin-bottom:18px }.filter-bar .search-field { max-width:480px }
+.form-grid { display:grid;grid-template-columns:1fr 1fr;gap:0 14px }.form-grid .full { grid-column:1/-1 }.checkin-layout { display:grid;grid-template-columns:minmax(280px,.72fr) minmax(0,1.28fr);gap:22px;align-items:start }.checkin-layout .service-picker { margin:0;border:0;padding:0 }.checkin-submit { width:100%;margin-top:14px }.specialist-grid { display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:15px }.specialist-card { position:relative;overflow:hidden }.specialist-service { display:flex;justify-content:space-between;align-items:center;gap:14px;padding:14px 0;border-top:1px solid #eee8e3 }.specialist-service>div { min-width:0 }.specialist-service button { min-width:104px;min-height:44px;padding:10px 14px;font-size:.82rem;font-weight:750 }.filter-bar { display:flex;gap:10px;align-items:center;margin-bottom:18px }.filter-bar .search-field { max-width:480px }
 .queue-stage { display:grid;grid-template-columns:1.05fr .95fr;gap:18px }.queue-now { text-align:center;padding:38px }.queue-now .queue-number { font-size:clamp(5rem,14vw,9rem) }.queue-next { padding:28px }.queue-next .tag { margin:4px;font-size:1rem;padding:8px 12px }
 @keyframes page-in { from { opacity:0;transform:translateY(10px) } }
 @keyframes fade-in { from { opacity:0 } } @keyframes modal-in { from { opacity:0;transform:translateY(18px) scale(.97) } } @keyframes toast-in { from { opacity:0;transform:translateY(12px) } }
@@ -323,6 +331,21 @@ body.modern-page { min-height:100vh;background:radial-gradient(circle at 92% 2%,
   .top-nav-page .dashboard-nav,.admin-dashboard-body.top-nav-page .dashboard-nav { order:3;width:100% }
   .top-nav-page .sidebar-profile,.admin-dashboard-body.top-nav-page .sidebar-profile { margin-left:auto }
   .admin-dashboard-body.top-nav-page .dashboard-topbar { top:125px }
+}
+@media (min-width:700px) and (max-width:1180px) {
+  .modern-page .app-main { width:94%;padding-top:30px }
+  .modern-page .dashboard-nav a { min-height:44px;padding:11px 13px }
+  .specialist-grid { grid-template-columns:repeat(2,minmax(0,1fr));gap:16px }
+  .specialist-card { padding:22px }
+  .specialist-card h2 { font-size:1.4rem }
+}
+@media (min-width:700px) and (max-width:900px) {
+  .specialist-grid { grid-template-columns:1fr }
+  .specialist-service button { min-width:120px;min-height:48px }
+}
+@media (hover:none) and (pointer:coarse) {
+  .modern-page button,.modern-page select,.modern-page .dashboard-nav a { min-height:44px }
+  .specialist-service button { min-height:48px }
 }
 @media (max-width:1400px) {
   .top-nav-page .sidebar-profile,.admin-dashboard-body.top-nav-page .sidebar-profile { display:none }

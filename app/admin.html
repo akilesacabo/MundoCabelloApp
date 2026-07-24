@@ -34,6 +34,12 @@
     const tagLabels={INT:'Interno',F:'Cabello fuerte',CORTO:'Cabello corto',LAVADO:'Cabello limpio',AC:'Asesoría de color',TC:'Trabajo de color',XL:'Cabello largo',CM:'Cabello maltratado',DC:'Diseño de corte'};
     let currentQueue=[];
     const escapeHtml=value=>String(value).replace(/[&<>'"]/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[char]));
+    function highlightSpecialist(select){
+      const selected=select.value!=='';
+      select.classList.toggle('specialist-selected',selected);
+      const feedback=document.getElementById(`feedback-${select.id.replace('staff-','')}`);
+      feedback.textContent=selected?`Seleccionado: ${select.options[select.selectedIndex].text}. Pulsa Asignar para confirmar.`:'';
+    }
     async function mark(id,situacion){try{await api(`/queue/${id}/situacion`,{method:'PATCH',body:JSON.stringify({situacion})});await load()}catch(error){alert(error.message)}}
     async function assign(clientId,serviceId,area){
       const select=document.getElementById(`staff-${serviceId}`);const feedback=document.getElementById(`feedback-${serviceId}`);
@@ -46,7 +52,7 @@
       try{
         const staff=await api(`/staff/eligible?area=${encodeURIComponent(service.area_key)}`);
         if(!staff.length)return '<p class="assignment-note">No hay especialistas disponibles para esta área.</p>';
-        return `<div class="assign-control"><select id="staff-${service.id}" aria-label="Especialista para ${escapeHtml(service.nombre)}"><option value="">Seleccionar especialista</option>${staff.map(person=>`<option value="${person.numero}">#${person.numero} ${escapeHtml(person.alias)}</option>`).join('')}</select><button onclick="assign(${service.clientId},${service.id})">Asignar</button></div><p id="feedback-${service.id}" class="assignment-note" aria-live="polite"></p>`;
+        return `<div class="assign-control"><select id="staff-${service.id}" aria-label="Especialista para ${escapeHtml(service.nombre)}" onchange="highlightSpecialist(this)"><option value="">Seleccionar especialista</option>${staff.map(person=>`<option value="${person.numero}">#${person.numero} ${escapeHtml(person.alias)}</option>`).join('')}</select><button onclick="assign(${service.clientId},${service.id})">Asignar</button></div><p id="feedback-${service.id}" class="assignment-note" aria-live="polite"></p>`;
       }catch(error){return `<p class="assignment-note">${escapeHtml(error.message)}</p>`}
     }
     async function renderClients(queue,staffByNumber){
