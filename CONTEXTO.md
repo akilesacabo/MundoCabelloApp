@@ -363,7 +363,28 @@ Objetivo: **backend real que refleje la v2** y camino a deploy.
   sin desbordamiento horizontal, botón **Finalizar** de 48 px en vertical y 44 px
   en horizontal. Consola sin errores ni advertencias.
 - ✅ Verificación automática: 27 tests, Ruff y sintaxis JavaScript limpios.
-- ⏸ No forman parte de este ajuste: limpiar los turnos históricos duplicados #14–#16
-  ni agregar una ficha histórica detallada del cliente. El sistema ya previene nuevos
-  duplicados y ofrece el directorio de clientes solicitado.
+- ⏸ No forma parte de este ajuste limpiar los turnos históricos duplicados #14–#16.
+  El sistema ya previene nuevos duplicados; la ficha histórica se resolvió en el
+  siguiente cambio.
+- Estado: implementado y probado en local. **Pendiente desplegar en producción.**
+
+### Ficha detallada e historial del cliente (2026-07-24)
+
+- ✅ Causa confirmada: `GET /queue/clients` y `admin-clients.html` solo exponían el
+  resumen del perfil, aunque la base ya conservaba visitas, servicios, precios,
+  estados, observaciones, etiquetas y asignaciones. No fue necesaria una migración.
+- ✅ Nuevo contrato administrativo `GET /queue/clients/{profile_id}`. Devuelve los
+  datos actuales del perfil y las visitas desde la más reciente; cada visita incluye
+  turno, fecha, estado, situación, observación, etiquetas y servicios con especialista.
+- ✅ La pantalla **Clientes** abre una ficha detallada desde cada tarjeta. El historial
+  es de solo lectura y muestra fielmente los datos existentes, incluidos los turnos
+  históricos duplicados #14–#16 de Ámbar.
+- ✅ El orden usa fecha e identificador descendentes. Esto resuelve el desempate de
+  visitas creadas con la misma marca de tiempo.
+- ✅ Verificación automática: 28 tests, Ruff y sintaxis JavaScript limpios. El endpoint
+  exige rol administrador, devuelve `404` para perfiles inexistentes y tiene cobertura
+  del orden entre visitas.
+- ✅ Inspección real: Ámbar mostró #16, #15 y #14; Pedro mostró una visita, tres
+  servicios y `#4 Yurbi`. En tablet 768×1024 no hubo desbordamiento horizontal,
+  el botón mide 44 px y el modal desplaza internamente. Consola sin errores.
 - Estado: implementado y probado en local. **Pendiente desplegar en producción.**

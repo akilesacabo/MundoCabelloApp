@@ -27,6 +27,9 @@ from src.turnos.schemas import (
     AssignRequest,
     ChangeSpecialistRequest,
     CheckInRequest,
+    ClienteHistoryServiceRead,
+    ClienteHistoryVisitRead,
+    ClienteProfileDetail,
     ClienteProfileRead,
     ClienteProfileSummary,
     ClienteRead,
@@ -252,6 +255,62 @@ async def list_profiles(db: AsyncSession) -> list[ClienteProfileSummary]:
             )
         )
     return rows
+
+
+async def get_profile_detail(
+    db: AsyncSession, profile_id: int
+) -> ClienteProfileDetail:
+    stmt = (
+        select(ClienteProfile)
+        .options(
+            selectinload(ClienteProfile.turnos)
+            .selectinload(Cliente.servicios)
+            .selectinload(TurnoServicio.staff),
+            selectinload(ClienteProfile.turnos).selectinload(Cliente.etiquetas),
+        )
+        .where(ClienteProfile.id == profile_id)
+    )
+    profile = (await db.execute(stmt)).scalar_one_or_none()
+    if profile is None:
+        raise NotFound(f"perfil de cliente {profile_id} no existe")
+
+    visits = sorted(
+        profile.turnos,
+        key=lambda visit: (visit.created_at, visit.id),
+        reverse=True,
+    )
+    return ClienteProfileDetail(
+        id=profile.id,
+        cedula=profile.cedula,
+        nombre=profile.nombre,
+        telefono=profile.telefono,
+        direccion=profile.direccion,
+        visitas=[
+            ClienteHistoryVisitRead(
+                id=visit.id,
+                turno=visit.turno,
+                created_at=visit.created_at,
+                observacion=visit.observacion,
+                etiquetas=sorted(tag.codigo for tag in visit.etiquetas),
+                situacion=visit.situacion,
+                activo=visit.activo,
+                estado=_turno_estado(visit),
+                servicios=[
+                    ClienteHistoryServiceRead(
+                        id=service.id,
+                        area_key=service.area_key,
+                        nombre=service.nombre,
+                        precio_usd=service.precio_usd,
+                        staff_numero=service.staff_numero,
+                        especialista=service.staff.alias if service.staff else None,
+                        estado=service.estado,
+                    )
+                    for service in visit.servicios
+                ],
+            )
+            for visit in visits
+        ],
+    )
 
 
 async def update_details(

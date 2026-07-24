@@ -303,6 +303,74 @@ async def test_admin_can_update_visit_tags_and_observation(api):
     assert updated.json()["etiquetas"] == ["AC", "F"]
 
 
+async def test_admin_can_open_detailed_client_history(api):
+    client = await _checkin(api["ac"], api)
+    service = next(
+        item for item in client["servicios"] if item["area_key"] == "peluqueria"
+    )
+    assigned = await api["ac"].post(
+        f"/api/queue/{client['id']}/services/{service['id']}/assign",
+        json={"staff_numero": 1},
+        headers=api["admin_headers"],
+    )
+    assert assigned.status_code == 200
+
+    profiles = await api["ac"].get(
+        "/api/queue/clients", headers=api["admin_headers"]
+    )
+    profile = next(
+        row for row in profiles.json() if row["cedula"] == client["cedula"]
+    )
+    detail = await api["ac"].get(
+        f"/api/queue/clients/{profile['id']}", headers=api["admin_headers"]
+    )
+
+    assert detail.status_code == 200, detail.text
+    body = detail.json()
+    assert body["nombre"] == "Cliente Uno"
+    assert len(body["visitas"]) == 1
+    visit = body["visitas"][0]
+    assert visit["turno"] == client["turno"]
+    assert visit["estado"] == "en_atencion"
+    assert visit["situacion"] == "presente"
+    assigned_service = next(
+        item for item in visit["servicios"] if item["id"] == service["id"]
+    )
+    assert assigned_service["staff_numero"] == 1
+    assert assigned_service["especialista"] == "Ana"
+
+    await api["ac"].patch(
+        f"/api/queue/{client['id']}/situacion",
+        json={"situacion": "estafa"},
+        headers=api["admin_headers"],
+    )
+    second_visit = await api["ac"].post(
+        "/api/queue/checkin",
+        json={
+            "cedula": client["cedula"],
+            "nombre": "Cliente Uno",
+            "telefono": "04141234567",
+            "direccion": "Calle 1",
+            "service_ids": [api["hidra_id"]],
+        },
+    )
+    assert second_visit.status_code == 201
+    updated_detail = await api["ac"].get(
+        f"/api/queue/clients/{profile['id']}", headers=api["admin_headers"]
+    )
+    assert [item["turno"] for item in updated_detail.json()["visitas"]] == [
+        second_visit.json()["turno"],
+        client["turno"],
+    ]
+
+    denied = await api["ac"].get(f"/api/queue/clients/{profile['id']}")
+    assert denied.status_code == 403
+    missing = await api["ac"].get(
+        "/api/queue/clients/999999", headers=api["admin_headers"]
+    )
+    assert missing.status_code == 404
+
+
 async def test_finished_or_estafa_turn_is_not_active(api):
     ac = api["ac"]
     client = await ac.post(

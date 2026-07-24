@@ -11,6 +11,7 @@ from src.turnos.schemas import (
     AssignRequest,
     ChangeSpecialistRequest,
     CheckInRequest,
+    ClienteProfileDetail,
     ClienteProfileRead,
     ClienteProfileSummary,
     ClienteRead,
@@ -68,6 +69,13 @@ async def list_client_profiles(
     db: DbSession, admin: AdminUser
 ) -> list[ClienteProfileSummary]:
     return await turnos_service.list_profiles(db)
+
+
+@router.get("/clients/{profile_id}", response_model=ClienteProfileDetail)
+async def get_client_profile(
+    profile_id: int, db: DbSession, admin: AdminUser
+) -> ClienteProfileDetail:
+    return await turnos_service.get_profile_detail(db, profile_id)
 
 
 @router.get("/{cliente_id}", response_model=ClienteRead)

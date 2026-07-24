@@ -79,6 +79,9 @@ Todos requieren rol `admin`:
 
 - `GET /queue`: turnos completos.
 - `GET /queue/clients`: perfiles únicos con cantidad de visitas y etiquetas recientes.
+- `GET /queue/clients/{profile_id}`: ficha permanente y visitas ordenadas de la más
+  reciente a la más antigua. Cada visita incluye turno, fecha, estado, situación,
+  etiquetas, observación y servicios con precio y especialista asignado.
 - `PATCH /queue/{cliente_id}/details`: body `{observacion, etiquetas}`.
 - `PATCH /queue/{cliente_id}/situacion`: body `{situacion}` con `presente`,
   `ausente` o `estafa`.
@@ -92,6 +95,39 @@ Todos requieren rol `admin`:
 Un especialista marcado manualmente como `ocupado` o `break` no acepta nuevas
 asignaciones. Si tiene servicios activos, su estado efectivo permanece `ocupado` aunque
 su estado manual se cambie a `disponible`.
+
+Ejemplo abreviado de la ficha:
+
+```json
+{
+  "id": 1,
+  "cedula": "V-25482938",
+  "nombre": "Ambar Vegas",
+  "telefono": "04145551212",
+  "direccion": "Los Palos Grandes",
+  "visitas": [{
+    "id": 14,
+    "turno": 16,
+    "created_at": "2026-07-24T10:00:00",
+    "observacion": "Usar producto suave",
+    "etiquetas": ["CM", "XL"],
+    "situacion": "presente",
+    "activo": true,
+    "estado": "en_atencion",
+    "servicios": [{
+      "id": 22,
+      "area_key": "peluqueria",
+      "nombre": "CORTE DAMA",
+      "precio_usd": "15.00",
+      "staff_numero": 1,
+      "especialista": "Ana",
+      "estado": "en_atencion"
+    }]
+  }]
+}
+```
+
+Un perfil inexistente responde `404`; una petición sin rol administrador responde `403`.
 
 ## Especialista
 

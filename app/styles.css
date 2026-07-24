@@ -319,8 +319,29 @@ body.modern-page { min-height:100vh;background:radial-gradient(circle at 92% 2%,
 .team-status-card .staff-status-head .staff-copy { flex:1 }
 .active-client-list { margin:12px 0 0;padding:10px;border-radius:11px;background:#f7f2ef;font-size:.7rem }
 .client-database { display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px }
-.client-profile-card { padding:18px }
+.client-profile-card { display:flex;flex-direction:column;padding:18px }
 .profile-contact { display:grid;gap:4px;margin:12px 0;color:#746d70;font-size:.76rem }
+.client-history-button { width:100%;min-height:44px;margin-top:auto }
+.client-history-modal { width:min(860px,100%) }
+.history-loading { padding:50px 20px;text-align:center;color:#817981 }
+.history-profile { display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:20px 0;padding:15px;border:1px solid #e6dfd9;border-radius:15px;background:#faf7f5 }
+.history-profile span { min-width:0;color:#6f686c;font-size:.76rem;overflow-wrap:anywhere }
+.history-profile b { display:block;margin-bottom:4px;color:#9b4773;font-size:.64rem;text-transform:uppercase;letter-spacing:.08em }
+.history-heading { display:flex;justify-content:space-between;align-items:center;gap:12px;margin:22px 0 12px }
+.history-heading h3 { margin:0 }
+.history-heading span { color:#817981;font-size:.76rem }
+.history-timeline { display:grid;gap:14px }
+.history-visit { padding:17px;border:1px solid #e6dfd9;border-radius:17px;background:#fff;box-shadow:0 8px 24px #24140a08 }
+.history-visit>header { display:flex;justify-content:space-between;align-items:flex-start;gap:14px }
+.history-visit h3 { margin:3px 0 0;font-size:1rem }
+.visit-statuses { display:flex;justify-content:flex-end;gap:6px;flex-wrap:wrap }
+.history-observation { margin:13px 0;padding:10px 12px;border-radius:10px;background:#faf7f5;color:#625b5f;font-size:.78rem }
+.history-services { display:grid;gap:7px;margin:12px 0 0;padding:0;list-style:none }
+.history-service { display:flex;justify-content:space-between;align-items:center;gap:12px;padding:11px 12px;border:1px solid #eee8e3;border-radius:11px }
+.history-service>div:first-child { min-width:0 }
+.history-service small { display:block;margin-top:4px;color:#817981;font-size:.68rem;text-transform:capitalize }
+.history-service-state { display:flex;align-items:center;justify-content:flex-end;gap:9px;white-space:nowrap }
+.history-service-state>b { color:#97476f;font-size:.78rem }
 .queue-explanation { margin-bottom:18px;padding:14px 17px;border-left:4px solid #dc6fa8;border-radius:10px;background:#fff7fb;color:#675d63 }
 .queue-number-list { display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin:22px 0 }
 .queue-number-chip { display:grid;place-items:center;min-width:90px;min-height:90px;padding:12px;border-radius:24px;color:#8a3d66;background:#f8e5ef;font:700 2.6rem Georgia,serif }
@@ -342,6 +363,7 @@ body.modern-page { min-height:100vh;background:radial-gradient(circle at 92% 2%,
 @media (min-width:700px) and (max-width:900px) {
   .specialist-grid { grid-template-columns:1fr }
   .specialist-service button { min-width:120px;min-height:48px }
+  .history-profile { grid-template-columns:1fr 1fr }
 }
 @media (hover:none) and (pointer:coarse) {
   .modern-page button,.modern-page select,.modern-page .dashboard-nav a { min-height:44px }
@@ -358,4 +380,7 @@ body.modern-page { min-height:100vh;background:radial-gradient(circle at 92% 2%,
   .wizard-actions span { display:none }
   .wizard-actions button { width:100% }
   .top-nav-page .sidebar-profile,.admin-dashboard-body.top-nav-page .sidebar-profile { display:none }
+  .history-profile { grid-template-columns:1fr 1fr }
+  .history-visit>header,.history-service { align-items:flex-start;flex-direction:column }
+  .visit-statuses,.history-service-state { justify-content:flex-start }
 }

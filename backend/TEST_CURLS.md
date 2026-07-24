@@ -37,13 +37,18 @@ finalizarlo debe responder `409` con el número del turno activo.
 curl -s http://localhost:8000/api/queue/clients \
   -H "Authorization: Bearer $TOKEN"
 
+curl -s http://localhost:8000/api/queue/clients/<profile-id> \
+  -H "Authorization: Bearer $TOKEN"
+
 curl -s -X PATCH http://localhost:8000/api/queue/<cliente-id>/details \
   -H "Authorization: Bearer $TOKEN" \
   -H 'Content-Type: application/json' \
   -d '{"observacion":"Usar producto suave","etiquetas":["F","AC"]}'
 ```
 
-Resultados esperados: `200`. `/queue/clients` sin token responde `403`.
+Resultados esperados: `200`. La ficha devuelve las visitas desde la más reciente, con
+servicios y especialista asignado. Ambos endpoints `/queue/clients` sin token responden
+`403`; un `<profile-id>` inexistente responde `404`.
 
 ## Situación y cola pública
 

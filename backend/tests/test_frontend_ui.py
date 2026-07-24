@@ -77,6 +77,10 @@ def test_admin_has_separate_assignment_team_and_client_database_screens():
     assert "assignment-only" in assignment
     assert "/manual-status" in team
     assert "/queue/clients" in clients
+    assert "/queue/clients/${profileId}" in clients
+    assert 'id="clientModal"' in clients
+    assert "Historial de visitas" in clients
+    assert "service.especialista" in clients
     assert "['checkin.html','＋','Nuevo check-in']" in api_js
     assert "admin-team.html" in api_js
     assert "admin-clients.html" in api_js

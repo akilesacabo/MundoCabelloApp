@@ -96,6 +96,32 @@ class ClienteProfileSummary(ClienteProfileRead):
     etiquetas: list[EtiquetaCodigo] = Field(default_factory=list)
 
 
+class ClienteHistoryServiceRead(BaseModel):
+    id: int
+    area_key: str
+    nombre: str
+    precio_usd: Decimal
+    staff_numero: int | None
+    especialista: str | None
+    estado: ServicioEstado
+
+
+class ClienteHistoryVisitRead(BaseModel):
+    id: int
+    turno: int
+    created_at: datetime
+    observacion: str
+    etiquetas: list[EtiquetaCodigo] = Field(default_factory=list)
+    situacion: SituacionTurno
+    activo: bool
+    estado: TurnoEstado
+    servicios: list[ClienteHistoryServiceRead] = Field(default_factory=list)
+
+
+class ClienteProfileDetail(ClienteProfileRead):
+    visitas: list[ClienteHistoryVisitRead] = Field(default_factory=list)
+
+
 class TurnoDetailsUpdate(BaseModel):
     observacion: str = Field(default="", max_length=1000)
     etiquetas: list[EtiquetaCodigo] = Field(default_factory=list, max_length=9)
