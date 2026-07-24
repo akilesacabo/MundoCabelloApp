@@ -1,0 +1,316 @@
+# CONTEXTO — El Mundo del Cabello (peluq-project)
+
+> Documento de handoff para retomar el proyecto en una sesión nueva.
+> Última actualización: 2026-07-04.
+
+---
+
+## 1. Qué es el proyecto
+
+Plataforma web para un salón de belleza ("El Mundo del Cabello") que digitaliza
+el flujo de clientes y la asignación de personal:
+
+- **Cliente** hace *check-in* (datos + servicios) → recibe **número de turno**.
+- **Administración** ve la **cola de turnos**, **asigna un especialista por cada
+  servicio**, puede **cambiar de especialista** (con PIN) y **finalizar** servicios.
+- Todo lo finalizado queda en un **historial** filtrable.
+
+Datos reales cargados desde dos Excel del cliente:
+- `PERSONAL COMPLETO.xlsx` → **81 profesionales** (número, alias, nombre, cédula).
+- `SISTEMA AUTOMATIZADO.xlsx` → catálogo de servicios con precio en USD.
+- Total catálogo: **126 servicios** (incluye "Prueba de Color" $5 agregado a mano).
+  Áreas: peluquería 62, hidratación 24, cejas 21, manicure 19.
+
+---
+
+## 2. Estado actual
+
+### ✅ Hecho y verificado en navegador (sin errores de consola)
+
+**Demo v2 "funcional"** en `mockups/v2/` — es la que se muestra al cliente y la
+**especificación exacta** para el backend. Usa un mini-backend en `localStorage`
+(no requiere servidor de datos). Incluye TODO lo que el cliente pidió:
+
+- Check-in con **observaciones**, selección de servicios por tabs de área, resumen en vivo.
+- Confirmación con turno, servicios, observaciones y total.
+- Panel maestro con KPIs, cola, **asignación por servicio**, sugerencia de
+  "asignar varios servicios al mismo especialista", **cambio con PIN admin + motivo**,
+  finalizar por servicio.
+- Gestión de personal: **multi-área**, marca **"En prueba"** (toggle + filtro),
+  estado **Ocupado automático** (Disponible/Break manuales), búsqueda y filtros.
+- **Historial** de servicios finalizados, filtrable por cliente, especialista, servicio y área.
+
+**Demo v1 "clásica"** en `mockups/` (estilo brutalist, más simple). Se mantiene por
+comparación. **No comparte** el store con v2 (v1 usa `mockups/store.js`; v2 usa
+`mockups/v2/store.js`).
+
+### ✅ Cierre técnico local del 2026-07-04
+
+- Autenticación simple con tokens firmados y roles `admin`/`especialista`; vista cliente pública.
+- Permisos de backend para operaciones administrativas y finalización del trabajo propio.
+- CRUD administrativo de especialistas y servicios.
+- Vista del especialista con sus clientes pendientes.
+- Cola pública con refresco y animación discreta cuando cambia el número atendido.
+- Situación operativa `normal | ausente | estafa`; los ausentes/estafa no aparecen públicamente.
+- Búsqueda exacta por cédula para autocompletar el check-in.
+- Catálogo actualizado a 132 servicios con los 7 ítems de la minuta.
+- Suite local: 11 tests; lint limpio al cierre.
+- Dato pendiente: el número `20` viene duplicado para Stheisy y Argemar. El seed conserva
+  ambas y asigna provisionalmente el `82` a Argemar, emitiendo una advertencia visible;
+  el cliente debe confirmar el número definitivo.
+- Corregido el CORS local para que el frontend documentado en el puerto alternativo `5174`
+  pueda iniciar sesión contra la API; quedó cubierto por una prueba de regresión.
+- Mejora visual de las vistas API en `app/` aprobada por Juan Pablo el 2026-07-04:
+  administración pagina y busca los 81 especialistas y 132 servicios (12 por página),
+  el check-in usa un selector buscable por áreas con resumen y limpieza de selección,
+  y la vista del especialista muestra un estado vacío explícito. Verificado en navegador
+  a 1280×720 y 390×844, sin desbordamiento horizontal ni errores de consola.
+- Navegación coherente añadida a las cinco vistas API el 2026-07-04: las pantallas
+  públicas enlazan check-in, cola y acceso del equipo según corresponda; administración
+  y especialista muestran únicamente destinos compatibles con su rol. Cubierto por test
+  estructural; queda pendiente la confirmación visual manual final porque la conexión del
+  navegador integrado se reinició durante esa comprobación.
+
+### ⏳ Pendiente (lo que falta para "producto con deploy")
+
+1. **Frontend de producción**: las vistas API en `app/` ya funcionan sin framework y
+   tienen comportamiento responsivo; falta decidir si se consolidan en React+Vite o se
+   mantienen estáticas.
+2. **Mockups históricos**: usan **Tailwind vía CDN** (sale un
+   warning). Para deploy conviene un frontend React+Vite (ya previsto en el plan
+   original) o al menos compilar Tailwind. Reutilizar los tokens de `mockups/v2/app.js`
+   y `app.css`.
+3. **Deploy**: Docker Compose (backend ya tiene `Dockerfile`).
+4. **Validación del cliente**: confirmar áreas reales y completar la nómina desde 81
+   hasta la cifra contractual aproximada de 120, si aplica.
+5. **Entregables no técnicos**: mapeo formal de procesos y capacitación presencial.
+
+---
+
+## 3. Estructura de archivos
+
+```
+peluq-project/
+├── index.html                     # Hub raíz (link destacado a v2 + v1 clásica)
+├── CONTEXTO.md                    # (este archivo)
+├── README.md
+├── PERSONAL COMPLETO.xlsx / SISTEMA AUTOMATIZADO.xlsx   # (en ~/Downloads originalmente)
+│
+├── mockups/                       # v1 clásica + datos compartidos
+│   ├── data.json / data.js        # DATOS REALES (81 staff, 126 servicios) ← fuente de verdad
+│   ├── store.js                   # store v1 (NO tocar, lo usa la v1)
+│   ├── tokens.js / tokens.css / common.js
+│   ├── 01-confirmacion / 02-panel / 03-checkin / 04-staff .html   # v1
+│   └── v2/                        # ★ DEMO FUNCIONAL v2 ★
+│       ├── app.js                 # theme Tailwind + helpers (V2.areaColor, titleCase, etc.)
+│       ├── app.css                # design system "Soft Luxe"
+│       ├── store.js               # ★ mini-backend v2 (modelo por-servicio) — LEER PRIMERO
+│       ├── index.html             # hub v2
+│       ├── 03-checkin.html
+│       ├── 01-confirmacion.html
+│       ├── 02-panel.html          # pantalla más compleja (asignar/cambiar/finalizar)
+│       ├── 04-staff.html
+│       └── 05-historial.html
+│
+└── backend/                       # FastAPI (necesita rework, ver §4)
+    ├── src/{clients,queue,services,staff}/  # 4 dominios
+    ├── src/seed.py                # datos sintéticos (reemplazar por reales)
+    ├── alembic/                   # migraciones
+    ├── peluq.db                   # SQLite local
+    └── Dockerfile / Makefile / pyproject.toml
+```
+
+---
+
+## 4. Modelo de datos v2 (la especificación para el backend)
+
+Definido en `mockups/v2/store.js`. Clave localStorage: `peluq.demo.v2`. PIN admin demo: `1234`.
+
+**Staff (especialista)**
+```
+{ numero, alias, nombre, cedula, initials,
+  areas: [string],          // MULTI-ÁREA (peluqueria|hidratacion|manicure|cejas)
+  manualStatus: 'DISPONIBLE'|'BREAK',
+  en_prueba: bool }         // etiqueta, no afecta asignación
+// status EFECTIVO se deriva: 'OCUPADO' si tiene ≥1 servicio EN_ATENCION, si no manualStatus
+```
+
+**Cliente / turno**
+```
+{ id, ts, turno, cedula, nombre, telefono, direccion, observacion,
+  estado,                   // derivado: EN_ESPERA | EN_ATENCION | FINALIZADO
+  servicios: [ {
+    id, area, nombre, precio_usd,
+    staff_id,               // especialista asignado A ESE SERVICIO (nullable)
+    estado: 'PENDIENTE'|'EN_ATENCION'|'FINALIZADO',
+    cambios: [ { ts, de: staff_id, a: staff_id, motivo } ]   // log de reasignaciones
+  } ] }
+// estado del turno: FINALIZADO si todos los servicios FINALIZADO;
+//                   EN_ATENCION si alguno != PENDIENTE; si no EN_ESPERA
+```
+
+**Historial** (un registro por servicio finalizado)
+```
+{ id, ts, cliente_id, cliente_nombre, cliente_cedula,
+  servicio_nombre, area, precio_usd, staff_id, staff_nombre, cambios: [...] }
+```
+
+**Operaciones (API a replicar en backend):**
+- `addCliente(payload)` — crea turno con servicios en PENDIENTE.
+- `assignService(clienteId, servicioId, staffId)` — asigna 1 servicio.
+- `assignMany(clienteId, [servicioIds], staffId)` — varios al mismo especialista.
+- `finishService(clienteId, servicioId)` — finaliza → escribe historial.
+- `changeSpecialist(clienteId, servicioId, newStaffId, pin, motivo)` — **valida PIN
+  admin + motivo obligatorio**, registra en `cambios`.
+- `setStaffManualStatus(numero, 'DISPONIBLE'|'BREAK')`.
+- `toggleEnPrueba(numero)`.
+- Consultas de historial con filtros por cliente / especialista / servicio / área.
+- `eligibleStaff(area)` — personal cuyas `areas` incluyen `area` y está DISPONIBLE.
+
+---
+
+## 5. Decisiones de features confirmadas por el cliente (2026-06-30)
+
+- **Asignación por servicio**: cada servicio se asigna individual; especialista puede
+  estar en varias áreas; si cubre varios servicios del turno, se ofrece asignárselos todos.
+- **Cambio de especialista** a mitad de turno → **PIN admin (1234)** + motivo obligatorio; queda en historial.
+- **Prueba de Color $5** → solo un ítem más del catálogo (peluquería).
+- **Estilista en prueba** → etiqueta "En prueba" en la ficha, NO afecta estado ni asignación.
+- **Observaciones** en check-in.
+- **Historial** filtrable por cliente, especialista y servicio.
+
+---
+
+## 6. Cómo arrancar
+
+**Demo (lo que se muestra hoy):**
+```bash
+cd peluq-project
+python3 -m http.server 5174      # 5173 puede estar ocupado
+# abrir http://localhost:5174/mockups/v2/
+```
+- Flujo demo: Check-in → Confirmación → Panel (asignar/cambiar/finalizar) → Historial.
+- PIN admin: **1234**. Botón "Reset" en el panel limpia los turnos e historial del día.
+
+**Backend (estado actual, aún no refleja v2):**
+```bash
+cd backend
+python3 -m venv .venv && source .venv/bin/activate
+pip install -r requirements/dev.txt && pip install aiosqlite openpyxl
+cp .env.example .env
+alembic upgrade head && python -m src.seed
+uvicorn src.main:app --reload   # docs: http://localhost:8000/docs
+```
+
+---
+
+## 7. Plan sugerido para la próxima sesión
+
+Objetivo: **backend real que refleje la v2** y camino a deploy.
+
+1. **Rediseñar el esquema** (SQLAlchemy + Alembic) según §4:
+   - `staff` con relación **muchos-a-muchos** a `area` (tabla `staff_area`); campos
+     `manual_status`, `en_prueba`.
+   - `turno` (cliente) + `turno_servicio` (cada servicio con `staff_id`, `estado`).
+   - `servicio_cambio` (log de reasignaciones con motivo).
+   - `historial` o vista derivada de servicios finalizados.
+2. **Endpoints** que espejen las operaciones del §4 (incluida validación de PIN admin
+   para el cambio de especialista; el PIN debe ir a variable de entorno, no hardcode).
+3. **Seed real** desde `mockups/data.json` (81 staff, 126 servicios). Asignar áreas
+   a cada especialista (hoy es heurístico en el mock; idealmente el cliente confirma
+   las áreas reales de cada persona).
+4. **Frontend**: decidir React+Vite o servir los HTML compilando Tailwind. Conectar a la API.
+5. **Deploy**: Docker Compose (Postgres + backend + frontend).
+
+**Preguntas abiertas para el cliente:**
+- ¿Áreas reales de cada especialista? (el mock las asigna por heurística de número).
+- ¿El PIN admin es único global o por administrador? ¿Quién lo gestiona?
+- ¿Frontend nuevo en React o seguir con los HTML estáticos servidos?
+
+---
+
+## 8. Notas técnicas importantes
+
+- Colores de área v2 (en `app.js`, `window.V2.areaColor`): peluqueria `#e26fae`,
+  hidratacion `#4bb6e8`, manicure `#e6a93d`, cejas `#4fbf8f`.
+- Tipografías: Fraunces (display) + Plus Jakarta Sans (body), vía Google Fonts.
+- Tailwind por **CDN** (warning esperado en consola; irrelevante para demo, cambiar en prod).
+- `data.json`/`data.js` se regeneran con un script Python + openpyxl (ver historial de
+  la sesión); son la **fuente de verdad** de personal y catálogo.
+- El seed del historial (`seedHistorial` en `store.js`) mete ~5 servicios de ejemplo
+  para que el historial no arranque vacío en la demo.
+
+---
+
+## 9. Estado de la interfaz administrativa (2026-07-04)
+
+- ✅ **Navegación de cola sin falsa salida de sesión.** Causa raíz confirmada: la cola
+  pública conservaba el token, pero siempre mostraba `Acceso del equipo`. Ahora guarda
+  también el rol al iniciar sesión y muestra `Volver al panel` o `Volver a mis clientes`.
+- ✅ **Panel administrativo operativo.** `app/admin.html` muestra primero el resumen y
+  estado del equipo (en una zona desplazable para no ocultar los clientes) y luego los
+  clientes activos con asignación por servicio a especialistas elegibles por área.
+- ✅ **Edición separada.** Personal en `app/admin-staff.html`; servicios y productos en
+  `app/admin-services.html`. Ambas pantallas conservan búsqueda y paginación de 12 filas.
+- ✅ **Verificación local.** 17 tests pasan, Ruff limpio, sintaxis JavaScript limpia.
+  Inspección real en navegador: panel carga 1 cliente activo, personal 81/81, catálogo
+  132/132 y la cola pública ofrece retorno a `admin.html` durante la sesión administrativa.
+- Decisión de Juan Pablo, 2026-07-04: la pantalla inicial del administrador debe ser el
+  panel operativo; las altas y ediciones pertenecen a pantallas independientes.
+- Estado: implementado y probado en local. **Pendiente desplegar en producción.**
+
+### Prototipo visual moderno del panel (2026-07-04)
+
+- ✅ Primera etapa aprobada: rediseño exclusivo de `app/admin.html`, sin cambiar API,
+  autenticación, datos ni lógica de asignación.
+- ✅ Nuevo sistema visual: sidebar, buscador, métricas operativas, progreso por cliente,
+  colores por área, filtros de especialistas, estados compactos y responsive móvil.
+- ✅ Verificación automática: 17 tests, Ruff y sintaxis JavaScript limpios.
+- ⏸ Inspección visual automatizada pendiente: el navegador integrado agotó el tiempo de
+  conexión dos veces después del cambio. El usuario puede recargar la pestaña local para
+  evaluar el prototipo; no extender el diseño a otras pantallas hasta su aprobación.
+- ✅ Ajuste aprobado por Juan Pablo, 2026-07-04: conservar la estructura moderna y
+  recuperar la paleta original (`#dc6fa8` rosa, `#1d2330` tinta, `#f8f6f3` marfil y
+  `#e6dfd9` bordes cálidos). Verde queda reservado para el estado disponible y se
+  mantienen colores funcionales por área. 17 tests y Ruff limpios.
+
+### Extensión del sistema visual a todas las pantallas (2026-07-04)
+
+- ✅ Decisión de Juan Pablo: extender el diseño moderno, interactivo y llamativo del
+  panel a especialistas, servicios/productos, check-in, vista del especialista,
+  acceso y cola pública, sin modificar backend ni contratos API.
+- ✅ `app/styles.css` incorpora una capa compartida para pantallas secundarias:
+  sidebar responsive, tarjetas, métricas, formularios, modales, notificaciones,
+  microinteracciones, entrada de página y soporte para `prefers-reduced-motion`.
+- ✅ `app/admin-staff.html` y `app/admin-services.html` conservan búsqueda y paginación
+  y reemplazan los `prompt` por formularios modales completos con los campos que
+  admiten `StaffUpdate` y `ServiceUpdate`.
+- ✅ `app/checkin.html` presenta un flujo visual de dos pasos sin cambiar el payload;
+  `app/specialist.html` añade búsqueda local por cliente o servicio; login y cola
+  pública adoptan el mismo lenguaje visual conservando sesión y navegación.
+- ✅ Verificación automática: 18 tests pasan, Ruff limpio y sintaxis JavaScript limpia
+  en todos los HTML y en `api.js`.
+- ✅ Flujos reales verificados en navegador: especialistas carga 81 perfiles, búsqueda
+  `Sonia` reduce a 1 resultado y abre el modal; catálogo carga 132 servicios, búsqueda
+  `manicure` devuelve 19 y el modal abre `CAMBIO ESMALTE`; check-in carga 4 grupos;
+  cola pública conserva `Volver al panel`; login ofrece ambos roles.
+- ⏸ La captura visual de especialistas se completó correctamente. La captura adicional
+  de check-in agotó la conexión del navegador integrado por segunda vez; no se usó una
+  herramienta externa como sustituto. La inspección DOM del check-in sí fue correcta.
+- Estado: implementado y probado en local. **Pendiente desplegar en producción.**
+
+### Corrección de legibilidad y áreas múltiples (2026-07-05)
+
+- ✅ Causa raíz confirmada por captura y CSS: `.modern-page input { width: 100% }`
+  tenía igual especificidad y aparecía después de `.service-option input`, por lo que
+  ensanchaba cada checkbox del check-in y desplazaba nombres y precios fuera de vista.
+- ✅ `app/styles.css` ahora limita explícitamente el checkbox del servicio a 18 px,
+  protege el texto con `min-width: 0` y mantiene nombre y precio dentro de la fila.
+- ✅ `app/admin-staff.html` reemplaza la entrada de áreas separadas por coma por cuatro
+  opciones múltiples visuales en creación y edición: Peluquería, Hidratación, Manicure
+  y Cejas. El contrato sigue enviando `areas: string[]`; no cambió el backend.
+- ✅ Pruebas: 19 tests pasan, Ruff y sintaxis JavaScript limpios.
+- ✅ Verificación real: 132 opciones de servicio renderizadas, checkbox de 18 px,
+  nombre/precio visibles y sin overflow; selección simultánea de `peluqueria` y
+  `manicure` comprobada en navegador sin desbordamiento.
+- Estado: corregido y probado en local. **Pendiente desplegar en producción.**

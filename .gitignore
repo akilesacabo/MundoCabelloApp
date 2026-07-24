@@ -1,0 +1,11 @@
+.DS_Store
+**/.DS_Store
+
+backend/.env
+backend/.venv/
+backend/peluq.db
+backend/.pytest_cache/
+backend/.ruff_cache/
+**/__pycache__/
+*.py[cod]
+

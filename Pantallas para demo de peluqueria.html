@@ -1,0 +1,1264 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <meta http-equiv="Content-Style-Type" content="text/css">
+  <title></title>
+  <meta name="Generator" content="Cocoa HTML Writer">
+  <meta name="CocoaVersion" content="2685.5">
+  <style type="text/css">
+    p.p1 {margin: 0.0px 0.0px 0.0px 0.0px; font: 12.0px Helvetica}
+    p.p2 {margin: 0.0px 0.0px 0.0px 0.0px; font: 12.0px Helvetica; min-height: 14.0px}
+  </style>
+</head>
+<body>
+<p class="p1">&lt;!-- Confirmación de Turno --&gt;</p>
+<p class="p1">&lt;!DOCTYPE html&gt;</p>
+<p class="p2"><br></p>
+<p class="p1">&lt;html lang="es"&gt;&lt;head&gt;</p>
+<p class="p1">&lt;meta charset="utf-8"/&gt;</p>
+<p class="p1">&lt;meta content="width=device-width, initial-scale=1.0" name="viewport"/&gt;</p>
+<p class="p1">&lt;title&gt;¡Registro Exitoso! - El Mundo del Cabello&lt;/title&gt;</p>
+<p class="p1">&lt;script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"&gt;&lt;/script&gt;</p>
+<p class="p1">&lt;script id="tailwind-config"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>tailwind.config = {</p>
+<p class="p1"><span class="Apple-converted-space">        </span>darkMode: "class",</p>
+<p class="p1"><span class="Apple-converted-space">        </span>theme: {</p>
+<p class="p1"><span class="Apple-converted-space">          </span>extend: {</p>
+<p class="p1"><span class="Apple-converted-space">            </span>"colors": {</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>"on-surface": "#1f1b11",</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>"primary-fixed": "#ffe08b",</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>"inverse-on-surface": "#f9f0de",</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>"on-tertiary-fixed-variant": "#454748",</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>"on-tertiary-container": "#545657",</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>"surface-container-highest": "#ebe1d1",</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>"on-primary-fixed-variant": "#584400",</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>"error": "#ba1a1a",</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>"on-secondary-fixed": "#1b1b1b",</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>"on-secondary-fixed-variant": "#474747",</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>"inverse-surface": "#353025",</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>"on-surface-variant": "#4e4633",</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>"on-background": "#1f1b11",</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>"error-container": "#ffdad6",</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>"surface-bright": "#fff8f1",</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>"on-error": "#ffffff",</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>"on-primary": "#ffffff",</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>"tertiary-container": "#cacbcc",</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>"secondary-fixed-dim": "#c6c6c6",</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>"tertiary-fixed-dim": "#c6c6c7",</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>"tertiary-fixed": "#e2e2e3",</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>"surface": "#fff8f1",</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>"on-secondary-container": "#646464",</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>"outline-variant": "#d1c5ac",</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>"surface-dim": "#e2d9c8",</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>"primary-fixed-dim": "#f0c110",</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>"secondary-container": "#e2e2e2",</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>"secondary": "#5e5e5e",</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>"surface-variant": "#ebe1d1",</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>"surface-container-low": "#fcf3e1",</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>"on-tertiary-fixed": "#1a1c1d",</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>"surface-container-lowest": "#ffffff",</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>"secondary-fixed": "#e2e2e2",</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>"surface-container": "#f6eddc",</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>"on-tertiary": "#ffffff",</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>"on-primary-fixed": "#241a00",</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>"outline": "#807660",</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>"inverse-primary": "#f0c110",</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>"on-error-container": "#93000a",</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>"on-secondary": "#ffffff",</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>"primary-container": "#f5c518",</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>"primary": "#745b00",</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>"surface-tint": "#745b00",</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>"surface-container-high": "#f1e7d6",</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>"on-primary-container": "#695200",</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>"tertiary": "#5d5e60",</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>"background": "#fff8f1"</p>
+<p class="p1"><span class="Apple-converted-space">            </span>},</p>
+<p class="p1"><span class="Apple-converted-space">            </span>"borderRadius": {</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>"DEFAULT": "0.125rem",</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>"lg": "0.25rem",</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>"xl": "0.5rem",</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>"full": "0.75rem"</p>
+<p class="p1"><span class="Apple-converted-space">            </span>},</p>
+<p class="p1"><span class="Apple-converted-space">            </span>"spacing": {</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>"gutter": "16px",</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>"stack-lg": "24px",</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>"stack-sm": "4px",</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>"stack-md": "12px",</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>"base": "8px",</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>"section-gap": "48px",</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>"container-margin": "24px"</p>
+<p class="p1"><span class="Apple-converted-space">            </span>},</p>
+<p class="p1"><span class="Apple-converted-space">            </span>"fontFamily": {</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>"headline-lg-mobile": [</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>"Montserrat", "sans-serif"</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>],</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>"label-sm": [</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>"Inter", "sans-serif"</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>],</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>"body-md": [</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>"Inter", "sans-serif"</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>],</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>"headline-lg": [</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>"Montserrat", "sans-serif"</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>],</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>"label-md": [</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>"Inter", "sans-serif"</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>],</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>"headline-md": [</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>"Montserrat", "sans-serif"</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>],</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>"display-lg": [</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>"Montserrat", "sans-serif"</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>],</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>"body-lg": [</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>"Inter", "sans-serif"</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>]</p>
+<p class="p1"><span class="Apple-converted-space">            </span>},</p>
+<p class="p1"><span class="Apple-converted-space">            </span>"fontSize": {</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>"headline-lg-mobile": [</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>"24px",</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>{</p>
+<p class="p1"><span class="Apple-converted-space">                                    </span>"lineHeight": "32px",</p>
+<p class="p1"><span class="Apple-converted-space">                                    </span>"fontWeight": "700"</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>}</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>],</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>"label-sm": [</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>"12px",</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>{</p>
+<p class="p1"><span class="Apple-converted-space">                                    </span>"lineHeight": "16px",</p>
+<p class="p1"><span class="Apple-converted-space">                                    </span>"fontWeight": "500"</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>}</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>],</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>"body-md": [</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>"16px",</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>{</p>
+<p class="p1"><span class="Apple-converted-space">                                    </span>"lineHeight": "24px",</p>
+<p class="p1"><span class="Apple-converted-space">                                    </span>"fontWeight": "400"</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>}</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>],</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>"headline-lg": [</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>"32px",</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>{</p>
+<p class="p1"><span class="Apple-converted-space">                                    </span>"lineHeight": "40px",</p>
+<p class="p1"><span class="Apple-converted-space">                                    </span>"fontWeight": "700"</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>}</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>],</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>"label-md": [</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>"14px",</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>{</p>
+<p class="p1"><span class="Apple-converted-space">                                    </span>"lineHeight": "20px",</p>
+<p class="p1"><span class="Apple-converted-space">                                    </span>"letterSpacing": "0.05em",</p>
+<p class="p1"><span class="Apple-converted-space">                                    </span>"fontWeight": "600"</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>}</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>],</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>"headline-md": [</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>"20px",</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>{</p>
+<p class="p1"><span class="Apple-converted-space">                                    </span>"lineHeight": "28px",</p>
+<p class="p1"><span class="Apple-converted-space">                                    </span>"fontWeight": "600"</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>}</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>],</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>"display-lg": [</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>"48px",</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>{</p>
+<p class="p1"><span class="Apple-converted-space">                                    </span>"lineHeight": "56px",</p>
+<p class="p1"><span class="Apple-converted-space">                                    </span>"letterSpacing": "-0.02em",</p>
+<p class="p1"><span class="Apple-converted-space">                                    </span>"fontWeight": "700"</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>}</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>],</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>"body-lg": [</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>"18px",</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>{</p>
+<p class="p1"><span class="Apple-converted-space">                                    </span>"lineHeight": "28px",</p>
+<p class="p1"><span class="Apple-converted-space">                                    </span>"fontWeight": "400"</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>}</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>]</p>
+<p class="p1"><span class="Apple-converted-space">            </span>}</p>
+<p class="p1"><span class="Apple-converted-space">          </span>}</p>
+<p class="p1"><span class="Apple-converted-space">        </span>}</p>
+<p class="p1"><span class="Apple-converted-space">      </span>}</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;/script&gt;</p>
+<p class="p1">&lt;link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;amp;display=swap" rel="stylesheet"/&gt;</p>
+<p class="p1">&lt;link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;amp;family=Montserrat:wght@600;700;900&amp;amp;display=swap" rel="stylesheet"/&gt;</p>
+<p class="p1">&lt;link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;amp;display=swap" rel="stylesheet"/&gt;</p>
+<p class="p1">&lt;style&gt;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>body {</p>
+<p class="p1"><span class="Apple-converted-space">            </span>font-family: 'Inter', sans-serif;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>}</p>
+<p class="p1"><span class="Apple-converted-space">        </span>h1, h2, h3, .font-display-lg, .font-headline-lg, .font-headline-md {</p>
+<p class="p1"><span class="Apple-converted-space">            </span>font-family: 'Montserrat', sans-serif;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>}</p>
+<p class="p1"><span class="Apple-converted-space">        </span>.material-symbols-outlined {</p>
+<p class="p1"><span class="Apple-converted-space">            </span>font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>}</p>
+<p class="p1"><span class="Apple-converted-space">        </span>/* Brutalist shadow utility for High-Contrast Modernism */</p>
+<p class="p1"><span class="Apple-converted-space">        </span>.shadow-brutal {</p>
+<p class="p1"><span class="Apple-converted-space">            </span>box-shadow: 4px 4px 0px rgba(0,0,0,1);</p>
+<p class="p1"><span class="Apple-converted-space">        </span>}</p>
+<p class="p1"><span class="Apple-converted-space">        </span>.shadow-brutal-sm {</p>
+<p class="p1"><span class="Apple-converted-space">            </span>box-shadow: 2px 2px 0px rgba(0,0,0,1);</p>
+<p class="p1"><span class="Apple-converted-space">        </span>}</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;/style&gt;</p>
+<p class="p1">&lt;/head&gt;</p>
+<p class="p1">&lt;body class="bg-surface min-h-screen flex items-center justify-center p-gutter md:p-container-margin"&gt;</p>
+<p class="p1">&lt;!--<span class="Apple-converted-space"> </span></p>
+<p class="p1"><span class="Apple-converted-space">      </span>Navigation is intentionally suppressed here as per the "Semantic Shell Mandate: Automatic Suppression"<span class="Apple-converted-space"> </span></p>
+<p class="p1"><span class="Apple-converted-space">      </span>for Linear/Transactional/Success splash screens.<span class="Apple-converted-space"> </span></p>
+<p class="p1"><span class="Apple-converted-space">    </span>--&gt;</p>
+<p class="p1">&lt;main class="w-full max-w-[500px] bg-surface-container-lowest border border-outline-variant p-8 md:p-12 rounded-xl flex flex-col items-center text-center gap-stack-lg shadow-sm relative overflow-hidden"&gt;</p>
+<p class="p1">&lt;!-- Subtle background pattern/glow to break up the solid white without adding images --&gt;</p>
+<p class="p1">&lt;div class="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-primary-fixed/20 via-transparent to-transparent pointer-events-none"&gt;&lt;/div&gt;</p>
+<p class="p1">&lt;!-- Success Icon --&gt;</p>
+<p class="p1">&lt;div class="w-16 h-16 rounded-full bg-surface-container flex items-center justify-center text-on-surface mb-2 z-10"&gt;</p>
+<p class="p1">&lt;span class="material-symbols-outlined text-4xl" data-icon="check_circle" data-weight="fill"&gt;check_circle&lt;/span&gt;</p>
+<p class="p1">&lt;/div&gt;</p>
+<p class="p1">&lt;!-- Header --&gt;</p>
+<p class="p1">&lt;header class="flex flex-col gap-stack-sm z-10 w-full"&gt;</p>
+<p class="p1">&lt;h1 class="font-headline-lg text-headline-lg text-on-surface"&gt;¡Registro Exitoso!&lt;/h1&gt;</p>
+<p class="p1">&lt;p class="font-label-md text-label-md text-on-surface-variant uppercase tracking-widest mt-2"&gt;Su turno es el&lt;/p&gt;</p>
+<p class="p1">&lt;/header&gt;</p>
+<p class="p1">&lt;!-- Turn Number Display - Brutalist High Contrast Badge --&gt;</p>
+<p class="p1">&lt;div class="my-6 z-10"&gt;</p>
+<p class="p1">&lt;div class="w-40 h-40 rounded-full bg-primary-container border-2 border-on-surface flex items-center justify-center shadow-brutal transform transition-transform hover:scale-105 duration-300"&gt;</p>
+<p class="p1">&lt;span class="font-display-lg text-display-lg text-on-surface font-black"&gt;#42&lt;/span&gt;</p>
+<p class="p1">&lt;/div&gt;</p>
+<p class="p1">&lt;/div&gt;</p>
+<p class="p1">&lt;!-- Subtext --&gt;</p>
+<p class="p1">&lt;p class="font-body-lg text-body-lg text-on-surface-variant max-w-sm z-10"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>Por favor, espere en la zona de recepción. Le notificaremos cuando su profesional esté listo.</p>
+<p class="p1"><span class="Apple-converted-space">        </span>&lt;/p&gt;</p>
+<p class="p1">&lt;!-- Action Area --&gt;</p>
+<p class="p1">&lt;div class="w-full mt-4 z-10"&gt;</p>
+<p class="p1">&lt;button class="w-full bg-on-surface text-on-primary font-label-md text-label-md py-4 px-6 rounded-lg shadow-brutal-sm hover:shadow-brutal hover:-translate-y-0.5 transition-all duration-200 active:translate-y-1 active:shadow-none flex items-center justify-center gap-2"&gt;</p>
+<p class="p1">&lt;span class="material-symbols-outlined text-xl" data-icon="home"&gt;home&lt;/span&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>Volver al inicio</p>
+<p class="p1"><span class="Apple-converted-space">            </span>&lt;/button&gt;</p>
+<p class="p1">&lt;/div&gt;</p>
+<p class="p1">&lt;/main&gt;</p>
+<p class="p1">&lt;/body&gt;&lt;/html&gt;</p>
+<p class="p2"><br></p>
+<p class="p1">&lt;!-- Panel de Control Maestro --&gt;</p>
+<p class="p1">&lt;!DOCTYPE html&gt;</p>
+<p class="p2"><br></p>
+<p class="p1">&lt;html class="light" lang="en"&gt;&lt;head&gt;</p>
+<p class="p1">&lt;meta charset="utf-8"/&gt;</p>
+<p class="p1">&lt;meta content="width=device-width, initial-scale=1.0" name="viewport"/&gt;</p>
+<p class="p1">&lt;title&gt;Master Control Panel - El Mundo del Cabello&lt;/title&gt;</p>
+<p class="p1">&lt;!-- Google Fonts --&gt;</p>
+<p class="p1">&lt;link href="https://fonts.googleapis.com" rel="preconnect"/&gt;</p>
+<p class="p1">&lt;link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/&gt;</p>
+<p class="p1">&lt;link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;amp;family=Montserrat:wght@600;700;900&amp;amp;display=swap" rel="stylesheet"/&gt;</p>
+<p class="p1">&lt;!-- Material Symbols --&gt;</p>
+<p class="p1">&lt;link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;amp;display=swap" rel="stylesheet"/&gt;</p>
+<p class="p1">&lt;link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;amp;display=swap" rel="stylesheet"/&gt;</p>
+<p class="p1">&lt;!-- Tailwind CSS --&gt;</p>
+<p class="p1">&lt;script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"&gt;&lt;/script&gt;</p>
+<p class="p1">&lt;!-- Tailwind Configuration --&gt;</p>
+<p class="p1">&lt;script id="tailwind-config"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>tailwind.config = {</p>
+<p class="p1"><span class="Apple-converted-space">            </span>darkMode: "class",</p>
+<p class="p1"><span class="Apple-converted-space">            </span>theme: {</p>
+<p class="p1"><span class="Apple-converted-space">                </span>extend: {</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>"colors": {</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>"on-surface": "#1f1b11",</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>"primary-fixed": "#ffe08b",</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>"inverse-on-surface": "#f9f0de",</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>"on-tertiary-fixed-variant": "#454748",</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>"on-tertiary-container": "#545657",</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>"surface-container-highest": "#ebe1d1",</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>"on-primary-fixed-variant": "#584400",</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>"error": "#ba1a1a",</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>"on-secondary-fixed": "#1b1b1b",</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>"on-secondary-fixed-variant": "#474747",</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>"inverse-surface": "#353025",</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>"on-surface-variant": "#4e4633",</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>"on-background": "#1f1b11",</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>"error-container": "#ffdad6",</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>"surface-bright": "#fff8f1",</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>"on-error": "#ffffff",</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>"on-primary": "#ffffff",</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>"tertiary-container": "#cacbcc",</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>"secondary-fixed-dim": "#c6c6c6",</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>"tertiary-fixed-dim": "#c6c6c7",</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>"tertiary-fixed": "#e2e2e3",</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>"surface": "#fff8f1",</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>"on-secondary-container": "#646464",</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>"outline-variant": "#d1c5ac",</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>"surface-dim": "#e2d9c8",</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>"primary-fixed-dim": "#f0c110",</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>"secondary-container": "#e2e2e2",</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>"secondary": "#5e5e5e",</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>"surface-variant": "#ebe1d1",</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>"surface-container-low": "#fcf3e1",</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>"on-tertiary-fixed": "#1a1c1d",</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>"surface-container-lowest": "#ffffff",</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>"secondary-fixed": "#e2e2e2",</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>"surface-container": "#f6eddc",</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>"on-tertiary": "#ffffff",</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>"on-primary-fixed": "#241a00",</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>"outline": "#807660",</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>"inverse-primary": "#f0c110",</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>"on-error-container": "#93000a",</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>"on-secondary": "#ffffff",</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>"primary-container": "#f5c518",</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>"primary": "#745b00",</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>"surface-tint": "#745b00",</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>"surface-container-high": "#f1e7d6",</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>"on-primary-container": "#695200",</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>"tertiary": "#5d5e60",</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>"background": "#fff8f1"</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>},</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>"borderRadius": {</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>"DEFAULT": "0.125rem",</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>"lg": "0.25rem",</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>"xl": "0.5rem",</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>"full": "0.75rem"</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>},</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>"spacing": {</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>"gutter": "16px",</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>"stack-lg": "24px",</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>"stack-sm": "4px",</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>"stack-md": "12px",</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>"base": "8px",</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>"section-gap": "48px",</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>"container-margin": "24px"</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>},</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>"fontFamily": {</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>"headline-lg-mobile": ["Montserrat"],</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>"label-sm": ["Inter"],</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>"body-md": ["Inter"],</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>"headline-lg": ["Montserrat"],</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>"label-md": ["Inter"],</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>"headline-md": ["Montserrat"],</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>"display-lg": ["Montserrat"],</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>"body-lg": ["Inter"]</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>},</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>"fontSize": {</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>"headline-lg-mobile": ["24px", {"lineHeight": "32px", "fontWeight": "700"}],</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>"label-sm": ["12px", {"lineHeight": "16px", "fontWeight": "500"}],</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>"body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>"headline-lg": ["32px", {"lineHeight": "40px", "fontWeight": "700"}],</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>"label-md": ["14px", {"lineHeight": "20px", "letterSpacing": "0.05em", "fontWeight": "600"}],</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>"headline-md": ["20px", {"lineHeight": "28px", "fontWeight": "600"}],</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>"display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700"}],</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>"body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}]</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>}</p>
+<p class="p1"><span class="Apple-converted-space">                </span>}</p>
+<p class="p1"><span class="Apple-converted-space">            </span>}</p>
+<p class="p1"><span class="Apple-converted-space">        </span>}</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;/script&gt;</p>
+<p class="p1">&lt;style&gt;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>/* Base styles to enforce design system rules */</p>
+<p class="p1"><span class="Apple-converted-space">        </span>body {</p>
+<p class="p1"><span class="Apple-converted-space">            </span>background-color: theme('colors.surface');</p>
+<p class="p1"><span class="Apple-converted-space">            </span>color: theme('colors.on-surface');</p>
+<p class="p1"><span class="Apple-converted-space">            </span>font-family: theme('fontFamily.body-md');</p>
+<p class="p1"><span class="Apple-converted-space">        </span>}</p>
+<p class="p2"><span class="Apple-converted-space">        </span></p>
+<p class="p1"><span class="Apple-converted-space">        </span>/* High-contrast modernism input focus styles */</p>
+<p class="p1"><span class="Apple-converted-space">        </span>input:focus, select:focus {</p>
+<p class="p1"><span class="Apple-converted-space">            </span>outline: none;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>border-color: theme('colors.on-surface');</p>
+<p class="p1"><span class="Apple-converted-space">            </span>box-shadow: 0 2px 0 0 theme('colors.on-surface');</p>
+<p class="p1"><span class="Apple-converted-space">        </span>}</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">        </span>/* Custom scrollbar for high-contrast look */</p>
+<p class="p1"><span class="Apple-converted-space">        </span>::-webkit-scrollbar {</p>
+<p class="p1"><span class="Apple-converted-space">            </span>width: 8px;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>height: 8px;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>}</p>
+<p class="p1"><span class="Apple-converted-space">        </span>::-webkit-scrollbar-track {</p>
+<p class="p1"><span class="Apple-converted-space">            </span>background: theme('colors.surface-container');<span class="Apple-converted-space"> </span></p>
+<p class="p1"><span class="Apple-converted-space">        </span>}</p>
+<p class="p1"><span class="Apple-converted-space">        </span>::-webkit-scrollbar-thumb {</p>
+<p class="p1"><span class="Apple-converted-space">            </span>background: theme('colors.outline');<span class="Apple-converted-space"> </span></p>
+<p class="p1"><span class="Apple-converted-space">            </span>border-radius: 4px;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>}</p>
+<p class="p1"><span class="Apple-converted-space">        </span>::-webkit-scrollbar-thumb:hover {</p>
+<p class="p1"><span class="Apple-converted-space">            </span>background: theme('colors.on-surface');<span class="Apple-converted-space"> </span></p>
+<p class="p1"><span class="Apple-converted-space">        </span>}</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;/style&gt;</p>
+<p class="p1">&lt;/head&gt;</p>
+<p class="p1">&lt;body class="flex h-screen w-full overflow-hidden antialiased"&gt;</p>
+<p class="p1">&lt;!-- Shared Component: SideNavBar --&gt;</p>
+<p class="p1">&lt;aside class="hidden md:flex flex-col h-screen p-4 gap-stack-md bg-surface-container w-64 border-r border-outline-variant shrink-0 relative z-20"&gt;</p>
+<p class="p1">&lt;!-- Header --&gt;</p>
+<p class="p1">&lt;div class="flex items-center gap-3 mb-stack-lg"&gt;</p>
+<p class="p1">&lt;div class="w-10 h-10 bg-on-surface rounded-full overflow-hidden flex-shrink-0 flex items-center justify-center border border-outline"&gt;</p>
+<p class="p1">&lt;span class="material-symbols-outlined text-surface" style="font-variation-settings: 'FILL' 1;"&gt;spa&lt;/span&gt;</p>
+<p class="p1">&lt;/div&gt;</p>
+<p class="p1">&lt;div&gt;</p>
+<p class="p1">&lt;h1 class="font-headline-md text-headline-md font-bold text-on-surface"&gt;Service Areas&lt;/h1&gt;</p>
+<p class="p1">&lt;p class="font-label-sm text-label-sm text-on-surface-variant"&gt;Management Hub&lt;/p&gt;</p>
+<p class="p1">&lt;/div&gt;</p>
+<p class="p1">&lt;/div&gt;</p>
+<p class="p1">&lt;!-- CTA --&gt;</p>
+<p class="p1">&lt;button class="w-full bg-primary-container text-on-primary-container font-label-md text-label-md py-3 rounded-lg mb-stack-md font-bold hover:bg-primary-fixed-dim transition-colors flex items-center justify-center gap-2 border border-outline shadow-[0_2px_0_0_rgba(0,0,0,1)] active:shadow-none active:translate-y-[2px]"&gt;</p>
+<p class="p1">&lt;span class="material-symbols-outlined text-[18px]"&gt;add&lt;/span&gt;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>Add Appointment</p>
+<p class="p1"><span class="Apple-converted-space">        </span>&lt;/button&gt;</p>
+<p class="p1">&lt;!-- Navigation Links --&gt;</p>
+<p class="p1">&lt;nav class="flex-1 space-y-stack-sm overflow-y-auto pr-2"&gt;</p>
+<p class="p1">&lt;!-- Active Tab Intent: None directly match 'Dashboard/Queue' exactly, leaving 'Peluquería' active as visual demonstration of active state per instructions --&gt;</p>
+<p class="p1">&lt;a class="flex items-center gap-3 px-3 py-2 bg-primary-fixed text-on-primary-fixed font-bold rounded-lg scale-95 transition-transform" href="#"&gt;</p>
+<p class="p1">&lt;span class="material-symbols-outlined"&gt;content_cut&lt;/span&gt;</p>
+<p class="p1">&lt;span class="font-label-md text-label-md"&gt;Peluquería&lt;/span&gt;</p>
+<p class="p1">&lt;/a&gt;</p>
+<p class="p1">&lt;a class="flex items-center gap-3 px-3 py-2 text-on-surface-variant hover:bg-surface-container-high hover:bg-surface-container-highest transition-all rounded-lg" href="#"&gt;</p>
+<p class="p1">&lt;span class="material-symbols-outlined"&gt;opacity&lt;/span&gt;</p>
+<p class="p1">&lt;span class="font-label-md text-label-md"&gt;Hidratación&lt;/span&gt;</p>
+<p class="p1">&lt;/a&gt;</p>
+<p class="p1">&lt;a class="flex items-center gap-3 px-3 py-2 text-on-surface-variant hover:bg-surface-container-high hover:bg-surface-container-highest transition-all rounded-lg" href="#"&gt;</p>
+<p class="p1">&lt;span class="material-symbols-outlined"&gt;back_hand&lt;/span&gt;</p>
+<p class="p1">&lt;span class="font-label-md text-label-md"&gt;Manicure&lt;/span&gt;</p>
+<p class="p1">&lt;/a&gt;</p>
+<p class="p1">&lt;a class="flex items-center gap-3 px-3 py-2 text-on-surface-variant hover:bg-surface-container-high hover:bg-surface-container-highest transition-all rounded-lg" href="#"&gt;</p>
+<p class="p1">&lt;span class="material-symbols-outlined"&gt;face&lt;/span&gt;</p>
+<p class="p1">&lt;span class="font-label-md text-label-md"&gt;Cejas&lt;/span&gt;</p>
+<p class="p1">&lt;/a&gt;</p>
+<p class="p1">&lt;/nav&gt;</p>
+<p class="p1">&lt;!-- Footer Links --&gt;</p>
+<p class="p1">&lt;div class="mt-auto border-t border-outline-variant pt-stack-md space-y-stack-sm"&gt;</p>
+<p class="p1">&lt;a class="flex items-center gap-3 px-3 py-2 text-on-surface-variant hover:bg-surface-container-high hover:bg-surface-container-highest transition-all rounded-lg" href="#"&gt;</p>
+<p class="p1">&lt;span class="material-symbols-outlined"&gt;group&lt;/span&gt;</p>
+<p class="p1">&lt;span class="font-label-md text-label-md"&gt;Staff Status&lt;/span&gt;</p>
+<p class="p1">&lt;/a&gt;</p>
+<p class="p1">&lt;a class="flex items-center gap-3 px-3 py-2 text-on-surface-variant hover:bg-surface-container-high hover:bg-surface-container-highest transition-all rounded-lg" href="#"&gt;</p>
+<p class="p1">&lt;span class="material-symbols-outlined"&gt;settings&lt;/span&gt;</p>
+<p class="p1">&lt;span class="font-label-md text-label-md"&gt;Settings&lt;/span&gt;</p>
+<p class="p1">&lt;/a&gt;</p>
+<p class="p1">&lt;/div&gt;</p>
+<p class="p1">&lt;/aside&gt;</p>
+<p class="p1">&lt;!-- Main Content Canvas --&gt;</p>
+<p class="p1">&lt;main class="flex-1 flex flex-col h-screen overflow-hidden bg-surface"&gt;</p>
+<p class="p1">&lt;!-- Top Bar (Contextual Header) --&gt;</p>
+<p class="p1">&lt;header class="h-16 border-b border-outline-variant bg-surface flex items-center justify-between px-container-margin shrink-0"&gt;</p>
+<p class="p1">&lt;div&gt;</p>
+<p class="p1">&lt;h2 class="font-headline-lg text-headline-lg font-bold text-on-surface tracking-tight"&gt;Master Control Panel&lt;/h2&gt;</p>
+<p class="p1">&lt;/div&gt;</p>
+<p class="p1">&lt;div class="flex items-center gap-4"&gt;</p>
+<p class="p1">&lt;div class="text-right"&gt;</p>
+<p class="p1">&lt;p class="font-label-md text-label-md text-on-surface font-bold" id="current-time"&gt;14:32 PM&lt;/p&gt;</p>
+<p class="p1">&lt;p class="font-label-sm text-label-sm text-on-surface-variant"&gt;Viernes, 24 Nov&lt;/p&gt;</p>
+<p class="p1">&lt;/div&gt;</p>
+<p class="p1">&lt;div class="w-10 h-10 rounded-full bg-surface-container-high border border-outline flex items-center justify-center cursor-pointer hover:bg-surface-variant transition-colors"&gt;</p>
+<p class="p1">&lt;span class="material-symbols-outlined text-on-surface"&gt;notifications&lt;/span&gt;</p>
+<p class="p1">&lt;/div&gt;</p>
+<p class="p1">&lt;/div&gt;</p>
+<p class="p1">&lt;/header&gt;</p>
+<p class="p1">&lt;!-- Scrollable Dashboard Content --&gt;</p>
+<p class="p1">&lt;div class="flex-1 overflow-y-auto p-container-margin space-y-section-gap"&gt;</p>
+<p class="p1">&lt;!-- Section 1: Staff Summary Widget (Bento-style Grid) --&gt;</p>
+<p class="p1">&lt;section&gt;</p>
+<p class="p1">&lt;div class="flex items-center justify-between mb-stack-md"&gt;</p>
+<p class="p1">&lt;h3 class="font-headline-md text-headline-md font-bold text-on-surface"&gt;Staff Availability Overview&lt;/h3&gt;</p>
+<p class="p1">&lt;button class="text-on-surface font-label-md text-label-md hover:underline flex items-center gap-1"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>View Detailed Roster &lt;span class="material-symbols-outlined text-[16px]"&gt;arrow_forward&lt;/span&gt;</p>
+<p class="p1">&lt;/button&gt;</p>
+<p class="p1">&lt;/div&gt;</p>
+<p class="p1">&lt;div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-gutter"&gt;</p>
+<p class="p1">&lt;!-- Staff Card 1: Peluquería --&gt;</p>
+<p class="p1">&lt;div class="bg-surface-container-lowest border border-outline-variant p-4 rounded-lg relative overflow-hidden group hover:border-outline transition-colors"&gt;</p>
+<p class="p1">&lt;div class="absolute top-0 left-0 w-[6px] h-full bg-on-surface"&gt;&lt;/div&gt; &lt;!-- Service Color Stripe Placeholder --&gt;</p>
+<p class="p1">&lt;div class="flex justify-between items-start pl-2"&gt;</p>
+<p class="p1">&lt;div&gt;</p>
+<p class="p1">&lt;p class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider mb-1"&gt;Peluquería&lt;/p&gt;</p>
+<p class="p1">&lt;p class="font-display-lg text-display-lg font-bold text-on-surface leading-none"&gt;8&lt;/p&gt;</p>
+<p class="p1">&lt;p class="font-label-sm text-label-sm text-on-surface-variant mt-1"&gt;Total Staff on Shift&lt;/p&gt;</p>
+<p class="p1">&lt;/div&gt;</p>
+<p class="p1">&lt;span class="material-symbols-outlined text-outline"&gt;content_cut&lt;/span&gt;</p>
+<p class="p1">&lt;/div&gt;</p>
+<p class="p1">&lt;div class="mt-4 flex gap-2 pl-2"&gt;</p>
+<p class="p1">&lt;div class="bg-surface-container px-2 py-1 rounded border border-outline-variant flex-1 text-center"&gt;</p>
+<p class="p1">&lt;span class="font-label-md text-label-md text-on-surface"&gt;5&lt;/span&gt;</p>
+<p class="p1">&lt;span class="font-label-sm text-label-sm text-on-surface-variant block"&gt;Busy&lt;/span&gt;</p>
+<p class="p1">&lt;/div&gt;</p>
+<p class="p1">&lt;div class="bg-primary-container px-2 py-1 rounded border border-outline flex-1 text-center"&gt;</p>
+<p class="p1">&lt;span class="font-label-md text-label-md text-on-primary-container font-bold"&gt;3&lt;/span&gt;</p>
+<p class="p1">&lt;span class="font-label-sm text-label-sm text-on-primary-container block font-bold"&gt;Avail&lt;/span&gt;</p>
+<p class="p1">&lt;/div&gt;</p>
+<p class="p1">&lt;/div&gt;</p>
+<p class="p1">&lt;/div&gt;</p>
+<p class="p1">&lt;!-- Staff Card 2: Hidratación --&gt;</p>
+<p class="p1">&lt;div class="bg-surface-container-lowest border border-outline-variant p-4 rounded-lg relative overflow-hidden group hover:border-outline transition-colors"&gt;</p>
+<p class="p1">&lt;div class="absolute top-0 left-0 w-[6px] h-full bg-tertiary"&gt;&lt;/div&gt;</p>
+<p class="p1">&lt;div class="flex justify-between items-start pl-2"&gt;</p>
+<p class="p1">&lt;div&gt;</p>
+<p class="p1">&lt;p class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider mb-1"&gt;Hidratación&lt;/p&gt;</p>
+<p class="p1">&lt;p class="font-display-lg text-display-lg font-bold text-on-surface leading-none"&gt;4&lt;/p&gt;</p>
+<p class="p1">&lt;p class="font-label-sm text-label-sm text-on-surface-variant mt-1"&gt;Total Staff on Shift&lt;/p&gt;</p>
+<p class="p1">&lt;/div&gt;</p>
+<p class="p1">&lt;span class="material-symbols-outlined text-outline"&gt;opacity&lt;/span&gt;</p>
+<p class="p1">&lt;/div&gt;</p>
+<p class="p1">&lt;div class="mt-4 flex gap-2 pl-2"&gt;</p>
+<p class="p1">&lt;div class="bg-surface-container px-2 py-1 rounded border border-outline-variant flex-1 text-center"&gt;</p>
+<p class="p1">&lt;span class="font-label-md text-label-md text-on-surface"&gt;4&lt;/span&gt;</p>
+<p class="p1">&lt;span class="font-label-sm text-label-sm text-on-surface-variant block"&gt;Busy&lt;/span&gt;</p>
+<p class="p1">&lt;/div&gt;</p>
+<p class="p1">&lt;div class="bg-surface-variant px-2 py-1 rounded border border-outline-variant flex-1 text-center opacity-50"&gt;</p>
+<p class="p1">&lt;span class="font-label-md text-label-md text-on-surface-variant font-bold"&gt;0&lt;/span&gt;</p>
+<p class="p1">&lt;span class="font-label-sm text-label-sm text-on-surface-variant block"&gt;Avail&lt;/span&gt;</p>
+<p class="p1">&lt;/div&gt;</p>
+<p class="p1">&lt;/div&gt;</p>
+<p class="p1">&lt;/div&gt;</p>
+<p class="p1">&lt;!-- Staff Card 3: Manicure --&gt;</p>
+<p class="p1">&lt;div class="bg-surface-container-lowest border border-outline-variant p-4 rounded-lg relative overflow-hidden group hover:border-outline transition-colors"&gt;</p>
+<p class="p1">&lt;div class="absolute top-0 left-0 w-[6px] h-full bg-secondary"&gt;&lt;/div&gt;</p>
+<p class="p1">&lt;div class="flex justify-between items-start pl-2"&gt;</p>
+<p class="p1">&lt;div&gt;</p>
+<p class="p1">&lt;p class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider mb-1"&gt;Manicure&lt;/p&gt;</p>
+<p class="p1">&lt;p class="font-display-lg text-display-lg font-bold text-on-surface leading-none"&gt;6&lt;/p&gt;</p>
+<p class="p1">&lt;p class="font-label-sm text-label-sm text-on-surface-variant mt-1"&gt;Total Staff on Shift&lt;/p&gt;</p>
+<p class="p1">&lt;/div&gt;</p>
+<p class="p1">&lt;span class="material-symbols-outlined text-outline"&gt;back_hand&lt;/span&gt;</p>
+<p class="p1">&lt;/div&gt;</p>
+<p class="p1">&lt;div class="mt-4 flex gap-2 pl-2"&gt;</p>
+<p class="p1">&lt;div class="bg-surface-container px-2 py-1 rounded border border-outline-variant flex-1 text-center"&gt;</p>
+<p class="p1">&lt;span class="font-label-md text-label-md text-on-surface"&gt;2&lt;/span&gt;</p>
+<p class="p1">&lt;span class="font-label-sm text-label-sm text-on-surface-variant block"&gt;Busy&lt;/span&gt;</p>
+<p class="p1">&lt;/div&gt;</p>
+<p class="p1">&lt;div class="bg-primary-container px-2 py-1 rounded border border-outline flex-1 text-center"&gt;</p>
+<p class="p1">&lt;span class="font-label-md text-label-md text-on-primary-container font-bold"&gt;4&lt;/span&gt;</p>
+<p class="p1">&lt;span class="font-label-sm text-label-sm text-on-primary-container block font-bold"&gt;Avail&lt;/span&gt;</p>
+<p class="p1">&lt;/div&gt;</p>
+<p class="p1">&lt;/div&gt;</p>
+<p class="p1">&lt;/div&gt;</p>
+<p class="p1">&lt;!-- Staff Card 4: Cejas --&gt;</p>
+<p class="p1">&lt;div class="bg-surface-container-lowest border border-outline-variant p-4 rounded-lg relative overflow-hidden group hover:border-outline transition-colors"&gt;</p>
+<p class="p1">&lt;div class="absolute top-0 left-0 w-[6px] h-full bg-on-surface-variant"&gt;&lt;/div&gt;</p>
+<p class="p1">&lt;div class="flex justify-between items-start pl-2"&gt;</p>
+<p class="p1">&lt;div&gt;</p>
+<p class="p1">&lt;p class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider mb-1"&gt;Cejas&lt;/p&gt;</p>
+<p class="p1">&lt;p class="font-display-lg text-display-lg font-bold text-on-surface leading-none"&gt;3&lt;/p&gt;</p>
+<p class="p1">&lt;p class="font-label-sm text-label-sm text-on-surface-variant mt-1"&gt;Total Staff on Shift&lt;/p&gt;</p>
+<p class="p1">&lt;/div&gt;</p>
+<p class="p1">&lt;span class="material-symbols-outlined text-outline"&gt;face&lt;/span&gt;</p>
+<p class="p1">&lt;/div&gt;</p>
+<p class="p1">&lt;div class="mt-4 flex gap-2 pl-2"&gt;</p>
+<p class="p1">&lt;div class="bg-surface-container px-2 py-1 rounded border border-outline-variant flex-1 text-center"&gt;</p>
+<p class="p1">&lt;span class="font-label-md text-label-md text-on-surface"&gt;1&lt;/span&gt;</p>
+<p class="p1">&lt;span class="font-label-sm text-label-sm text-on-surface-variant block"&gt;Busy&lt;/span&gt;</p>
+<p class="p1">&lt;/div&gt;</p>
+<p class="p1">&lt;div class="bg-primary-container px-2 py-1 rounded border border-outline flex-1 text-center"&gt;</p>
+<p class="p1">&lt;span class="font-label-md text-label-md text-on-primary-container font-bold"&gt;2&lt;/span&gt;</p>
+<p class="p1">&lt;span class="font-label-sm text-label-sm text-on-primary-container block font-bold"&gt;Avail&lt;/span&gt;</p>
+<p class="p1">&lt;/div&gt;</p>
+<p class="p1">&lt;/div&gt;</p>
+<p class="p1">&lt;/div&gt;</p>
+<p class="p1">&lt;/div&gt;</p>
+<p class="p1">&lt;/section&gt;</p>
+<p class="p1">&lt;!-- Section 2: General Client Queue (High-Contrast Table) --&gt;</p>
+<p class="p1">&lt;section class="flex-1 flex flex-col min-h-[400px]"&gt;</p>
+<p class="p1">&lt;div class="flex items-center justify-between mb-stack-md"&gt;</p>
+<p class="p1">&lt;h3 class="font-headline-md text-headline-md font-bold text-on-surface"&gt;General Client Queue&lt;/h3&gt;</p>
+<p class="p1">&lt;div class="flex items-center gap-2"&gt;</p>
+<p class="p1">&lt;div class="relative"&gt;</p>
+<p class="p1">&lt;span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-[18px]"&gt;search&lt;/span&gt;</p>
+<p class="p1">&lt;input class="pl-9 pr-4 py-2 border border-outline-variant bg-surface-container-lowest rounded-md font-body-md text-body-md text-on-surface placeholder:text-on-surface-variant focus:border-on-surface focus:ring-0 transition-colors w-64" placeholder="Search Cédula..." type="text"/&gt;</p>
+<p class="p1">&lt;/div&gt;</p>
+<p class="p1">&lt;button class="border border-outline-variant bg-surface-container-lowest text-on-surface p-2 rounded-md hover:bg-surface-container transition-colors flex items-center justify-center"&gt;</p>
+<p class="p1">&lt;span class="material-symbols-outlined"&gt;filter_list&lt;/span&gt;</p>
+<p class="p1">&lt;/button&gt;</p>
+<p class="p1">&lt;/div&gt;</p>
+<p class="p1">&lt;/div&gt;</p>
+<p class="p1">&lt;!-- Table Container --&gt;</p>
+<p class="p1">&lt;div class="bg-surface-container-lowest border border-outline-variant rounded-lg overflow-hidden flex-1 flex flex-col"&gt;</p>
+<p class="p1">&lt;div class="overflow-x-auto flex-1"&gt;</p>
+<p class="p1">&lt;table class="w-full text-left border-collapse"&gt;</p>
+<p class="p1">&lt;thead class="bg-surface-container border-b border-outline-variant sticky top-0 z-10"&gt;</p>
+<p class="p1">&lt;tr&gt;</p>
+<p class="p1">&lt;th class="px-4 py-3 font-label-md text-label-md text-on-surface font-bold uppercase tracking-wider"&gt;Order&lt;/th&gt;</p>
+<p class="p1">&lt;th class="px-4 py-3 font-label-md text-label-md text-on-surface font-bold uppercase tracking-wider"&gt;Name&lt;/th&gt;</p>
+<p class="p1">&lt;th class="px-4 py-3 font-label-md text-label-md text-on-surface font-bold uppercase tracking-wider"&gt;Cédula&lt;/th&gt;</p>
+<p class="p1">&lt;th class="px-4 py-3 font-label-md text-label-md text-on-surface font-bold uppercase tracking-wider"&gt;Services&lt;/th&gt;</p>
+<p class="p1">&lt;th class="px-4 py-3 font-label-md text-label-md text-on-surface font-bold uppercase tracking-wider"&gt;Reg. Time&lt;/th&gt;</p>
+<p class="p1">&lt;th class="px-4 py-3 font-label-md text-label-md text-on-surface font-bold uppercase tracking-wider"&gt;Status&lt;/th&gt;</p>
+<p class="p1">&lt;th class="px-4 py-3 font-label-md text-label-md text-on-surface font-bold uppercase tracking-wider text-right"&gt;Actions&lt;/th&gt;</p>
+<p class="p1">&lt;/tr&gt;</p>
+<p class="p1">&lt;/thead&gt;</p>
+<p class="p1">&lt;tbody class="divide-y divide-outline-variant bg-surface-container-lowest font-body-md text-body-md text-on-surface"&gt;</p>
+<p class="p1">&lt;!-- Row 1: Waiting --&gt;</p>
+<p class="p1">&lt;tr class="hover:bg-surface-container-low transition-colors group"&gt;</p>
+<p class="p1">&lt;td class="px-4 py-4 font-bold"&gt;#1042&lt;/td&gt;</p>
+<p class="p1">&lt;td class="px-4 py-4 font-medium"&gt;Maria Rodriguez&lt;/td&gt;</p>
+<p class="p1">&lt;td class="px-4 py-4 font-mono text-on-surface-variant"&gt;V-12345678&lt;/td&gt;</p>
+<p class="p1">&lt;td class="px-4 py-4"&gt;</p>
+<p class="p1">&lt;div class="flex flex-wrap gap-1"&gt;</p>
+<p class="p1">&lt;span class="px-2 py-0.5 border border-outline-variant rounded text-label-sm font-label-sm bg-surface"&gt;Corte M.&lt;/span&gt;</p>
+<p class="p1">&lt;span class="px-2 py-0.5 border border-outline-variant rounded text-label-sm font-label-sm bg-surface"&gt;Secado&lt;/span&gt;</p>
+<p class="p1">&lt;/div&gt;</p>
+<p class="p1">&lt;/td&gt;</p>
+<p class="p1">&lt;td class="px-4 py-4 text-on-surface-variant"&gt;14:15 PM&lt;/td&gt;</p>
+<p class="p1">&lt;td class="px-4 py-4"&gt;</p>
+<p class="p1">&lt;!-- Waiting Badge --&gt;</p>
+<p class="p1">&lt;span class="inline-flex items-center gap-1 bg-surface-container-high text-on-surface px-2.5 py-1 rounded-full font-label-sm text-label-sm border border-outline-variant"&gt;</p>
+<p class="p1">&lt;span class="w-1.5 h-1.5 rounded-full bg-secondary"&gt;&lt;/span&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                            </span>En espera</p>
+<p class="p1"><span class="Apple-converted-space">                                        </span>&lt;/span&gt;</p>
+<p class="p1">&lt;/td&gt;</p>
+<p class="p1">&lt;td class="px-4 py-4 text-right"&gt;</p>
+<p class="p1">&lt;button class="bg-primary-container text-on-primary-container font-label-md text-label-md font-bold px-4 py-2 rounded border border-outline hover:bg-primary-fixed-dim transition-colors shadow-[0_2px_0_0_rgba(0,0,0,1)] active:shadow-none active:translate-y-[2px]"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                            </span>Asignar</p>
+<p class="p1"><span class="Apple-converted-space">                                        </span>&lt;/button&gt;</p>
+<p class="p1">&lt;/td&gt;</p>
+<p class="p1">&lt;/tr&gt;</p>
+<p class="p1">&lt;!-- Row 2: In Service --&gt;</p>
+<p class="p1">&lt;tr class="hover:bg-surface-container-low transition-colors group bg-surface-bright"&gt;</p>
+<p class="p1">&lt;td class="px-4 py-4 font-bold"&gt;#1041&lt;/td&gt;</p>
+<p class="p1">&lt;td class="px-4 py-4 font-medium"&gt;Carmen Lopez&lt;/td&gt;</p>
+<p class="p1">&lt;td class="px-4 py-4 font-mono text-on-surface-variant"&gt;E-87654321&lt;/td&gt;</p>
+<p class="p1">&lt;td class="px-4 py-4"&gt;</p>
+<p class="p1">&lt;div class="flex flex-wrap gap-1"&gt;</p>
+<p class="p1">&lt;span class="px-2 py-0.5 border border-outline-variant rounded text-label-sm font-label-sm bg-surface"&gt;Balayage&lt;/span&gt;</p>
+<p class="p1">&lt;/div&gt;</p>
+<p class="p1">&lt;/td&gt;</p>
+<p class="p1">&lt;td class="px-4 py-4 text-on-surface-variant"&gt;13:30 PM&lt;/td&gt;</p>
+<p class="p1">&lt;td class="px-4 py-4"&gt;</p>
+<p class="p1">&lt;!-- In Service Badge --&gt;</p>
+<p class="p1">&lt;span class="inline-flex items-center gap-1 bg-primary-container text-on-primary-container px-2.5 py-1 rounded-full font-label-sm text-label-sm font-bold border border-outline"&gt;</p>
+<p class="p1">&lt;span class="w-1.5 h-1.5 rounded-full bg-on-primary-container animate-pulse"&gt;&lt;/span&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                            </span>En servicio</p>
+<p class="p1"><span class="Apple-converted-space">                                        </span>&lt;/span&gt;</p>
+<p class="p1">&lt;/td&gt;</p>
+<p class="p1">&lt;td class="px-4 py-4 text-right"&gt;</p>
+<p class="p1">&lt;button class="bg-surface-container-high text-on-surface-variant font-label-md text-label-md px-4 py-2 rounded border border-outline-variant hover:bg-surface-container transition-colors cursor-not-allowed opacity-70" disabled=""&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                            </span>Asignado (Silla 3)</p>
+<p class="p1"><span class="Apple-converted-space">                                        </span>&lt;/button&gt;</p>
+<p class="p1">&lt;/td&gt;</p>
+<p class="p1">&lt;/tr&gt;</p>
+<p class="p1">&lt;!-- Row 3: Waiting --&gt;</p>
+<p class="p1">&lt;tr class="hover:bg-surface-container-low transition-colors group"&gt;</p>
+<p class="p1">&lt;td class="px-4 py-4 font-bold"&gt;#1043&lt;/td&gt;</p>
+<p class="p1">&lt;td class="px-4 py-4 font-medium"&gt;Elena Gomez&lt;/td&gt;</p>
+<p class="p1">&lt;td class="px-4 py-4 font-mono text-on-surface-variant"&gt;V-23456789&lt;/td&gt;</p>
+<p class="p1">&lt;td class="px-4 py-4"&gt;</p>
+<p class="p1">&lt;div class="flex flex-wrap gap-1"&gt;</p>
+<p class="p1">&lt;span class="px-2 py-0.5 border border-outline-variant rounded text-label-sm font-label-sm bg-surface"&gt;Manicure Trad.&lt;/span&gt;</p>
+<p class="p1">&lt;/div&gt;</p>
+<p class="p1">&lt;/td&gt;</p>
+<p class="p1">&lt;td class="px-4 py-4 text-on-surface-variant"&gt;14:20 PM&lt;/td&gt;</p>
+<p class="p1">&lt;td class="px-4 py-4"&gt;</p>
+<p class="p1">&lt;span class="inline-flex items-center gap-1 bg-surface-container-high text-on-surface px-2.5 py-1 rounded-full font-label-sm text-label-sm border border-outline-variant"&gt;</p>
+<p class="p1">&lt;span class="w-1.5 h-1.5 rounded-full bg-secondary"&gt;&lt;/span&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                            </span>En espera</p>
+<p class="p1"><span class="Apple-converted-space">                                        </span>&lt;/span&gt;</p>
+<p class="p1">&lt;/td&gt;</p>
+<p class="p1">&lt;td class="px-4 py-4 text-right"&gt;</p>
+<p class="p1">&lt;button class="bg-primary-container text-on-primary-container font-label-md text-label-md font-bold px-4 py-2 rounded border border-outline hover:bg-primary-fixed-dim transition-colors shadow-[0_2px_0_0_rgba(0,0,0,1)] active:shadow-none active:translate-y-[2px]"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                            </span>Asignar</p>
+<p class="p1"><span class="Apple-converted-space">                                        </span>&lt;/button&gt;</p>
+<p class="p1">&lt;/td&gt;</p>
+<p class="p1">&lt;/tr&gt;</p>
+<p class="p1">&lt;!-- Row 4: Waiting --&gt;</p>
+<p class="p1">&lt;tr class="hover:bg-surface-container-low transition-colors group"&gt;</p>
+<p class="p1">&lt;td class="px-4 py-4 font-bold"&gt;#1044&lt;/td&gt;</p>
+<p class="p1">&lt;td class="px-4 py-4 font-medium"&gt;Sofía Castillo&lt;/td&gt;</p>
+<p class="p1">&lt;td class="px-4 py-4 font-mono text-on-surface-variant"&gt;V-34567890&lt;/td&gt;</p>
+<p class="p1">&lt;td class="px-4 py-4"&gt;</p>
+<p class="p1">&lt;div class="flex flex-wrap gap-1"&gt;</p>
+<p class="p1">&lt;span class="px-2 py-0.5 border border-outline-variant rounded text-label-sm font-label-sm bg-surface"&gt;Diseño Cejas&lt;/span&gt;</p>
+<p class="p1">&lt;span class="px-2 py-0.5 border border-outline-variant rounded text-label-sm font-label-sm bg-surface"&gt;Bozo&lt;/span&gt;</p>
+<p class="p1">&lt;/div&gt;</p>
+<p class="p1">&lt;/td&gt;</p>
+<p class="p1">&lt;td class="px-4 py-4 text-on-surface-variant"&gt;14:25 PM&lt;/td&gt;</p>
+<p class="p1">&lt;td class="px-4 py-4"&gt;</p>
+<p class="p1">&lt;span class="inline-flex items-center gap-1 bg-surface-container-high text-on-surface px-2.5 py-1 rounded-full font-label-sm text-label-sm border border-outline-variant"&gt;</p>
+<p class="p1">&lt;span class="w-1.5 h-1.5 rounded-full bg-secondary"&gt;&lt;/span&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                            </span>En espera</p>
+<p class="p1"><span class="Apple-converted-space">                                        </span>&lt;/span&gt;</p>
+<p class="p1">&lt;/td&gt;</p>
+<p class="p1">&lt;td class="px-4 py-4 text-right"&gt;</p>
+<p class="p1">&lt;button class="bg-primary-container text-on-primary-container font-label-md text-label-md font-bold px-4 py-2 rounded border border-outline hover:bg-primary-fixed-dim transition-colors shadow-[0_2px_0_0_rgba(0,0,0,1)] active:shadow-none active:translate-y-[2px]"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                            </span>Asignar</p>
+<p class="p1"><span class="Apple-converted-space">                                        </span>&lt;/button&gt;</p>
+<p class="p1">&lt;/td&gt;</p>
+<p class="p1">&lt;/tr&gt;</p>
+<p class="p1">&lt;/tbody&gt;</p>
+<p class="p1">&lt;/table&gt;</p>
+<p class="p1">&lt;/div&gt;</p>
+<p class="p1">&lt;!-- Table Footer / Pagination Placeholder --&gt;</p>
+<p class="p1">&lt;div class="bg-surface-container border-t border-outline-variant px-4 py-3 flex items-center justify-between"&gt;</p>
+<p class="p1">&lt;span class="font-label-sm text-label-sm text-on-surface-variant"&gt;Showing 4 of 24 clients in queue&lt;/span&gt;</p>
+<p class="p1">&lt;div class="flex gap-1"&gt;</p>
+<p class="p1">&lt;button class="w-8 h-8 flex items-center justify-center border border-outline-variant rounded bg-surface-container-lowest text-on-surface-variant hover:bg-surface disabled:opacity-50" disabled=""&gt;</p>
+<p class="p1">&lt;span class="material-symbols-outlined text-[18px]"&gt;chevron_left&lt;/span&gt;</p>
+<p class="p1">&lt;/button&gt;</p>
+<p class="p1">&lt;button class="w-8 h-8 flex items-center justify-center border border-outline-variant rounded bg-surface-container-lowest text-on-surface hover:bg-surface"&gt;</p>
+<p class="p1">&lt;span class="material-symbols-outlined text-[18px]"&gt;chevron_right&lt;/span&gt;</p>
+<p class="p1">&lt;/button&gt;</p>
+<p class="p1">&lt;/div&gt;</p>
+<p class="p1">&lt;/div&gt;</p>
+<p class="p1">&lt;/div&gt;</p>
+<p class="p1">&lt;/section&gt;</p>
+<p class="p1">&lt;/div&gt;</p>
+<p class="p1">&lt;/main&gt;</p>
+<p class="p1">&lt;script&gt;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>// Simple script to update the clock for the "Pulse" dashboard feel</p>
+<p class="p1"><span class="Apple-converted-space">        </span>function updateClock() {</p>
+<p class="p1"><span class="Apple-converted-space">            </span>const now = new Date();</p>
+<p class="p1"><span class="Apple-converted-space">            </span>const timeString = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });</p>
+<p class="p1"><span class="Apple-converted-space">            </span>const clockEl = document.getElementById('current-time');</p>
+<p class="p1"><span class="Apple-converted-space">            </span>if(clockEl) {</p>
+<p class="p1"><span class="Apple-converted-space">                </span>clockEl.textContent = timeString;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>}</p>
+<p class="p1"><span class="Apple-converted-space">        </span>}</p>
+<p class="p1"><span class="Apple-converted-space">        </span>setInterval(updateClock, 60000); // Update every minute</p>
+<p class="p1"><span class="Apple-converted-space">        </span>updateClock(); // Initial call</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;/script&gt;</p>
+<p class="p1">&lt;/body&gt;&lt;/html&gt;</p>
+<p class="p2"><br></p>
+<p class="p1">&lt;!-- Formulario de Check-in --&gt;</p>
+<p class="p1">&lt;!DOCTYPE html&gt;</p>
+<p class="p2"><br></p>
+<p class="p1">&lt;html class="light" lang="es"&gt;&lt;head&gt;</p>
+<p class="p1">&lt;meta charset="utf-8"/&gt;</p>
+<p class="p1">&lt;meta content="width=device-width, initial-scale=1.0" name="viewport"/&gt;</p>
+<p class="p1">&lt;title&gt;Customer Check-in Form - El Mundo del Cabello&lt;/title&gt;</p>
+<p class="p1">&lt;script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"&gt;&lt;/script&gt;</p>
+<p class="p1">&lt;link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;amp;display=swap" rel="stylesheet"/&gt;</p>
+<p class="p1">&lt;link href="https://fonts.googleapis.com" rel="preconnect"/&gt;</p>
+<p class="p1">&lt;link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/&gt;</p>
+<p class="p1">&lt;link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;amp;family=Montserrat:wght@600;700;900&amp;amp;display=swap" rel="stylesheet"/&gt;</p>
+<p class="p1">&lt;link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;amp;display=swap" rel="stylesheet"/&gt;</p>
+<p class="p1">&lt;script id="tailwind-config"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>tailwind.config = {</p>
+<p class="p1"><span class="Apple-converted-space">            </span>darkMode: "class",</p>
+<p class="p1"><span class="Apple-converted-space">            </span>theme: {</p>
+<p class="p1"><span class="Apple-converted-space">                </span>extend: {</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>"colors": {</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>"on-surface": "#1f1b11",</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>"primary-fixed": "#ffe08b",</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>"inverse-on-surface": "#f9f0de",</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>"on-tertiary-fixed-variant": "#454748",</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>"on-tertiary-container": "#545657",</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>"surface-container-highest": "#ebe1d1",</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>"on-primary-fixed-variant": "#584400",</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>"error": "#ba1a1a",</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>"on-secondary-fixed": "#1b1b1b",</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>"on-secondary-fixed-variant": "#474747",</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>"inverse-surface": "#353025",</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>"on-surface-variant": "#4e4633",</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>"on-background": "#1f1b11",</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>"error-container": "#ffdad6",</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>"surface-bright": "#fff8f1",</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>"on-error": "#ffffff",</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>"on-primary": "#ffffff",</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>"tertiary-container": "#cacbcc",</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>"secondary-fixed-dim": "#c6c6c6",</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>"tertiary-fixed-dim": "#c6c6c7",</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>"tertiary-fixed": "#e2e2e3",</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>"surface": "#fff8f1",</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>"on-secondary-container": "#646464",</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>"outline-variant": "#d1c5ac",</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>"surface-dim": "#e2d9c8",</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>"primary-fixed-dim": "#f0c110",</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>"secondary-container": "#e2e2e2",</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>"secondary": "#5e5e5e",</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>"surface-variant": "#ebe1d1",</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>"surface-container-low": "#fcf3e1",</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>"on-tertiary-fixed": "#1a1c1d",</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>"surface-container-lowest": "#ffffff",</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>"secondary-fixed": "#e2e2e2",</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>"surface-container": "#f6eddc",</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>"on-tertiary": "#ffffff",</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>"on-primary-fixed": "#241a00",</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>"outline": "#807660",</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>"inverse-primary": "#f0c110",</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>"on-error-container": "#93000a",</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>"on-secondary": "#ffffff",</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>"primary-container": "#f5c518",</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>"primary": "#745b00",</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>"surface-tint": "#745b00",</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>"surface-container-high": "#f1e7d6",</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>"on-primary-container": "#695200",</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>"tertiary": "#5d5e60",</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>"background": "#fff8f1"</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>},</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>"borderRadius": {</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>"DEFAULT": "0.125rem",</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>"lg": "0.25rem",</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>"xl": "0.5rem",</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>"full": "0.75rem"</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>},</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>"spacing": {</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>"gutter": "16px",</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>"stack-lg": "24px",</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>"stack-sm": "4px",</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>"stack-md": "12px",</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>"base": "8px",</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>"section-gap": "48px",</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>"container-margin": "24px"</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>},</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>"fontFamily": {</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>"headline-lg-mobile": ["Montserrat"],</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>"label-sm": ["Inter"],</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>"body-md": ["Inter"],</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>"headline-lg": ["Montserrat"],</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>"label-md": ["Inter"],</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>"headline-md": ["Montserrat"],</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>"display-lg": ["Montserrat"],</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>"body-lg": ["Inter"]</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>},</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>"fontSize": {</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>"headline-lg-mobile": ["24px", { "lineHeight": "32px", "fontWeight": "700" }],</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>"label-sm": ["12px", { "lineHeight": "16px", "fontWeight": "500" }],</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>"body-md": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>"headline-lg": ["32px", { "lineHeight": "40px", "fontWeight": "700" }],</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>"label-md": ["14px", { "lineHeight": "20px", "letterSpacing": "0.05em", "fontWeight": "600" }],</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>"headline-md": ["20px", { "lineHeight": "28px", "fontWeight": "600" }],</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>"display-lg": ["48px", { "lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700" }],</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>"body-lg": ["18px", { "lineHeight": "28px", "fontWeight": "400" }]</p>
+<p class="p1"><span class="Apple-converted-space">                    </span>}</p>
+<p class="p1"><span class="Apple-converted-space">                </span>}</p>
+<p class="p1"><span class="Apple-converted-space">            </span>}</p>
+<p class="p1"><span class="Apple-converted-space">        </span>}</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;/script&gt;</p>
+<p class="p1">&lt;/head&gt;</p>
+<p class="p1">&lt;body class="bg-surface-container-lowest text-on-surface antialiased min-h-screen flex flex-col font-body-md"&gt;</p>
+<p class="p1">&lt;!-- TopNavBar (Shared Component) - Suppressed per Transactional Rules, rendering lightweight Brand Anchor instead --&gt;</p>
+<p class="p1">&lt;header class="w-full flex justify-center items-center h-16 bg-surface border-b border-outline-variant px-container-margin sticky top-0 z-50"&gt;</p>
+<p class="p1">&lt;h1 class="font-headline-lg text-headline-lg font-black text-primary"&gt;El Mundo del Cabello&lt;/h1&gt;</p>
+<p class="p1">&lt;/header&gt;</p>
+<p class="p1">&lt;main class="flex-grow flex items-center justify-center p-4 md:p-container-margin"&gt;</p>
+<p class="p1">&lt;div class="w-full max-w-2xl bg-surface-container-lowest border border-outline-variant rounded-xl shadow-lg md:shadow-none p-stack-lg flex flex-col gap-stack-lg"&gt;</p>
+<p class="p1">&lt;div class="text-center"&gt;</p>
+<p class="p1">&lt;h2 class="font-headline-lg-mobile md:font-headline-lg text-headline-lg-mobile md:text-headline-lg text-on-surface"&gt;Customer Check-in&lt;/h2&gt;</p>
+<p class="p1">&lt;p class="font-body-md text-body-md text-on-surface-variant mt-stack-sm"&gt;Please fill out your details to join the queue.&lt;/p&gt;</p>
+<p class="p1">&lt;/div&gt;</p>
+<p class="p1">&lt;form class="flex flex-col gap-stack-lg" onsubmit="event.preventDefault(); alert('Turno Registrado!');"&gt;</p>
+<p class="p1">&lt;!-- Personal Details Section --&gt;</p>
+<p class="p1">&lt;div class="grid grid-cols-1 md:grid-cols-2 gap-stack-md"&gt;</p>
+<p class="p1">&lt;div class="flex flex-col gap-stack-sm"&gt;</p>
+<p class="p1">&lt;label class="font-label-md text-label-md text-on-surface" for="cedula"&gt;Cédula de Identidad&lt;/label&gt;</p>
+<p class="p1">&lt;input class="h-12 px-4 rounded-DEFAULT border border-outline-variant bg-surface text-on-surface focus:outline-none focus:border-on-surface focus:ring-1 focus:ring-on-surface font-body-md text-body-md transition-colors" id="cedula" name="cedula" placeholder="V-12345678" required="" type="text"/&gt;</p>
+<p class="p1">&lt;/div&gt;</p>
+<p class="p1">&lt;div class="flex flex-col gap-stack-sm"&gt;</p>
+<p class="p1">&lt;label class="font-label-md text-label-md text-on-surface" for="nombre"&gt;Nombre y Apellido&lt;/label&gt;</p>
+<p class="p1">&lt;input class="h-12 px-4 rounded-DEFAULT border border-outline-variant bg-surface text-on-surface focus:outline-none focus:border-on-surface focus:ring-1 focus:ring-on-surface font-body-md text-body-md transition-colors" id="nombre" name="nombre" placeholder="Maria Perez" required="" type="text"/&gt;</p>
+<p class="p1">&lt;/div&gt;</p>
+<p class="p1">&lt;div class="flex flex-col gap-stack-sm"&gt;</p>
+<p class="p1">&lt;label class="font-label-md text-label-md text-on-surface" for="telefono"&gt;Teléfono de Contacto&lt;/label&gt;</p>
+<p class="p1">&lt;input class="h-12 px-4 rounded-DEFAULT border border-outline-variant bg-surface text-on-surface focus:outline-none focus:border-on-surface focus:ring-1 focus:ring-on-surface font-body-md text-body-md transition-colors" id="telefono" name="telefono" placeholder="0414-1234567" required="" type="tel"/&gt;</p>
+<p class="p1">&lt;/div&gt;</p>
+<p class="p1">&lt;div class="flex flex-col gap-stack-sm"&gt;</p>
+<p class="p1">&lt;label class="font-label-md text-label-md text-on-surface" for="direccion"&gt;Dirección&lt;/label&gt;</p>
+<p class="p1">&lt;input class="h-12 px-4 rounded-DEFAULT border border-outline-variant bg-surface text-on-surface focus:outline-none focus:border-on-surface focus:ring-1 focus:ring-on-surface font-body-md text-body-md transition-colors" id="direccion" name="direccion" placeholder="Sector Centro..." required="" type="text"/&gt;</p>
+<p class="p1">&lt;/div&gt;</p>
+<p class="p1">&lt;/div&gt;</p>
+<p class="p1">&lt;hr class="border-t border-outline-variant w-full"/&gt;</p>
+<p class="p1">&lt;!-- Services Section --&gt;</p>
+<p class="p1">&lt;div class="flex flex-col gap-stack-md"&gt;</p>
+<p class="p1">&lt;h3 class="font-headline-md text-headline-md text-on-surface"&gt;Servicios a Realizar&lt;/h3&gt;</p>
+<p class="p1">&lt;p class="font-label-sm text-label-sm text-on-surface-variant"&gt;Select all that apply.&lt;/p&gt;</p>
+<p class="p1">&lt;div class="grid grid-cols-1 sm:grid-cols-2 gap-stack-md"&gt;</p>
+<p class="p1">&lt;!-- Peluquería Group --&gt;</p>
+<p class="p1">&lt;div class="bg-surface border-l-4 border-l-[#ffb4ab] border-t border-r border-b border-outline-variant p-4 rounded-r-lg flex flex-col gap-stack-sm hover:shadow-md transition-shadow"&gt;</p>
+<p class="p1">&lt;span class="font-label-md text-label-md text-on-surface flex items-center gap-2"&gt;</p>
+<p class="p1">&lt;span class="material-symbols-outlined text-[#ffb4ab]" data-weight="fill" style="font-variation-settings: 'FILL' 1;"&gt;content_cut&lt;/span&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                </span>Peluquería</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>&lt;/span&gt;</p>
+<p class="p1">&lt;label class="flex items-center gap-2 cursor-pointer"&gt;</p>
+<p class="p1">&lt;input class="w-5 h-5 rounded-DEFAULT border-outline-variant text-on-surface focus:ring-on-surface" type="checkbox"/&gt;</p>
+<p class="p1">&lt;span class="font-body-md text-body-md text-on-surface-variant"&gt;Corte&lt;/span&gt;</p>
+<p class="p1">&lt;/label&gt;</p>
+<p class="p1">&lt;label class="flex items-center gap-2 cursor-pointer"&gt;</p>
+<p class="p1">&lt;input class="w-5 h-5 rounded-DEFAULT border-outline-variant text-on-surface focus:ring-on-surface" type="checkbox"/&gt;</p>
+<p class="p1">&lt;span class="font-body-md text-body-md text-on-surface-variant"&gt;Secado&lt;/span&gt;</p>
+<p class="p1">&lt;/label&gt;</p>
+<p class="p1">&lt;label class="flex items-center gap-2 cursor-pointer"&gt;</p>
+<p class="p1">&lt;input class="w-5 h-5 rounded-DEFAULT border-outline-variant text-on-surface focus:ring-on-surface" type="checkbox"/&gt;</p>
+<p class="p1">&lt;span class="font-body-md text-body-md text-on-surface-variant"&gt;Aplicación de Tinte&lt;/span&gt;</p>
+<p class="p1">&lt;/label&gt;</p>
+<p class="p1">&lt;/div&gt;</p>
+<p class="p1">&lt;!-- Hidratación Group --&gt;</p>
+<p class="p1">&lt;div class="bg-surface border-l-4 border-l-[#a3defe] border-t border-r border-b border-outline-variant p-4 rounded-r-lg flex flex-col gap-stack-sm hover:shadow-md transition-shadow"&gt;</p>
+<p class="p1">&lt;span class="font-label-md text-label-md text-on-surface flex items-center gap-2"&gt;</p>
+<p class="p1">&lt;span class="material-symbols-outlined text-[#a3defe]" data-weight="fill" style="font-variation-settings: 'FILL' 1;"&gt;opacity&lt;/span&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                </span>Hidratación</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>&lt;/span&gt;</p>
+<p class="p1">&lt;label class="flex items-center gap-2 cursor-pointer"&gt;</p>
+<p class="p1">&lt;input class="w-5 h-5 rounded-DEFAULT border-outline-variant text-on-surface focus:ring-on-surface" type="checkbox"/&gt;</p>
+<p class="p1">&lt;span class="font-body-md text-body-md text-on-surface-variant"&gt;Cirugía Capilar&lt;/span&gt;</p>
+<p class="p1">&lt;/label&gt;</p>
+<p class="p1">&lt;label class="flex items-center gap-2 cursor-pointer"&gt;</p>
+<p class="p1">&lt;input class="w-5 h-5 rounded-DEFAULT border-outline-variant text-on-surface focus:ring-on-surface" type="checkbox"/&gt;</p>
+<p class="p1">&lt;span class="font-body-md text-body-md text-on-surface-variant"&gt;Keratina&lt;/span&gt;</p>
+<p class="p1">&lt;/label&gt;</p>
+<p class="p1">&lt;label class="flex items-center gap-2 cursor-pointer"&gt;</p>
+<p class="p1">&lt;input class="w-5 h-5 rounded-DEFAULT border-outline-variant text-on-surface focus:ring-on-surface" type="checkbox"/&gt;</p>
+<p class="p1">&lt;span class="font-body-md text-body-md text-on-surface-variant"&gt;Ampolla&lt;/span&gt;</p>
+<p class="p1">&lt;/label&gt;</p>
+<p class="p1">&lt;/div&gt;</p>
+<p class="p1">&lt;!-- Manicure Group --&gt;</p>
+<p class="p1">&lt;div class="bg-surface border-l-4 border-l-[#f5c518] border-t border-r border-b border-outline-variant p-4 rounded-r-lg flex flex-col gap-stack-sm hover:shadow-md transition-shadow"&gt;</p>
+<p class="p1">&lt;span class="font-label-md text-label-md text-on-surface flex items-center gap-2"&gt;</p>
+<p class="p1">&lt;span class="material-symbols-outlined text-[#f5c518]" data-weight="fill" style="font-variation-settings: 'FILL' 1;"&gt;back_hand&lt;/span&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                </span>Manicure y Pedicure</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>&lt;/span&gt;</p>
+<p class="p1">&lt;label class="flex items-center gap-2 cursor-pointer"&gt;</p>
+<p class="p1">&lt;input class="w-5 h-5 rounded-DEFAULT border-outline-variant text-on-surface focus:ring-on-surface" type="checkbox"/&gt;</p>
+<p class="p1">&lt;span class="font-body-md text-body-md text-on-surface-variant"&gt;Manicure Tradicional&lt;/span&gt;</p>
+<p class="p1">&lt;/label&gt;</p>
+<p class="p1">&lt;label class="flex items-center gap-2 cursor-pointer"&gt;</p>
+<p class="p1">&lt;input class="w-5 h-5 rounded-DEFAULT border-outline-variant text-on-surface focus:ring-on-surface" type="checkbox"/&gt;</p>
+<p class="p1">&lt;span class="font-body-md text-body-md text-on-surface-variant"&gt;Pedicure Tradicional&lt;/span&gt;</p>
+<p class="p1">&lt;/label&gt;</p>
+<p class="p1">&lt;label class="flex items-center gap-2 cursor-pointer"&gt;</p>
+<p class="p1">&lt;input class="w-5 h-5 rounded-DEFAULT border-outline-variant text-on-surface focus:ring-on-surface" type="checkbox"/&gt;</p>
+<p class="p1">&lt;span class="font-body-md text-body-md text-on-surface-variant"&gt;Sistema de Uñas&lt;/span&gt;</p>
+<p class="p1">&lt;/label&gt;</p>
+<p class="p1">&lt;/div&gt;</p>
+<p class="p1">&lt;!-- Cejas Group --&gt;</p>
+<p class="p1">&lt;div class="bg-surface border-l-4 border-l-[#c3e88d] border-t border-r border-b border-outline-variant p-4 rounded-r-lg flex flex-col gap-stack-sm hover:shadow-md transition-shadow"&gt;</p>
+<p class="p1">&lt;span class="font-label-md text-label-md text-on-surface flex items-center gap-2"&gt;</p>
+<p class="p1">&lt;span class="material-symbols-outlined text-[#c3e88d]" data-weight="fill" style="font-variation-settings: 'FILL' 1;"&gt;face&lt;/span&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                </span>Cejas</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>&lt;/span&gt;</p>
+<p class="p1">&lt;label class="flex items-center gap-2 cursor-pointer"&gt;</p>
+<p class="p1">&lt;input class="w-5 h-5 rounded-DEFAULT border-outline-variant text-on-surface focus:ring-on-surface" type="checkbox"/&gt;</p>
+<p class="p1">&lt;span class="font-body-md text-body-md text-on-surface-variant"&gt;Depilación&lt;/span&gt;</p>
+<p class="p1">&lt;/label&gt;</p>
+<p class="p1">&lt;label class="flex items-center gap-2 cursor-pointer"&gt;</p>
+<p class="p1">&lt;input class="w-5 h-5 rounded-DEFAULT border-outline-variant text-on-surface focus:ring-on-surface" type="checkbox"/&gt;</p>
+<p class="p1">&lt;span class="font-body-md text-body-md text-on-surface-variant"&gt;Pigmentación&lt;/span&gt;</p>
+<p class="p1">&lt;/label&gt;</p>
+<p class="p1">&lt;label class="flex items-center gap-2 cursor-pointer"&gt;</p>
+<p class="p1">&lt;input class="w-5 h-5 rounded-DEFAULT border-outline-variant text-on-surface focus:ring-on-surface" type="checkbox"/&gt;</p>
+<p class="p1">&lt;span class="font-body-md text-body-md text-on-surface-variant"&gt;Pestañas por punto&lt;/span&gt;</p>
+<p class="p1">&lt;/label&gt;</p>
+<p class="p1">&lt;/div&gt;</p>
+<p class="p1">&lt;/div&gt;</p>
+<p class="p1">&lt;/div&gt;</p>
+<p class="p1">&lt;div class="mt-stack-md"&gt;</p>
+<p class="p1">&lt;button class="w-full h-12 bg-primary-container text-[#000000] font-label-md text-label-md uppercase tracking-wider rounded-DEFAULT hover:-translate-y-0.5 hover:shadow-md transition-all active:translate-y-0 active:shadow-none flex items-center justify-center gap-2" type="submit"&gt;</p>
+<p class="p1">&lt;span&gt;Registrar Turno&lt;/span&gt;</p>
+<p class="p1">&lt;span class="material-symbols-outlined" data-weight="fill" style="font-variation-settings: 'FILL' 1;"&gt;arrow_forward&lt;/span&gt;</p>
+<p class="p1">&lt;/button&gt;</p>
+<p class="p1">&lt;/div&gt;</p>
+<p class="p1">&lt;/form&gt;</p>
+<p class="p1">&lt;/div&gt;</p>
+<p class="p1">&lt;/main&gt;</p>
+<p class="p1">&lt;/body&gt;&lt;/html&gt;</p>
+<p class="p2"><br></p>
+<p class="p1">&lt;!-- Gestión de Personal por Área --&gt;</p>
+<p class="p1">&lt;!DOCTYPE html&gt;</p>
+<p class="p2"><br></p>
+<p class="p1">&lt;html class="light" lang="es"&gt;&lt;head&gt;</p>
+<p class="p1">&lt;meta charset="utf-8"/&gt;</p>
+<p class="p1">&lt;meta content="width=device-width, initial-scale=1.0" name="viewport"/&gt;</p>
+<p class="p1">&lt;title&gt;Staff Directory - El Mundo del Cabello&lt;/title&gt;</p>
+<p class="p1">&lt;script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"&gt;&lt;/script&gt;</p>
+<p class="p1">&lt;link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;amp;display=swap" rel="stylesheet"/&gt;</p>
+<p class="p1">&lt;link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;amp;family=Montserrat:wght@600;700;900&amp;amp;display=swap" rel="stylesheet"/&gt;</p>
+<p class="p1">&lt;link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;amp;display=swap" rel="stylesheet"/&gt;</p>
+<p class="p1">&lt;script id="tailwind-config"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>tailwind.config = {</p>
+<p class="p1"><span class="Apple-converted-space">          </span>darkMode: "class",</p>
+<p class="p1"><span class="Apple-converted-space">          </span>theme: {</p>
+<p class="p1"><span class="Apple-converted-space">            </span>extend: {</p>
+<p class="p1"><span class="Apple-converted-space">              </span>"colors": {</p>
+<p class="p1"><span class="Apple-converted-space">                      </span>"on-surface": "#1f1b11",</p>
+<p class="p1"><span class="Apple-converted-space">                      </span>"primary-fixed": "#ffe08b",</p>
+<p class="p1"><span class="Apple-converted-space">                      </span>"inverse-on-surface": "#f9f0de",</p>
+<p class="p1"><span class="Apple-converted-space">                      </span>"on-tertiary-fixed-variant": "#454748",</p>
+<p class="p1"><span class="Apple-converted-space">                      </span>"on-tertiary-container": "#545657",</p>
+<p class="p1"><span class="Apple-converted-space">                      </span>"surface-container-highest": "#ebe1d1",</p>
+<p class="p1"><span class="Apple-converted-space">                      </span>"on-primary-fixed-variant": "#584400",</p>
+<p class="p1"><span class="Apple-converted-space">                      </span>"error": "#ba1a1a",</p>
+<p class="p1"><span class="Apple-converted-space">                      </span>"on-secondary-fixed": "#1b1b1b",</p>
+<p class="p1"><span class="Apple-converted-space">                      </span>"on-secondary-fixed-variant": "#474747",</p>
+<p class="p1"><span class="Apple-converted-space">                      </span>"inverse-surface": "#353025",</p>
+<p class="p1"><span class="Apple-converted-space">                      </span>"on-surface-variant": "#4e4633",</p>
+<p class="p1"><span class="Apple-converted-space">                      </span>"on-background": "#1f1b11",</p>
+<p class="p1"><span class="Apple-converted-space">                      </span>"error-container": "#ffdad6",</p>
+<p class="p1"><span class="Apple-converted-space">                      </span>"surface-bright": "#fff8f1",</p>
+<p class="p1"><span class="Apple-converted-space">                      </span>"on-error": "#ffffff",</p>
+<p class="p1"><span class="Apple-converted-space">                      </span>"on-primary": "#ffffff",</p>
+<p class="p1"><span class="Apple-converted-space">                      </span>"tertiary-container": "#cacbcc",</p>
+<p class="p1"><span class="Apple-converted-space">                      </span>"secondary-fixed-dim": "#c6c6c6",</p>
+<p class="p1"><span class="Apple-converted-space">                      </span>"tertiary-fixed-dim": "#c6c6c7",</p>
+<p class="p1"><span class="Apple-converted-space">                      </span>"tertiary-fixed": "#e2e2e3",</p>
+<p class="p1"><span class="Apple-converted-space">                      </span>"surface": "#fff8f1",</p>
+<p class="p1"><span class="Apple-converted-space">                      </span>"on-secondary-container": "#646464",</p>
+<p class="p1"><span class="Apple-converted-space">                      </span>"outline-variant": "#d1c5ac",</p>
+<p class="p1"><span class="Apple-converted-space">                      </span>"surface-dim": "#e2d9c8",</p>
+<p class="p1"><span class="Apple-converted-space">                      </span>"primary-fixed-dim": "#f0c110",</p>
+<p class="p1"><span class="Apple-converted-space">                      </span>"secondary-container": "#e2e2e2",</p>
+<p class="p1"><span class="Apple-converted-space">                      </span>"secondary": "#5e5e5e",</p>
+<p class="p1"><span class="Apple-converted-space">                      </span>"surface-variant": "#ebe1d1",</p>
+<p class="p1"><span class="Apple-converted-space">                      </span>"surface-container-low": "#fcf3e1",</p>
+<p class="p1"><span class="Apple-converted-space">                      </span>"on-tertiary-fixed": "#1a1c1d",</p>
+<p class="p1"><span class="Apple-converted-space">                      </span>"surface-container-lowest": "#ffffff",</p>
+<p class="p1"><span class="Apple-converted-space">                      </span>"secondary-fixed": "#e2e2e2",</p>
+<p class="p1"><span class="Apple-converted-space">                      </span>"surface-container": "#f6eddc",</p>
+<p class="p1"><span class="Apple-converted-space">                      </span>"on-tertiary": "#ffffff",</p>
+<p class="p1"><span class="Apple-converted-space">                      </span>"on-primary-fixed": "#241a00",</p>
+<p class="p1"><span class="Apple-converted-space">                      </span>"outline": "#807660",</p>
+<p class="p1"><span class="Apple-converted-space">                      </span>"inverse-primary": "#f0c110",</p>
+<p class="p1"><span class="Apple-converted-space">                      </span>"on-error-container": "#93000a",</p>
+<p class="p1"><span class="Apple-converted-space">                      </span>"on-secondary": "#ffffff",</p>
+<p class="p1"><span class="Apple-converted-space">                      </span>"primary-container": "#f5c518",</p>
+<p class="p1"><span class="Apple-converted-space">                      </span>"primary": "#745b00",</p>
+<p class="p1"><span class="Apple-converted-space">                      </span>"surface-tint": "#745b00",</p>
+<p class="p1"><span class="Apple-converted-space">                      </span>"surface-container-high": "#f1e7d6",</p>
+<p class="p1"><span class="Apple-converted-space">                      </span>"on-primary-container": "#695200",</p>
+<p class="p1"><span class="Apple-converted-space">                      </span>"tertiary": "#5d5e60",</p>
+<p class="p1"><span class="Apple-converted-space">                      </span>"background": "#fff8f1"</p>
+<p class="p1"><span class="Apple-converted-space">              </span>},</p>
+<p class="p1"><span class="Apple-converted-space">              </span>"borderRadius": {</p>
+<p class="p1"><span class="Apple-converted-space">                      </span>"DEFAULT": "0.125rem",</p>
+<p class="p1"><span class="Apple-converted-space">                      </span>"lg": "0.25rem",</p>
+<p class="p1"><span class="Apple-converted-space">                      </span>"xl": "0.5rem",</p>
+<p class="p1"><span class="Apple-converted-space">                      </span>"full": "0.75rem"</p>
+<p class="p1"><span class="Apple-converted-space">              </span>},</p>
+<p class="p1"><span class="Apple-converted-space">              </span>"spacing": {</p>
+<p class="p1"><span class="Apple-converted-space">                      </span>"gutter": "16px",</p>
+<p class="p1"><span class="Apple-converted-space">                      </span>"stack-lg": "24px",</p>
+<p class="p1"><span class="Apple-converted-space">                      </span>"stack-sm": "4px",</p>
+<p class="p1"><span class="Apple-converted-space">                      </span>"stack-md": "12px",</p>
+<p class="p1"><span class="Apple-converted-space">                      </span>"base": "8px",</p>
+<p class="p1"><span class="Apple-converted-space">                      </span>"section-gap": "48px",</p>
+<p class="p1"><span class="Apple-converted-space">                      </span>"container-margin": "24px"</p>
+<p class="p1"><span class="Apple-converted-space">              </span>},</p>
+<p class="p1"><span class="Apple-converted-space">              </span>"fontFamily": {</p>
+<p class="p1"><span class="Apple-converted-space">                      </span>"headline-lg-mobile": ["Montserrat"],</p>
+<p class="p1"><span class="Apple-converted-space">                      </span>"label-sm": ["Inter"],</p>
+<p class="p1"><span class="Apple-converted-space">                      </span>"body-md": ["Inter"],</p>
+<p class="p1"><span class="Apple-converted-space">                      </span>"headline-lg": ["Montserrat"],</p>
+<p class="p1"><span class="Apple-converted-space">                      </span>"label-md": ["Inter"],</p>
+<p class="p1"><span class="Apple-converted-space">                      </span>"headline-md": ["Montserrat"],</p>
+<p class="p1"><span class="Apple-converted-space">                      </span>"display-lg": ["Montserrat"],</p>
+<p class="p1"><span class="Apple-converted-space">                      </span>"body-lg": ["Inter"]</p>
+<p class="p1"><span class="Apple-converted-space">              </span>},</p>
+<p class="p1"><span class="Apple-converted-space">              </span>"fontSize": {</p>
+<p class="p1"><span class="Apple-converted-space">                      </span>"headline-lg-mobile": ["24px", {"lineHeight": "32px", "fontWeight": "700"}],</p>
+<p class="p1"><span class="Apple-converted-space">                      </span>"label-sm": ["12px", {"lineHeight": "16px", "fontWeight": "500"}],</p>
+<p class="p1"><span class="Apple-converted-space">                      </span>"body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],</p>
+<p class="p1"><span class="Apple-converted-space">                      </span>"headline-lg": ["32px", {"lineHeight": "40px", "fontWeight": "700"}],</p>
+<p class="p1"><span class="Apple-converted-space">                      </span>"label-md": ["14px", {"lineHeight": "20px", "letterSpacing": "0.05em", "fontWeight": "600"}],</p>
+<p class="p1"><span class="Apple-converted-space">                      </span>"headline-md": ["20px", {"lineHeight": "28px", "fontWeight": "600"}],</p>
+<p class="p1"><span class="Apple-converted-space">                      </span>"display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700"}],</p>
+<p class="p1"><span class="Apple-converted-space">                      </span>"body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}]</p>
+<p class="p1"><span class="Apple-converted-space">              </span>}</p>
+<p class="p1"><span class="Apple-converted-space">            </span>}</p>
+<p class="p1"><span class="Apple-converted-space">          </span>}</p>
+<p class="p1"><span class="Apple-converted-space">        </span>}</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;/script&gt;</p>
+<p class="p1">&lt;style&gt;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>.staff-card { transition: transform 0.2s ease, box-shadow 0.2s ease; }</p>
+<p class="p1"><span class="Apple-converted-space">        </span>.staff-card:hover { transform: translateY(-4px); box-shadow: 0 4px 0 rgba(0,0,0,1); }</p>
+<p class="p1"><span class="Apple-converted-space">        </span>.status-pulse { animation: pulse 2s infinite; }</p>
+<p class="p1"><span class="Apple-converted-space">        </span>@keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;/style&gt;</p>
+<p class="p1">&lt;/head&gt;</p>
+<p class="p1">&lt;body class="bg-background text-on-background min-h-screen flex font-body-md text-body-md overflow-x-hidden"&gt;</p>
+<p class="p1">&lt;!-- SideNavBar (Desktop) --&gt;</p>
+<p class="p1">&lt;nav class="hidden md:flex flex-col h-screen p-4 gap-stack-md bg-surface-container dark:bg-inverse-surface text-primary dark:text-primary-fixed docked left-0 h-full w-64 border-r border-outline-variant dark:border-outline flat no shadows shrink-0 sticky top-0"&gt;</p>
+<p class="p1">&lt;div class="mb-stack-lg flex flex-col gap-stack-sm"&gt;</p>
+<p class="p1">&lt;h1 class="font-headline-md text-headline-md font-bold text-on-surface dark:text-inverse-on-surface"&gt;Service Areas&lt;/h1&gt;</p>
+<p class="p1">&lt;p class="font-label-sm text-label-sm text-on-surface-variant"&gt;Management Hub&lt;/p&gt;</p>
+<p class="p1">&lt;/div&gt;</p>
+<p class="p1">&lt;button class="bg-primary-container text-on-primary-container font-label-md text-label-md py-3 px-4 rounded-lg font-bold mb-stack-md hover:bg-primary-fixed-dim transition-colors flex items-center justify-center gap-2"&gt;</p>
+<p class="p1">&lt;span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;"&gt;add&lt;/span&gt;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>Add Appointment</p>
+<p class="p1"><span class="Apple-converted-space">        </span>&lt;/button&gt;</p>
+<p class="p1">&lt;div class="flex-1 flex flex-col gap-2 overflow-y-auto"&gt;</p>
+<p class="p1">&lt;!-- Navigation Items --&gt;</p>
+<p class="p1">&lt;a class="flex items-center gap-3 p-3 rounded-lg text-on-surface-variant dark:text-on-secondary-fixed-variant hover:bg-surface-container-highest dark:hover:bg-surface-variant transition-all font-label-md text-label-md" href="#"&gt;</p>
+<p class="p1">&lt;span class="material-symbols-outlined" data-icon="content_cut"&gt;content_cut&lt;/span&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>Peluquería</p>
+<p class="p1"><span class="Apple-converted-space">            </span>&lt;/a&gt;</p>
+<p class="p1">&lt;a class="flex items-center gap-3 p-3 rounded-lg text-on-surface-variant dark:text-on-secondary-fixed-variant hover:bg-surface-container-highest dark:hover:bg-surface-variant transition-all font-label-md text-label-md" href="#"&gt;</p>
+<p class="p1">&lt;span class="material-symbols-outlined" data-icon="opacity"&gt;opacity&lt;/span&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>Hidratación</p>
+<p class="p1"><span class="Apple-converted-space">            </span>&lt;/a&gt;</p>
+<p class="p1">&lt;a class="flex items-center gap-3 p-3 rounded-lg text-on-surface-variant dark:text-on-secondary-fixed-variant hover:bg-surface-container-highest dark:hover:bg-surface-variant transition-all font-label-md text-label-md" href="#"&gt;</p>
+<p class="p1">&lt;span class="material-symbols-outlined" data-icon="back_hand"&gt;back_hand&lt;/span&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>Manicure</p>
+<p class="p1"><span class="Apple-converted-space">            </span>&lt;/a&gt;</p>
+<p class="p1">&lt;a class="flex items-center gap-3 p-3 rounded-lg text-on-surface-variant dark:text-on-secondary-fixed-variant hover:bg-surface-container-highest dark:hover:bg-surface-variant transition-all font-label-md text-label-md" href="#"&gt;</p>
+<p class="p1">&lt;span class="material-symbols-outlined" data-icon="face"&gt;face&lt;/span&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>Cejas</p>
+<p class="p1"><span class="Apple-converted-space">            </span>&lt;/a&gt;</p>
+<p class="p1">&lt;/div&gt;</p>
+<p class="p1">&lt;div class="mt-auto pt-stack-md border-t border-outline-variant flex flex-col gap-2"&gt;</p>
+<p class="p1">&lt;!-- Semantic Match: "Staff" -&gt; Active --&gt;</p>
+<p class="p1">&lt;a class="flex items-center gap-3 p-3 bg-primary-fixed text-on-primary-fixed font-bold rounded-lg transition-transform scale-95 font-label-md text-label-md" href="#"&gt;</p>
+<p class="p1">&lt;span class="material-symbols-outlined" data-icon="group" style="font-variation-settings: 'FILL' 1;"&gt;group&lt;/span&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>Staff Status</p>
+<p class="p1"><span class="Apple-converted-space">            </span>&lt;/a&gt;</p>
+<p class="p1">&lt;a class="flex items-center gap-3 p-3 rounded-lg text-on-surface-variant dark:text-on-secondary-fixed-variant hover:bg-surface-container-highest dark:hover:bg-surface-variant transition-all font-label-md text-label-md" href="#"&gt;</p>
+<p class="p1">&lt;span class="material-symbols-outlined" data-icon="settings"&gt;settings&lt;/span&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                </span>Settings</p>
+<p class="p1"><span class="Apple-converted-space">            </span>&lt;/a&gt;</p>
+<p class="p1">&lt;/div&gt;</p>
+<p class="p1">&lt;/nav&gt;</p>
+<p class="p1">&lt;!-- Main Content Area --&gt;</p>
+<p class="p1">&lt;div class="flex-1 flex flex-col w-full min-w-0"&gt;</p>
+<p class="p1">&lt;!-- TopNavBar --&gt;</p>
+<p class="p1">&lt;header class="flex justify-between items-center w-full px-container-margin h-16 bg-surface dark:bg-surface text-primary dark:text-primary-fixed docked full-width top-0 border-b border-outline-variant dark:border-outline flat no shadows z-10 sticky"&gt;</p>
+<p class="p1">&lt;div class="flex items-center gap-4"&gt;</p>
+<p class="p1">&lt;span class="font-headline-lg text-headline-lg font-black text-primary dark:text-primary-fixed md:hidden"&gt;El Mundo del Cabello&lt;/span&gt;</p>
+<p class="p1">&lt;!-- Desktop Nav Links (Hidden on Mobile) --&gt;</p>
+<p class="p1">&lt;nav class="hidden md:flex items-center gap-6"&gt;</p>
+<p class="p1">&lt;a class="font-label-md text-label-md text-on-surface-variant dark:text-on-secondary-fixed-variant hover:bg-primary-container/10 transition-colors py-2 px-1" href="#"&gt;Dashboard&lt;/a&gt;</p>
+<p class="p1">&lt;a class="font-label-md text-label-md text-on-surface-variant dark:text-on-secondary-fixed-variant hover:bg-primary-container/10 transition-colors py-2 px-1" href="#"&gt;Queue&lt;/a&gt;</p>
+<p class="p1">&lt;!-- Active State --&gt;</p>
+<p class="p1">&lt;a class="font-label-md text-label-md text-primary font-bold border-b-2 border-primary pb-1 opacity-80 transition-opacity" href="#"&gt;Staff&lt;/a&gt;</p>
+<p class="p1">&lt;a class="font-label-md text-label-md text-on-surface-variant dark:text-on-secondary-fixed-variant hover:bg-primary-container/10 transition-colors py-2 px-1" href="#"&gt;Reports&lt;/a&gt;</p>
+<p class="p1">&lt;/nav&gt;</p>
+<p class="p1">&lt;/div&gt;</p>
+<p class="p1">&lt;div class="flex items-center gap-4"&gt;</p>
+<p class="p1">&lt;!-- Search Icon (Right aligned per JSON) --&gt;</p>
+<p class="p1">&lt;button class="p-2 text-on-surface-variant hover:bg-primary-container/10 rounded-full transition-colors"&gt;</p>
+<p class="p1">&lt;span class="material-symbols-outlined"&gt;search&lt;/span&gt;</p>
+<p class="p1">&lt;/button&gt;</p>
+<p class="p1">&lt;div class="flex items-center gap-2 border-l border-outline-variant pl-4"&gt;</p>
+<p class="p1">&lt;button class="p-2 text-on-surface-variant hover:bg-primary-container/10 rounded-full transition-colors"&gt;</p>
+<p class="p1">&lt;span class="material-symbols-outlined" data-icon="notifications"&gt;notifications&lt;/span&gt;</p>
+<p class="p1">&lt;/button&gt;</p>
+<p class="p1">&lt;button class="p-2 text-on-surface-variant hover:bg-primary-container/10 rounded-full transition-colors"&gt;</p>
+<p class="p1">&lt;span class="material-symbols-outlined" data-icon="settings"&gt;settings&lt;/span&gt;</p>
+<p class="p1">&lt;/button&gt;</p>
+<p class="p1">&lt;img alt="Admin Profile" class="w-8 h-8 rounded-full border border-outline-variant ml-2 object-cover" data-alt="A close-up portrait of a professional female salon manager with a welcoming smile. She is wearing a modern, crisp white blouse against a soft, bright salon background. The lighting is high-key and flattering, emphasizing a clean, contemporary aesthetic consistent with a high-end service environment. The image feels energetic and authoritative." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAmdZNi1dzqUaKWSwCEbMT9gY5_psrt_GhymcQ5aH-itLoCcLbydqmucX0GsigSG3jH-HdVhLOeNLwl4_9_xPUt3moL8aJLWRTn7n8imxNAhSU2MU-FopFgJORRbPukYSBVAV-_PqvqzeG-mswO3-9gZN1A-WuGi6fLKane3Px7AXW9oHQZsJymE1JMf2tXUHlUlqBEPhyD7MPuJ8ThnQd10AEW9eCwDbFTJgZwetoJAHEfZUw0CeBzHkIjoI_N0YvQ5cy5lelQNR4"/&gt;</p>
+<p class="p1">&lt;/div&gt;</p>
+<p class="p1">&lt;/div&gt;</p>
+<p class="p1">&lt;/header&gt;</p>
+<p class="p1">&lt;!-- Canvas --&gt;</p>
+<p class="p1">&lt;main class="flex-1 p-container-margin overflow-y-auto bg-surface-bright"&gt;</p>
+<p class="p1">&lt;!-- Header &amp; Filters --&gt;</p>
+<p class="p1">&lt;div class="flex flex-col md:flex-row md:items-end justify-between gap-stack-lg mb-section-gap border-b border-outline-variant pb-stack-lg"&gt;</p>
+<p class="p1">&lt;div&gt;</p>
+<p class="p1">&lt;h2 class="font-display-lg text-display-lg text-on-surface mb-stack-sm"&gt;Staff Directory&lt;/h2&gt;</p>
+<p class="p1">&lt;p class="font-body-lg text-body-lg text-on-surface-variant"&gt;Monitor and manage 50 professionals across all service areas.&lt;/p&gt;</p>
+<p class="p1">&lt;/div&gt;</p>
+<p class="p1">&lt;div class="flex flex-wrap gap-2"&gt;</p>
+<p class="p1">&lt;button class="px-4 py-2 rounded-full border border-on-surface bg-on-surface text-on-primary font-label-md text-label-md hover:bg-secondary transition-colors"&gt;Todos&lt;/button&gt;</p>
+<p class="p1">&lt;button class="px-4 py-2 rounded-full border border-outline bg-surface text-on-surface font-label-md text-label-md hover:bg-surface-container transition-colors"&gt;Peluquería&lt;/button&gt;</p>
+<p class="p1">&lt;button class="px-4 py-2 rounded-full border border-outline bg-surface text-on-surface font-label-md text-label-md hover:bg-surface-container transition-colors"&gt;Hidratación&lt;/button&gt;</p>
+<p class="p1">&lt;button class="px-4 py-2 rounded-full border border-outline bg-surface text-on-surface font-label-md text-label-md hover:bg-surface-container transition-colors"&gt;Manicure&lt;/button&gt;</p>
+<p class="p1">&lt;button class="px-4 py-2 rounded-full border border-outline bg-surface text-on-surface font-label-md text-label-md hover:bg-surface-container transition-colors"&gt;Cejas&lt;/button&gt;</p>
+<p class="p1">&lt;/div&gt;</p>
+<p class="p1">&lt;/div&gt;</p>
+<p class="p1">&lt;!-- Grid of Professionals --&gt;</p>
+<p class="p1">&lt;div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-gutter"&gt;</p>
+<p class="p1">&lt;!-- Card 1: Peluquería - Ocupado --&gt;</p>
+<p class="p1">&lt;div class="staff-card bg-surface-container-lowest border border-outline-variant rounded-lg p-4 flex flex-col relative overflow-hidden"&gt;</p>
+<p class="p1">&lt;div class="absolute left-0 top-0 bottom-0 w-1.5 bg-primary-container"&gt;&lt;/div&gt;</p>
+<p class="p1">&lt;div class="flex items-start justify-between mb-stack-md pl-2"&gt;</p>
+<p class="p1">&lt;div class="flex gap-3 items-center"&gt;</p>
+<p class="p1">&lt;img alt="Professional Photo" class="w-12 h-12 rounded-full border border-outline-variant object-cover" data-alt="A clear, professional headshot of a female hair stylist with stylishly cut hair. She is wearing a black apron over a white shirt, standing in a brightly lit salon setting. The aesthetic is clean, modern, and high-contrast, fitting a professional service directory. Her expression is focused and capable." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDDAcZ7W1E0RzzQG0dCqd_Nqx-6fqeSXe-lj-tn5BySH5cKp7xO6xpROSICQ8VjSDuDOHy-XnvdUfxeKi3tpSu2ReUY43iIKFykajFVzZkpbiPHNg7u_uzQlcau074C2-999x8eUp6oJhc2JBm-O10Ek-zR0A3ZlAnVhA-MuOvJI652-ADxxXU1ituE5NLF7Z8v0IAqX_h53NwiDYw3X3ZDfKVPJpeTG_Uy1gKAA5TRQ4p8vKQTAbHnw5cSHAtyXoK4sl5zw-SpK8c"/&gt;</p>
+<p class="p1">&lt;div&gt;</p>
+<p class="p1">&lt;h3 class="font-headline-md text-headline-md text-on-surface leading-tight"&gt;Ana Silva&lt;/h3&gt;</p>
+<p class="p1">&lt;p class="font-label-sm text-label-sm text-on-surface-variant flex items-center gap-1"&gt;</p>
+<p class="p1">&lt;span class="material-symbols-outlined text-[14px]"&gt;content_cut&lt;/span&gt; Peluquería</p>
+<p class="p1"><span class="Apple-converted-space">                                </span>&lt;/p&gt;</p>
+<p class="p1">&lt;/div&gt;</p>
+<p class="p1">&lt;/div&gt;</p>
+<p class="p1">&lt;/div&gt;</p>
+<p class="p1">&lt;div class="flex items-center justify-between mt-auto pt-stack-md border-t border-outline-variant pl-2"&gt;</p>
+<p class="p1">&lt;span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-primary-container text-on-primary-container font-label-sm text-label-sm font-bold"&gt;</p>
+<p class="p1">&lt;span class="w-2 h-2 rounded-full bg-on-primary-container status-pulse"&gt;&lt;/span&gt; Ocupado</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>&lt;/span&gt;</p>
+<p class="p1">&lt;button class="font-label-sm text-label-sm text-on-surface border border-outline px-3 py-1.5 rounded hover:bg-surface-variant transition-colors"&gt;Liberar&lt;/button&gt;</p>
+<p class="p1">&lt;/div&gt;</p>
+<p class="p1">&lt;/div&gt;</p>
+<p class="p1">&lt;!-- Card 2: Manicure - Disponible --&gt;</p>
+<p class="p1">&lt;div class="staff-card bg-surface-container-lowest border border-outline-variant rounded-lg p-4 flex flex-col relative overflow-hidden"&gt;</p>
+<p class="p1">&lt;div class="absolute left-0 top-0 bottom-0 w-1.5 bg-[#f472b6]"&gt;&lt;/div&gt; &lt;!-- Pink for Manicure --&gt;</p>
+<p class="p1">&lt;div class="flex items-start justify-between mb-stack-md pl-2"&gt;</p>
+<p class="p1">&lt;div class="flex gap-3 items-center"&gt;</p>
+<p class="p1">&lt;div class="w-12 h-12 rounded-full border border-outline-variant bg-surface-container-high flex items-center justify-center text-on-surface-variant font-headline-md text-headline-md"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                </span>CM</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>&lt;/div&gt;</p>
+<p class="p1">&lt;div&gt;</p>
+<p class="p1">&lt;h3 class="font-headline-md text-headline-md text-on-surface leading-tight"&gt;Carlos M.&lt;/h3&gt;</p>
+<p class="p1">&lt;p class="font-label-sm text-label-sm text-on-surface-variant flex items-center gap-1"&gt;</p>
+<p class="p1">&lt;span class="material-symbols-outlined text-[14px]"&gt;back_hand&lt;/span&gt; Manicure</p>
+<p class="p1"><span class="Apple-converted-space">                                </span>&lt;/p&gt;</p>
+<p class="p1">&lt;/div&gt;</p>
+<p class="p1">&lt;/div&gt;</p>
+<p class="p1">&lt;/div&gt;</p>
+<p class="p1">&lt;div class="flex items-center justify-between mt-auto pt-stack-md border-t border-outline-variant pl-2"&gt;</p>
+<p class="p1">&lt;span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-surface-variant text-on-surface font-label-sm text-label-sm"&gt;</p>
+<p class="p1">&lt;span class="w-2 h-2 rounded-full bg-outline"&gt;&lt;/span&gt; Disponible</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>&lt;/span&gt;</p>
+<p class="p1">&lt;button class="font-label-sm text-label-sm text-on-surface font-bold hover:underline"&gt;Ver Detalle&lt;/button&gt;</p>
+<p class="p1">&lt;/div&gt;</p>
+<p class="p1">&lt;/div&gt;</p>
+<p class="p1">&lt;!-- Card 3: Cejas - Ocupado --&gt;</p>
+<p class="p1">&lt;div class="staff-card bg-surface-container-lowest border border-outline-variant rounded-lg p-4 flex flex-col relative overflow-hidden"&gt;</p>
+<p class="p1">&lt;div class="absolute left-0 top-0 bottom-0 w-1.5 bg-[#8b5cf6]"&gt;&lt;/div&gt; &lt;!-- Purple for Cejas --&gt;</p>
+<p class="p1">&lt;div class="flex items-start justify-between mb-stack-md pl-2"&gt;</p>
+<p class="p1">&lt;div class="flex gap-3 items-center"&gt;</p>
+<p class="p1">&lt;img alt="Professional Photo" class="w-12 h-12 rounded-full border border-outline-variant object-cover" data-alt="A bright, high-contrast portrait of a beauty specialist focusing on brows. She has immaculately styled eyebrows and is wearing a neat, dark grey uniform. The background is a clean, stark white, emphasizing a clinical but fashionable salon environment. The lighting is strong and direct." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDCDclGCmxWLjoYD7LrDbrTChNLJ2GULIPRhXTLK8q9tf1oTVhiz0YPtJHkdnTS_vnvVYV8UJ0FkJQU_baDL5h-IbA-z9aJOPySEg981XMbRKkM5_0tBthgRdd9bMerQIOe_VJXQYpu7QVu3GdZ7lwA8c3uhikP39RihB28L0PfA2bJ4uR2D_2KQAmbdnwdbSlad8c2MmMxFVXyo1FV6qNE6yiUqCXFZiPGbF5GjOsUlcAoHFhPl_0iBEh9V3Am52zOuasiOJIOh0Y"/&gt;</p>
+<p class="p1">&lt;div&gt;</p>
+<p class="p1">&lt;h3 class="font-headline-md text-headline-md text-on-surface leading-tight"&gt;Lucia V.&lt;/h3&gt;</p>
+<p class="p1">&lt;p class="font-label-sm text-label-sm text-on-surface-variant flex items-center gap-1"&gt;</p>
+<p class="p1">&lt;span class="material-symbols-outlined text-[14px]"&gt;face&lt;/span&gt; Cejas</p>
+<p class="p1"><span class="Apple-converted-space">                                </span>&lt;/p&gt;</p>
+<p class="p1">&lt;/div&gt;</p>
+<p class="p1">&lt;/div&gt;</p>
+<p class="p1">&lt;/div&gt;</p>
+<p class="p1">&lt;div class="flex items-center justify-between mt-auto pt-stack-md border-t border-outline-variant pl-2"&gt;</p>
+<p class="p1">&lt;span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-primary-container text-on-primary-container font-label-sm text-label-sm font-bold"&gt;</p>
+<p class="p1">&lt;span class="w-2 h-2 rounded-full bg-on-primary-container status-pulse"&gt;&lt;/span&gt; Ocupado</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>&lt;/span&gt;</p>
+<p class="p1">&lt;button class="font-label-sm text-label-sm text-on-surface border border-outline px-3 py-1.5 rounded hover:bg-surface-variant transition-colors"&gt;Liberar&lt;/button&gt;</p>
+<p class="p1">&lt;/div&gt;</p>
+<p class="p1">&lt;/div&gt;</p>
+<p class="p1">&lt;!-- Card 4: Hidratación - Break --&gt;</p>
+<p class="p1">&lt;div class="staff-card bg-surface-container-lowest border border-outline-variant rounded-lg p-4 flex flex-col relative overflow-hidden"&gt;</p>
+<p class="p1">&lt;div class="absolute left-0 top-0 bottom-0 w-1.5 bg-[#38bdf8]"&gt;&lt;/div&gt; &lt;!-- Blue for Hidratación --&gt;</p>
+<p class="p1">&lt;div class="flex items-start justify-between mb-stack-md pl-2"&gt;</p>
+<p class="p1">&lt;div class="flex gap-3 items-center"&gt;</p>
+<p class="p1">&lt;img alt="Professional Photo" class="w-12 h-12 rounded-full border border-outline-variant object-cover" data-alt="A portrait of a male salon technician specializing in hair hydration treatments. He is looking off-camera with a relaxed expression, wearing a simple black t-shirt. The setting is a minimalist, well-lit salon break area with stark white walls and subtle yellow accents. The mood is calm and professional." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDou-q6MUTaZsgnSKIZ48iR9bMMuBugs-fW0Hbl0IgKw7fgtdtPzHmMuGzoV04WLJXr8-tKSomgoNl3VVxdHaiG1dcnYbyRWnZ2ATfcsTF2iJtBN6sZ4YevnZ4UaENw2_bCQ_XqlXfUrw_gCq5pGxqWjmFw97jhmcy3cognXpAGzVe4J74877r1SxLZ3xL02j8Y-ReGeRN5wS6r5kpyl2W30CPmyJpwsRO-xv6BM1nu89SkBsNKkdY-3BREiC-j5KHCdn5N7VsHa30"/&gt;</p>
+<p class="p1">&lt;div&gt;</p>
+<p class="p1">&lt;h3 class="font-headline-md text-headline-md text-on-surface leading-tight"&gt;Diego R.&lt;/h3&gt;</p>
+<p class="p1">&lt;p class="font-label-sm text-label-sm text-on-surface-variant flex items-center gap-1"&gt;</p>
+<p class="p1">&lt;span class="material-symbols-outlined text-[14px]"&gt;opacity&lt;/span&gt; Hidratación</p>
+<p class="p1"><span class="Apple-converted-space">                                </span>&lt;/p&gt;</p>
+<p class="p1">&lt;/div&gt;</p>
+<p class="p1">&lt;/div&gt;</p>
+<p class="p1">&lt;/div&gt;</p>
+<p class="p1">&lt;div class="flex items-center justify-between mt-auto pt-stack-md border-t border-outline-variant pl-2"&gt;</p>
+<p class="p1">&lt;span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-secondary-container text-on-secondary-container font-label-sm text-label-sm"&gt;</p>
+<p class="p1">&lt;span class="w-2 h-2 rounded-full bg-secondary"&gt;&lt;/span&gt; Descanso</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>&lt;/span&gt;</p>
+<p class="p1">&lt;button class="font-label-sm text-label-sm text-on-surface font-bold hover:underline"&gt;Ver Detalle&lt;/button&gt;</p>
+<p class="p1">&lt;/div&gt;</p>
+<p class="p1">&lt;/div&gt;</p>
+<p class="p1">&lt;!-- Add more cards to simulate grid filling --&gt;</p>
+<p class="p1">&lt;!-- Card 5 --&gt;</p>
+<p class="p1">&lt;div class="staff-card bg-surface-container-lowest border border-outline-variant rounded-lg p-4 flex flex-col relative overflow-hidden opacity-75"&gt;</p>
+<p class="p1">&lt;div class="absolute left-0 top-0 bottom-0 w-1.5 bg-primary-container"&gt;&lt;/div&gt;</p>
+<p class="p1">&lt;div class="flex items-start justify-between mb-stack-md pl-2"&gt;</p>
+<p class="p1">&lt;div class="flex gap-3 items-center"&gt;</p>
+<p class="p1">&lt;div class="w-12 h-12 rounded-full border border-outline-variant bg-surface-container flex items-center justify-center text-on-surface-variant font-headline-md text-headline-md"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">                                </span>MP</p>
+<p class="p1"><span class="Apple-converted-space">                            </span>&lt;/div&gt;</p>
+<p class="p1">&lt;div&gt;</p>
+<p class="p1">&lt;h3 class="font-headline-md text-headline-md text-on-surface leading-tight"&gt;Maria P.&lt;/h3&gt;</p>
+<p class="p1">&lt;p class="font-label-sm text-label-sm text-on-surface-variant flex items-center gap-1"&gt;</p>
+<p class="p1">&lt;span class="material-symbols-outlined text-[14px]"&gt;content_cut&lt;/span&gt; Peluquería</p>
+<p class="p1"><span class="Apple-converted-space">                                </span>&lt;/p&gt;</p>
+<p class="p1">&lt;/div&gt;</p>
+<p class="p1">&lt;/div&gt;</p>
+<p class="p1">&lt;/div&gt;</p>
+<p class="p1">&lt;div class="flex items-center justify-between mt-auto pt-stack-md border-t border-outline-variant pl-2"&gt;</p>
+<p class="p1">&lt;span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-surface-variant text-on-surface font-label-sm text-label-sm"&gt;</p>
+<p class="p1">&lt;span class="w-2 h-2 rounded-full bg-outline"&gt;&lt;/span&gt; Disponible</p>
+<p class="p1"><span class="Apple-converted-space">                        </span>&lt;/span&gt;</p>
+<p class="p1">&lt;button class="font-label-sm text-label-sm text-on-surface font-bold hover:underline"&gt;Ver Detalle&lt;/button&gt;</p>
+<p class="p1">&lt;/div&gt;</p>
+<p class="p1">&lt;/div&gt;</p>
+<p class="p1">&lt;/div&gt;</p>
+<p class="p1">&lt;/main&gt;</p>
+<p class="p1">&lt;/div&gt;</p>
+<p class="p1">&lt;/body&gt;&lt;/html&gt;</p>
+<p class="p2"><br></p>
+<p class="p2"><br></p>
+<p class="p2"><br></p>
+</body>
+</html>

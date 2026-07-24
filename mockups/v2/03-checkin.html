@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Check-in · El Mundo del Cabello</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="app.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,1,0&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="app.css" />
+  <script src="../data.js"></script>
+  <script src="store.js"></script>
+</head>
+<body>
+  <header class="max-w-6xl mx-auto px-6 pt-6 flex items-center justify-between">
+    <a href="index.html" class="inline-flex items-center gap-1.5 text-sm text-muted hover:text-brand-600 transition">
+      <span class="material-symbols-rounded text-base">arrow_back</span> Inicio
+    </a>
+    <span class="pill" style="background:#f6e0ef;color:#a63a80"><span class="dot" style="background:#c14f98"></span> 01 · Check-in</span>
+  </header>
+
+  <main class="max-w-6xl mx-auto px-6 py-8 grid grid-cols-1 lg:grid-cols-[1.1fr_.9fr] gap-8">
+    <!-- Form -->
+    <section>
+      <h1 class="font-display text-4xl text-ink">Bienvenida ✨</h1>
+      <p class="text-muted mt-1">Registra tus datos y elige los servicios que deseas hoy.</p>
+
+      <form id="f" class="mt-7 space-y-5">
+        <div class="card p-6 space-y-4">
+          <div>
+            <label class="block text-sm font-semibold text-ink mb-1.5">Cédula</label>
+            <input class="input" name="cedula" placeholder="V-12.345.678" required />
+          </div>
+          <div>
+            <label class="block text-sm font-semibold text-ink mb-1.5">Nombre y apellido</label>
+            <input class="input" name="nombre" placeholder="María Pérez" required />
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-semibold text-ink mb-1.5">Teléfono</label>
+              <input class="input" name="telefono" placeholder="0414-1234567" required />
+            </div>
+            <div>
+              <label class="block text-sm font-semibold text-ink mb-1.5">Dirección</label>
+              <input class="input" name="direccion" placeholder="Caracas" required />
+            </div>
+          </div>
+          <div>
+            <label class="block text-sm font-semibold text-ink mb-1.5">Observaciones <span class="text-muted font-normal">(opcional)</span></label>
+            <textarea class="input" name="observacion" rows="2" placeholder="Alergias, preferencias, notas para el especialista…"></textarea>
+          </div>
+        </div>
+
+        <div class="card p-6">
+          <div class="flex items-center justify-between mb-4">
+            <label class="text-sm font-semibold text-ink">Servicios</label>
+            <span id="count" class="text-sm text-muted">Ninguno seleccionado</span>
+          </div>
+
+          <div class="flex gap-2 mb-4 flex-wrap" id="tabs"></div>
+          <div id="panels"></div>
+
+          <p id="err" class="hidden text-sm mt-3" style="color:#c14f98">Selecciona al menos un servicio para continuar.</p>
+        </div>
+
+        <button type="submit" class="btn-primary w-full text-base flex items-center justify-center gap-2">
+          <span class="material-symbols-rounded">check_circle</span> Registrar turno
+        </button>
+      </form>
+    </section>
+
+    <!-- Live summary -->
+    <aside class="lg:sticky lg:top-8 h-fit">
+      <div class="card p-6">
+        <p class="text-xs font-semibold uppercase tracking-wider text-muted">Resumen</p>
+        <h2 class="font-display text-2xl text-ink mt-1">Tu selección</h2>
+        <div id="sumList" class="mt-4 space-y-2 max-h-64 overflow-auto nice-scroll pr-1">
+          <p class="text-muted text-sm" id="emptyMsg">Aún no has elegido servicios.</p>
+        </div>
+        <div class="border-t border-line mt-4 pt-4 flex items-center justify-between">
+          <span class="text-muted">Total estimado</span>
+          <span id="sumTotal" class="font-display text-3xl text-ink">$0</span>
+        </div>
+      </div>
+    </aside>
+  </main>
+
+  <script>
+    const D = window.DEMO_DATA;
+    const selected = new Map(); // key -> {area,nombre,precio_usd}
+    let activeArea = D.areas[0].key;
+
+    // Tabs
+    const tabsEl = document.getElementById('tabs');
+    tabsEl.innerHTML = D.areas.map(a => `
+      <button type="button" class="chip" data-tab="${a.key}">
+        <span class="dot" style="background:${V2.areaColor[a.key]}"></span>${a.name}
+        <span class="text-xs opacity-70">${D.servicios.filter(s=>s.area===a.key).length}</span>
+      </button>`).join('');
+
+    function renderPanel() {
+      const svc = D.servicios.filter(s => s.area === activeArea);
+      document.getElementById('panels').innerHTML = `
+        <div class="flex flex-wrap gap-2 max-h-56 overflow-auto nice-scroll pr-1 fade-up">
+          ${svc.map(s => {
+            const key = `${s.area}|${s.nombre}`;
+            return `<button type="button" class="chip" data-on="${selected.has(key)?1:0}"
+              data-key="${key.replace(/"/g,'&quot;')}" data-precio="${s.precio_usd}">
+              ${V2.titleCase(s.nombre)} · $${s.precio_usd}</button>`;
+          }).join('')}
+        </div>`;
+      tabsEl.querySelectorAll('[data-tab]').forEach(b =>
+        b.dataset.on = b.dataset.tab === activeArea ? '1' : '0');
+    }
+
+    function renderSummary() {
+      const list = document.getElementById('sumList');
+      const total = [...selected.values()].reduce((a, s) => a + s.precio_usd, 0);
+      document.getElementById('sumTotal').textContent = '$' + total.toFixed(0);
+      document.getElementById('count').textContent = selected.size === 0
+        ? 'Ninguno seleccionado'
+        : `${selected.size} servicio${selected.size===1?'':'s'} · $${total.toFixed(0)}`;
+      if (selected.size === 0) {
+        list.innerHTML = '<p class="text-muted text-sm">Aún no has elegido servicios.</p>';
+        return;
+      }
+      list.innerHTML = [...selected.values()].map(s => {
+        const a = D.areas.find(x => x.key === s.area);
+        return `<div class="flex items-center gap-2 pop">
+          <span class="dot" style="background:${V2.areaColor[s.area]}"></span>
+          <span class="text-sm text-ink flex-1 truncate">${V2.titleCase(s.nombre)}</span>
+          <span class="text-sm font-semibold text-muted">$${s.precio_usd}</span>
+        </div>`;
+      }).join('');
+    }
+
+    tabsEl.addEventListener('click', e => {
+      const b = e.target.closest('[data-tab]');
+      if (!b) return;
+      activeArea = b.dataset.tab; renderPanel();
+    });
+
+    document.getElementById('panels').addEventListener('click', e => {
+      const b = e.target.closest('[data-key]');
+      if (!b) return;
+      const key = b.dataset.key;
+      if (selected.has(key)) { selected.delete(key); b.dataset.on = '0'; }
+      else {
+        const [area, nombre] = key.split('|');
+        selected.set(key, { area, nombre, precio_usd: Number(b.dataset.precio) });
+        b.dataset.on = '1';
+      }
+      renderSummary();
+    });
+
+    document.getElementById('f').addEventListener('submit', e => {
+      e.preventDefault();
+      const err = document.getElementById('err');
+      if (selected.size === 0) { err.classList.remove('hidden'); return; }
+      err.classList.add('hidden');
+      const fd = new FormData(e.target);
+      const cliente = window.PeluqStore.addCliente({
+        cedula: fd.get('cedula').trim(),
+        nombre: fd.get('nombre').trim(),
+        telefono: fd.get('telefono').trim(),
+        direccion: fd.get('direccion').trim(),
+        observacion: (fd.get('observacion') || '').trim(),
+        servicios: [...selected.values()],
+      });
+      location.href = `01-confirmacion.html?id=${cliente.id}`;
+    });
+
+    renderPanel();
+    renderSummary();
+  </script>
+</body>
+</html>

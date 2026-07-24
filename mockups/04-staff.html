@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Gestión de Personal · El Mundo del Cabello</title>
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <script src="tokens.js"></script>
+  <script src="common.js"></script>
+  <script src="data.js"></script>
+  <script src="store.js"></script>
+  <style>
+    .card { background:#fff; border:2px solid #1f1b11; box-shadow:4px 4px 0 #1f1b11; padding:14px; display:flex; gap:12px; align-items:center; }
+    .avatar { width:46px; height:46px; border-radius:9999px; border:2px solid #1f1b11; display:grid; place-items:center; font-weight:700; flex-shrink:0; }
+    .pill { padding:3px 10px; font-size:11px; font-weight:700; border:1.5px solid #1f1b11; }
+    .DISPONIBLE { background:#c3e88d; }
+    .OCUPADO { background:#ffb4ab; }
+    .BREAK { background:#ffe08b; }
+    .filter-btn { padding:8px 14px; border:2px solid #1f1b11; background:#fff; font-weight:600; font-size:14px; cursor:pointer; }
+    .filter-btn[data-on="1"] { background:#1f1b11; color:#fff; }
+    select.field { border:2px solid #1f1b11; background:#fff; padding:8px 28px 8px 12px; font-size:14px; }
+  </style>
+</head>
+<body class="bg-surface-bright">
+  <header class="border-b-2 border-on-surface bg-white">
+    <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+      <div>
+        <a href="../index.html" class="text-xs text-on-surface-variant hover:underline">← Hub</a>
+        <h1 class="text-2xl font-bold" style="font:700 24px/28px Montserrat;">Gestión de Personal</h1>
+        <p id="counts" class="text-sm text-on-surface-variant"></p>
+      </div>
+      <a href="02-panel.html" class="filter-btn">← Panel</a>
+    </div>
+  </header>
+
+  <main class="max-w-7xl mx-auto px-6 py-6">
+    <div class="flex flex-wrap items-center gap-2 mb-5">
+      <span class="text-sm font-semibold">Área:</span>
+      <button class="filter-btn" data-area="all" data-on="1">Todas</button>
+      <button class="filter-btn" data-area="peluqueria">Peluquería</button>
+      <button class="filter-btn" data-area="hidratacion">Hidratación</button>
+      <button class="filter-btn" data-area="manicure">Manicure y Pedicure</button>
+      <button class="filter-btn" data-area="cejas">Cejas</button>
+      <span class="text-sm font-semibold ml-4">Estado:</span>
+      <button class="filter-btn" data-status="all" data-on="1">Todos</button>
+      <button class="filter-btn" data-status="DISPONIBLE">Disponible</button>
+      <button class="filter-btn" data-status="OCUPADO">Ocupado</button>
+      <button class="filter-btn" data-status="BREAK">Break</button>
+      <input id="q" class="filter-btn ml-auto" placeholder="Buscar por nombre o cédula..." style="min-width:240px" />
+    </div>
+
+    <div id="grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4"></div>
+  </main>
+
+  <script>
+    const D = window.DEMO_DATA;
+    const Store = window.PeluqStore;
+    const filters = { area: new URLSearchParams(location.search).get('area') || 'all', status: 'all', q: '' };
+
+    if (filters.area !== 'all') {
+      document.querySelectorAll('[data-area]').forEach(b => b.dataset.on = b.dataset.area === filters.area ? '1' : '0');
+    }
+
+    function render() {
+      const s = Store.get();
+      const list = s.staff.filter(st => {
+        if (filters.area !== 'all' && st.area !== filters.area) return false;
+        if (filters.status !== 'all' && st.status !== filters.status) return false;
+        if (filters.q) {
+          const q = filters.q.toLowerCase();
+          if (!st.nombre.toLowerCase().includes(q) && !(st.cedula||'').toLowerCase().includes(q) && !String(st.numero).includes(q)) return false;
+        }
+        return true;
+      });
+
+      const total = s.staff.length;
+      const disp = s.staff.filter(x=>x.status==='DISPONIBLE').length;
+      const ocu = s.staff.filter(x=>x.status==='OCUPADO').length;
+      const br = s.staff.filter(x=>x.status==='BREAK').length;
+      document.getElementById('counts').textContent =
+        `${total} profesionales · ${disp} disponibles · ${ocu} ocupados · ${br} en break · mostrando ${list.length}`;
+
+      const grid = document.getElementById('grid');
+      if (list.length === 0) {
+        grid.innerHTML = '<p class="text-on-surface-variant col-span-full">Ningún profesional coincide con los filtros.</p>';
+        return;
+      }
+
+      grid.innerHTML = list.map(st => {
+        const area = D.areas.find(a => a.key === st.area);
+        return `
+          <div class="card">
+            <div class="avatar" style="background:${area.color}">${st.initials}</div>
+            <div class="flex-1 min-w-0">
+              <div class="flex items-center gap-2">
+                <p class="font-semibold truncate">${escapeHtml(st.alias)}</p>
+                <span class="text-[11px] text-on-surface-variant">#${st.numero}</span>
+              </div>
+              <p class="text-xs text-on-surface-variant truncate">${escapeHtml(st.nombre)}</p>
+              <p class="text-[11px] text-on-surface-variant">${st.cedula || '—'} · ${area.name}</p>
+              <div class="mt-2 flex gap-2 items-center">
+                <span class="pill ${st.status}">${st.status}</span>
+                <select class="field text-xs" data-set="${st.numero}">
+                  <option ${st.status==='DISPONIBLE'?'selected':''}>DISPONIBLE</option>
+                  <option ${st.status==='OCUPADO'?'selected':''}>OCUPADO</option>
+                  <option ${st.status==='BREAK'?'selected':''}>BREAK</option>
+                </select>
+              </div>
+            </div>
+          </div>`;
+      }).join('');
+    }
+
+    function escapeHtml(s) { return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+    document.addEventListener('click', (e) => {
+      const a = e.target.closest('[data-area]');
+      if (a) { filters.area = a.dataset.area; document.querySelectorAll('[data-area]').forEach(b => b.dataset.on = b===a?'1':'0'); render(); return; }
+      const s = e.target.closest('[data-status]');
+      if (s) { filters.status = s.dataset.status; document.querySelectorAll('[data-status]').forEach(b => b.dataset.on = b===s?'1':'0'); render(); return; }
+    });
+    document.addEventListener('change', (e) => {
+      const sel = e.target.closest('[data-set]');
+      if (sel) Store.setStaffStatus(Number(sel.dataset.set), sel.value);
+    });
+    document.getElementById('q').addEventListener('input', (e) => { filters.q = e.target.value.trim(); render(); });
+
+    Store.onChange(render);
+    render();
+  </script>
+</body>
+</html>

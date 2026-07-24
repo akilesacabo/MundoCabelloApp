@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Panel Maestro · El Mundo del Cabello</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="app.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,1,0&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="app.css" />
+  <script src="../data.js"></script>
+  <script src="store.js"></script>
+</head>
+<body>
+  <header class="glass sticky top-0 z-20" style="border-radius:0">
+    <div class="max-w-7xl mx-auto px-6 py-3.5 flex items-center gap-4">
+      <a href="index.html" class="flex items-center gap-2.5">
+        <div class="avatar w-9 h-9" style="background:linear-gradient(135deg,#c14f98,#6f2955)">EM</div>
+        <div class="leading-tight hidden sm:block">
+          <p class="font-display text-ink">Panel Maestro</p>
+          <p id="now" class="text-[11px] text-muted -mt-0.5"></p>
+        </div>
+      </a>
+      <div class="ml-auto flex items-center gap-2">
+        <a href="03-checkin.html" class="btn-ghost text-sm flex items-center gap-1"><span class="material-symbols-rounded text-base">person_add</span><span class="hidden sm:inline">Check-in</span></a>
+        <a href="04-staff.html" class="btn-ghost text-sm flex items-center gap-1"><span class="material-symbols-rounded text-base">groups</span><span class="hidden sm:inline">Personal</span></a>
+        <a href="05-historial.html" class="btn-ghost text-sm flex items-center gap-1"><span class="material-symbols-rounded text-base">history</span><span class="hidden sm:inline">Historial</span></a>
+        <button id="reset" class="btn-ghost text-sm flex items-center gap-1"><span class="material-symbols-rounded text-base">restart_alt</span><span class="hidden sm:inline">Reset</span></button>
+      </div>
+    </div>
+  </header>
+
+  <section class="max-w-7xl mx-auto px-6 pt-6">
+    <div id="kpis" class="grid grid-cols-2 lg:grid-cols-4 gap-4"></div>
+  </section>
+
+  <main class="max-w-7xl mx-auto px-6 py-6 grid grid-cols-1 lg:grid-cols-[420px_1fr] gap-6 items-start">
+    <!-- Turnos -->
+    <section class="card overflow-hidden lg:sticky lg:top-24">
+      <div class="p-5 flex items-center justify-between" style="background:linear-gradient(135deg,#fbe8f3,#f0e2fb)">
+        <div>
+          <h2 class="font-display text-xl text-ink">Turnos activos</h2>
+          <p class="text-xs text-muted">Asignación por servicio</p>
+        </div>
+        <span id="qcount" class="avatar w-11 h-11 text-lg" style="background:linear-gradient(135deg,#c14f98,#6f2955)">0</span>
+      </div>
+      <div id="queue" class="max-h-[70vh] overflow-auto nice-scroll p-3 space-y-3"></div>
+    </section>
+
+    <!-- Personal por área -->
+    <section id="areas" class="space-y-6"></section>
+  </main>
+
+  <!-- Assign dialog -->
+  <dialog id="dlgAssign">
+    <div class="card p-6 w-[92vw] max-w-lg">
+      <div class="flex items-start justify-between">
+        <div>
+          <p class="text-xs font-semibold uppercase tracking-wider text-brand-600">Asignar servicio</p>
+          <h3 id="aTitle" class="font-display text-2xl text-ink mt-0.5">—</h3>
+          <p id="aSub" class="text-sm text-muted"></p>
+        </div>
+        <button onclick="document.getElementById('dlgAssign').close()" class="text-muted hover:text-ink"><span class="material-symbols-rounded">close</span></button>
+      </div>
+      <div id="aStep1" class="mt-4">
+        <p class="text-sm font-semibold text-ink mb-2">Especialistas disponibles</p>
+        <div id="aStaff" class="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-72 overflow-auto nice-scroll"></div>
+      </div>
+      <div id="aStep2" class="mt-4 hidden">
+        <div class="rounded-xl2 p-3" style="background:#f4faf6;border-radius:1rem">
+          <p class="text-sm text-ink"><b id="aStaffName"></b> también puede atender otros servicios de este turno:</p>
+          <div id="aExtra" class="mt-2 space-y-1.5"></div>
+        </div>
+        <div class="flex justify-end gap-2 mt-4">
+          <button id="aOnlyOne" class="btn-ghost">Solo este</button>
+          <button id="aAssignSel" class="btn-primary">Asignar seleccionados</button>
+        </div>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- Change dialog (needs admin PIN) -->
+  <dialog id="dlgChange">
+    <div class="card p-6 w-[92vw] max-w-lg">
+      <div class="flex items-start justify-between">
+        <div>
+          <p class="text-xs font-semibold uppercase tracking-wider" style="color:#b97f28">Cambiar especialista · requiere admin</p>
+          <h3 id="cTitle" class="font-display text-2xl text-ink mt-0.5">—</h3>
+          <p id="cSub" class="text-sm text-muted"></p>
+        </div>
+        <button onclick="document.getElementById('dlgChange').close()" class="text-muted hover:text-ink"><span class="material-symbols-rounded">close</span></button>
+      </div>
+      <div class="mt-4 space-y-3">
+        <div>
+          <label class="block text-sm font-semibold text-ink mb-1.5">Nuevo especialista</label>
+          <div id="cStaff" class="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-52 overflow-auto nice-scroll"></div>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block text-sm font-semibold text-ink mb-1.5">PIN de administrador</label>
+            <input id="cPin" class="input" type="password" inputmode="numeric" placeholder="••••" autocomplete="off" />
+            <p class="text-[11px] text-muted mt-1">Demo: <b>1234</b></p>
+          </div>
+          <div>
+            <label class="block text-sm font-semibold text-ink mb-1.5">Motivo del cambio</label>
+            <input id="cMotivo" class="input" placeholder="Ej: especialista en break" />
+          </div>
+        </div>
+        <p id="cErr" class="text-sm hidden" style="color:#c14f98"></p>
+        <div class="flex justify-end gap-2">
+          <button onclick="document.getElementById('dlgChange').close()" class="btn-ghost">Cancelar</button>
+          <button id="cConfirm" class="btn-primary">Confirmar cambio</button>
+        </div>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- Toast -->
+  <div id="toast" class="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 hidden">
+    <div class="glass px-5 py-3 rounded-full shadow-card flex items-center gap-2 text-ink font-medium" style="border-radius:9999px">
+      <span class="material-symbols-rounded text-emerald-500">task_alt</span>
+      <span id="toastMsg"></span>
+    </div>
+  </div>
+
+  <script>
+    const Store = window.PeluqStore;
+    const D = window.DEMO_DATA;
+    const areaName = k => D.areas.find(a => a.key === k)?.name || k;
+
+    let ctx = {}; // contexto del modal de asignar
+    let cCtx = {}; // contexto del modal de cambio
+
+    function toast(msg) {
+      const t = document.getElementById('toast');
+      document.getElementById('toastMsg').textContent = msg;
+      t.classList.remove('hidden');
+      setTimeout(() => t.classList.add('hidden'), 2200);
+    }
+
+    const SVC_STATE = {
+      PENDIENTE: { label: 'Pendiente', bg: '#f3eef5', fg: '#7c6f83' },
+      EN_ATENCION: { label: 'En atención', bg: '#fbe8f3', fg: '#a63a80' },
+      FINALIZADO: { label: 'Listo', bg: '#e2f6ee', fg: '#2f8f6a' },
+    };
+
+    function render() {
+      const s = Store.get();
+      const activos = s.clientes.filter(c => c.estado !== 'FINALIZADO');
+      const enEspera = s.clientes.filter(c => c.estado === 'EN_ESPERA').length;
+      const enAtencion = s.clientes.filter(c => c.estado === 'EN_ATENCION').length;
+      const disp = s.staff.filter(x => x.status === 'DISPONIBLE').length;
+
+      // KPIs
+      const kpi = (icon, val, label, grad) => `
+        <div class="card p-4 flex items-center gap-3">
+          <div class="w-11 h-11 rounded-2xl grid place-items-center text-white" style="background:${grad}">
+            <span class="material-symbols-rounded">${icon}</span></div>
+          <div><p class="font-display text-2xl text-ink leading-none">${val}</p><p class="text-xs text-muted mt-0.5">${label}</p></div>
+        </div>`;
+      document.getElementById('kpis').innerHTML = [
+        kpi('hourglass_top', enEspera, 'En espera', 'linear-gradient(135deg,#c14f98,#6f2955)'),
+        kpi('chair_alt', enAtencion, 'En atención', 'linear-gradient(135deg,#e26fae,#a63a80)'),
+        kpi('how_to_reg', disp, 'Personal libre', 'linear-gradient(135deg,#4fbf8f,#2f8f6a)'),
+        kpi('done_all', s.historial.length, 'Servicios hoy', 'linear-gradient(135deg,#e6a93d,#b97f28)'),
+      ].join('');
+
+      // Turnos
+      document.getElementById('qcount').textContent = activos.length;
+      const q = document.getElementById('queue');
+      if (activos.length === 0) {
+        q.innerHTML = `<div class="text-center py-10 px-4">
+          <span class="material-symbols-rounded text-4xl text-brand-200">inbox</span>
+          <p class="text-muted text-sm mt-2">No hay turnos activos.</p>
+          <a href="03-checkin.html" class="text-brand-600 font-semibold text-sm">Crear check-in →</a></div>`;
+      } else {
+        q.innerHTML = activos.map(turnCard).join('');
+      }
+
+      // Personal por área
+      document.getElementById('areas').innerHTML = D.areas.map(area => {
+        const staff = s.staff.filter(st => st.areas.includes(area.key));
+        const d = staff.filter(x => x.status === 'DISPONIBLE').length;
+        const o = staff.filter(x => x.status === 'OCUPADO').length;
+        const b = staff.filter(x => x.status === 'BREAK').length;
+        return `<div class="card overflow-hidden">
+          <div class="px-5 py-4 flex items-center gap-3" style="background:${V2.areaSoft[area.key]}">
+            <span class="w-8 h-8 rounded-xl grid place-items-center text-white" style="background:${V2.areaColor[area.key]}"><span class="material-symbols-rounded text-[18px]">spa</span></span>
+            <h2 class="font-display text-xl text-ink flex-1">${area.name}</h2>
+            <span class="pill" style="background:#fff;color:#2f8f6a"><span class="dot" style="background:#4fbf8f"></span>${d} libres</span>
+            <span class="pill" style="background:#fff;color:#a63a80"><span class="dot" style="background:#e26fae"></span>${o} ocup.</span>
+            <span class="pill hidden sm:inline-flex" style="background:#fff;color:#b97f28"><span class="dot" style="background:#e6a93d"></span>${b} break</span>
+          </div>
+          <div class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-2.5 p-4">
+            ${staff.slice(0, 8).map(st => staffChip(st, area)).join('')}
+            ${staff.length > 8 ? `<a href="04-staff.html?area=${area.key}" class="rounded-xl2 border border-dashed border-brand-200 grid place-items-center text-sm text-brand-600 font-semibold hover:bg-brand-50 transition p-3" style="border-radius:1.1rem">+${staff.length - 8} más</a>` : ''}
+          </div></div>`;
+      }).join('');
+
+      const nowEl = document.getElementById('now');
+      if (nowEl) nowEl.textContent = new Date().toLocaleString('es-VE', { weekday: 'long', hour: '2-digit', minute: '2-digit' });
+    }
+
+    function turnCard(c) {
+      const total = c.servicios.reduce((a, x) => a + x.precio_usd, 0);
+      const initials = c.nombre.split(' ').filter(Boolean).slice(0, 2).map(w => w[0]).join('').toUpperCase();
+      const s = Store.get();
+      const rows = c.servicios.map(sv => {
+        const st = SVC_STATE[sv.estado];
+        const staff = sv.staff_id != null ? s.staff.find(x => x.numero === sv.staff_id) : null;
+        let action = '';
+        if (sv.estado === 'PENDIENTE') {
+          action = `<button class="btn-primary text-xs py-1.5 px-3" data-assign data-c="${c.id}" data-s="${sv.id}">Asignar</button>`;
+        } else if (sv.estado === 'EN_ATENCION') {
+          action = `<div class="flex items-center gap-1">
+            <button title="Cambiar especialista (admin)" class="text-[20px] text-amber-600 hover:scale-110 transition" data-change data-c="${c.id}" data-s="${sv.id}"><span class="material-symbols-rounded text-[20px]">swap_horiz</span></button>
+            <button title="Finalizar servicio" class="text-emerald-600 hover:scale-110 transition" data-finish data-c="${c.id}" data-s="${sv.id}"><span class="material-symbols-rounded text-[22px]">check_circle</span></button>
+          </div>`;
+        } else {
+          action = `<span class="material-symbols-rounded text-emerald-500 text-[22px]">verified</span>`;
+        }
+        return `<div class="flex items-center gap-2 py-1.5">
+          <span class="dot" style="background:${V2.areaColor[sv.area]}"></span>
+          <div class="min-w-0 flex-1">
+            <p class="text-sm text-ink truncate">${V2.titleCase(sv.nombre)} <span class="text-muted">· $${sv.precio_usd}</span></p>
+            <p class="text-[11px]" style="color:${st.fg}">${st.label}${staff ? ' · ' + V2.escape(staff.alias) : ''}${sv.cambios.length ? ' · ↺' + sv.cambios.length : ''}</p>
+          </div>
+          ${action}</div>`;
+      }).join('');
+
+      const badge = c.estado === 'EN_ESPERA' ? ['#fbe8f3', '#a63a80', 'En espera']
+        : c.estado === 'EN_ATENCION' ? ['#e2eefb', '#2d6fa8', 'En atención'] : ['#e2f6ee', '#2f8f6a', 'Finalizado'];
+
+      return `<div class="rounded-xl2 border border-line p-3.5 fade-up" style="border-radius:1.1rem">
+        <div class="flex items-center gap-3">
+          <div class="relative">
+            <div class="avatar w-11 h-11" style="background:linear-gradient(135deg,#d46fb0,#872f68)">${initials}</div>
+            <span class="absolute -top-1.5 -right-1.5 bg-white rounded-full text-[10px] font-bold text-brand-700 border border-line px-1.5">#${String(c.turno).padStart(2, '0')}</span>
+          </div>
+          <div class="flex-1 min-w-0">
+            <p class="font-semibold text-ink truncate">${V2.escape(c.nombre)}</p>
+            <p class="text-xs text-muted">$${total.toFixed(0)} · ${V2.minsAgo(c.ts)}</p>
+          </div>
+          <span class="pill" style="background:${badge[0]};color:${badge[1]}">${badge[2]}</span>
+        </div>
+        ${c.observacion ? `<p class="text-xs mt-2 rounded-lg px-2 py-1" style="background:#faf3f8;color:#7c6f83"><span class="material-symbols-rounded text-[14px] align-middle">sticky_note_2</span> ${V2.escape(c.observacion)}</p>` : ''}
+        <div class="mt-2 border-t border-line pt-1 divide-y divide-line/60">${rows}</div>
+      </div>`;
+    }
+
+    function staffChip(st, area) {
+      const busy = st.status !== 'DISPONIBLE';
+      const sc = V2.statusColor[st.status];
+      return `<div class="rounded-xl2 border border-line p-2.5 flex items-center gap-2.5 ${busy ? 'opacity-70' : ''}" style="border-radius:1.1rem;background:${busy ? '#faf6fa' : '#fff'}">
+        <div class="relative">
+          <div class="avatar w-9 h-9 text-xs" style="background:${busy ? '#c9bccb' : V2.areaColor[area.key]}">${st.initials}</div>
+          <span class="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-white" style="background:${sc}"></span>
+        </div>
+        <div class="min-w-0 flex-1">
+          <p class="text-sm font-semibold text-ink truncate">${V2.escape(st.alias)}</p>
+          <p class="text-[11px] text-muted">#${st.numero}${st.en_prueba ? ' · <span style="color:#b97f28">En prueba</span>' : ''}</p>
+        </div>
+      </div>`;
+    }
+
+    /* ---------- Asignar ---------- */
+    function openAssign(clienteId, servicioId) {
+      const s = Store.get();
+      const c = s.clientes.find(x => x.id === clienteId);
+      const sv = c.servicios.find(x => x.id === servicioId);
+      ctx = { clienteId, servicioId, area: sv.area };
+      document.getElementById('aTitle').textContent = V2.titleCase(sv.nombre);
+      document.getElementById('aSub').textContent = `Turno #${String(c.turno).padStart(2, '0')} · ${c.nombre} · ${areaName(sv.area)}`;
+      document.getElementById('aStep1').classList.remove('hidden');
+      document.getElementById('aStep2').classList.add('hidden');
+      const disp = Store.eligibleStaff(sv.area);
+      document.getElementById('aStaff').innerHTML = disp.length === 0
+        ? '<p class="col-span-2 text-muted text-sm py-4 text-center">No hay especialistas disponibles para esta área.</p>'
+        : disp.map(st => staffPickBtn(st, 'a-pick')).join('');
+      document.getElementById('dlgAssign').showModal();
+    }
+
+    function staffPickBtn(st, action) {
+      return `<button class="rounded-xl2 border border-line p-2.5 flex items-center gap-2.5 hover:border-brand-300 hover:shadow-soft transition text-left" style="border-radius:1.1rem" data-${action}="${st.numero}">
+        <div class="avatar w-9 h-9 text-xs" style="background:${V2.areaColor[st.areas[0]]}">${st.initials}</div>
+        <div class="min-w-0"><p class="text-sm font-semibold text-ink truncate">${V2.escape(st.alias)}</p>
+          <p class="text-[11px] text-muted">#${st.numero} · ${st.areas.map(areaName).join(' / ')}${st.en_prueba ? ' · en prueba' : ''}</p></div>
+      </button>`;
+    }
+
+    function pickForAssign(staffId) {
+      const s = Store.get();
+      const c = s.clientes.find(x => x.id === ctx.clienteId);
+      const st = s.staff.find(x => x.numero === staffId);
+      // Otros servicios PENDIENTE del mismo turno que este especialista puede atender.
+      const otros = c.servicios.filter(sv =>
+        sv.id !== ctx.servicioId && sv.estado === 'PENDIENTE' && st.areas.includes(sv.area));
+      if (otros.length === 0) {
+        Store.assignService(ctx.clienteId, ctx.servicioId, staffId);
+        document.getElementById('dlgAssign').close();
+        toast(`Asignado a ${st.alias}`);
+        return;
+      }
+      ctx.staffId = staffId;
+      document.getElementById('aStaffName').textContent = st.alias;
+      document.getElementById('aExtra').innerHTML = otros.map(sv => `
+        <label class="flex items-center gap-2 text-sm text-ink cursor-pointer">
+          <input type="checkbox" class="accent-brand-500" value="${sv.id}" checked />
+          <span class="dot" style="background:${V2.areaColor[sv.area]}"></span>${V2.titleCase(sv.nombre)} <span class="text-muted">· $${sv.precio_usd}</span>
+        </label>`).join('');
+      document.getElementById('aStep1').classList.add('hidden');
+      document.getElementById('aStep2').classList.remove('hidden');
+    }
+
+    document.getElementById('aOnlyOne').addEventListener('click', () => {
+      Store.assignService(ctx.clienteId, ctx.servicioId, ctx.staffId);
+      document.getElementById('dlgAssign').close();
+      toast('Servicio asignado');
+    });
+    document.getElementById('aAssignSel').addEventListener('click', () => {
+      const extra = [...document.querySelectorAll('#aExtra input:checked')].map(i => i.value);
+      Store.assignMany(ctx.clienteId, [ctx.servicioId, ...extra], ctx.staffId);
+      document.getElementById('dlgAssign').close();
+      toast(`${extra.length + 1} servicio(s) asignados`);
+    });
+
+    /* ---------- Cambiar (PIN) ---------- */
+    function openChange(clienteId, servicioId) {
+      const s = Store.get();
+      const c = s.clientes.find(x => x.id === clienteId);
+      const sv = c.servicios.find(x => x.id === servicioId);
+      const actual = s.staff.find(x => x.numero === sv.staff_id);
+      cCtx = { clienteId, servicioId, staffId: null };
+      document.getElementById('cTitle').textContent = V2.titleCase(sv.nombre);
+      document.getElementById('cSub').textContent = `Turno #${String(c.turno).padStart(2, '0')} · actual: ${actual ? actual.alias : '—'}`;
+      document.getElementById('cPin').value = '';
+      document.getElementById('cMotivo').value = '';
+      document.getElementById('cErr').classList.add('hidden');
+      const disp = Store.eligibleStaff(sv.area).filter(st => st.numero !== sv.staff_id);
+      document.getElementById('cStaff').innerHTML = disp.length === 0
+        ? '<p class="col-span-2 text-muted text-sm py-3 text-center">No hay otro especialista disponible.</p>'
+        : disp.map(st => staffPickBtn(st, 'c-pick')).join('');
+      document.getElementById('dlgChange').showModal();
+    }
+
+    document.getElementById('cConfirm').addEventListener('click', () => {
+      const err = document.getElementById('cErr');
+      if (cCtx.staffId == null) { err.textContent = 'Selecciona el nuevo especialista.'; err.classList.remove('hidden'); return; }
+      const r = Store.changeSpecialist(cCtx.clienteId, cCtx.servicioId, cCtx.staffId,
+        document.getElementById('cPin').value, document.getElementById('cMotivo').value);
+      if (!r.ok) { err.textContent = r.error; err.classList.remove('hidden'); return; }
+      document.getElementById('dlgChange').close();
+      toast('Especialista cambiado');
+    });
+
+    /* ---------- Delegación de eventos ---------- */
+    document.addEventListener('click', e => {
+      const as = e.target.closest('[data-assign]');
+      if (as) return openAssign(as.dataset.c, as.dataset.s);
+      const fn = e.target.closest('[data-finish]');
+      if (fn) { Store.finishService(fn.dataset.c, fn.dataset.s); toast('Servicio finalizado'); return; }
+      const ch = e.target.closest('[data-change]');
+      if (ch) return openChange(ch.dataset.c, ch.dataset.s);
+      const ap = e.target.closest('[data-a-pick]');
+      if (ap) return pickForAssign(Number(ap.dataset.aPick));
+      const cp = e.target.closest('[data-c-pick]');
+      if (cp) {
+        cCtx.staffId = Number(cp.dataset.cPick);
+        document.querySelectorAll('#cStaff [data-c-pick]').forEach(b =>
+          b.style.borderColor = b === cp ? '#d46fb0' : '#efe6ef');
+        return;
+      }
+    });
+
+    document.getElementById('reset').addEventListener('click', () => {
+      if (confirm('¿Reiniciar la demo? Se limpian los turnos e historial del día.')) { Store.reset(); toast('Demo reiniciada'); }
+    });
+
+    Store.onChange(render);
+    render();
+    setInterval(render, 30000);
+  </script>
+</body>
+</html>

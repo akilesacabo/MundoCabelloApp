@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width">
+  <title>Panel operativo · Administración</title><link rel="stylesheet" href="styles.css">
+</head>
+<body class="admin-dashboard-body">
+  <aside class="dashboard-sidebar">
+    <a class="dashboard-logo" href="admin.html" aria-label="Mundo del Cabello, panel"><span class="logo-mark">M</span><span><b>Mundo</b><small>del Cabello</small></span></a>
+    <nav class="site-nav dashboard-nav" aria-label="Navegación principal">
+      <a class="active" href="admin.html"><span>⌂</span>Panel operativo</a>
+      <a href="admin-staff.html"><span>♙</span>Especialistas</a>
+      <a href="admin-services.html"><span>✦</span>Servicios y productos</a>
+      <a href="checkin.html"><span>＋</span>Nuevo check-in</a>
+      <a href="queue.html"><span>◉</span>Cola pública</a>
+    </nav>
+    <div class="sidebar-profile"><div class="profile-avatar">AD</div><div><b>Administración</b><small>Panel principal</small></div><button onclick="logout()" title="Cerrar sesión" aria-label="Cerrar sesión">↗</button></div>
+  </aside>
+  <div class="dashboard-shell">
+    <header class="dashboard-topbar"><button class="mobile-menu" onclick="document.body.classList.toggle('sidebar-open')" aria-label="Abrir menú">☰</button><div class="topbar-search"><span>⌕</span><input id="dashboardSearch" type="search" placeholder="Buscar cliente o especialista…" aria-label="Buscar en el panel"></div><div class="live-indicator"><span></span>En vivo</div></header>
+    <main class="dashboard-main">
+      <div class="dashboard-welcome"><div><span class="eyebrow">SÁBADO · OPERACIÓN EN VIVO</span><h1>Buenos días, equipo</h1><p>Todo lo que necesitas para que el salón fluya, en un solo lugar.</p></div><button class="refresh-button" onclick="load()"><span>↻</span> Actualizar</button></div>
+      <section class="metric-grid" aria-label="Resumen operativo">
+        <article class="metric-card metric-clients"><div class="metric-icon">◎</div><div><span>Clientes activos</span><b id="metricClients">—</b><small id="metricServices">Cargando servicios</small></div></article>
+        <article class="metric-card metric-available"><div class="metric-icon">✓</div><div><span>Disponibles</span><b id="metricAvailable">—</b><small>Listos para asignar</small></div></article>
+        <article class="metric-card metric-busy"><div class="metric-icon">◷</div><div><span>En atención</span><b id="metricBusy">—</b><small>Trabajando ahora</small></div></article>
+        <article class="metric-card metric-break"><div class="metric-icon">☕</div><div><span>En pausa</span><b id="metricBreak">—</b><small>Fuera temporalmente</small></div></article>
+      </section>
+      <div class="dashboard-columns">
+        <section class="dashboard-section clients-section" aria-labelledby="clients-title"><div class="section-heading"><div><span class="section-kicker">FLUJO DE HOY</span><h2 id="clients-title">Clientes activos</h2></div><span id="clientCount" class="count-badge">0 clientes</span></div><div id="turnos" class="client-list"><div class="dashboard-skeleton"></div></div></section>
+        <section class="dashboard-section team-section" aria-labelledby="staff-title"><div class="section-heading"><div><span class="section-kicker">EQUIPO</span><h2 id="staff-title">Especialistas</h2></div><a href="admin-staff.html">Gestionar →</a></div><div id="staffSummary" class="staff-filter-tabs"></div><div id="staffStatus" class="staff-status-grid"></div></section>
+      </div>
+    </main>
+  </div>
+  <script src="api.js"></script>
+  <script>
+    const statusLabels={disponible:'Disponible',ocupado:'Ocupado',break:'En pausa'};
+    const escapeHtml=value=>String(value).replace(/[&<>'"]/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[char]));
+    async function mark(id,situacion){try{await api(`/queue/${id}/situacion`,{method:'PATCH',body:JSON.stringify({situacion})});await load()}catch(error){alert(error.message)}}
+    async function assign(clientId,serviceId,area){
+      const select=document.getElementById(`staff-${serviceId}`);const feedback=document.getElementById(`feedback-${serviceId}`);
+      if(!select.value){feedback.textContent='Selecciona un especialista disponible.';return}
+      feedback.textContent='Asignando…';
+      try{await api(`/queue/${clientId}/services/${serviceId}/assign`,{method:'POST',body:JSON.stringify({staff_numero:+select.value})});await load()}catch(error){feedback.textContent=error.message}
+    }
+    async function eligibleOptions(service){
+      if(service.staff_numero||service.estado==='finalizado')return '';
+      try{
+        const staff=await api(`/staff/eligible?area=${encodeURIComponent(service.area_key)}`);
+        if(!staff.length)return '<p class="assignment-note">No hay especialistas disponibles para esta área.</p>';
+        return `<div class="assign-control"><select id="staff-${service.id}" aria-label="Especialista para ${escapeHtml(service.nombre)}"><option value="">Seleccionar especialista</option>${staff.map(person=>`<option value="${person.numero}">#${person.numero} ${escapeHtml(person.alias)}</option>`).join('')}</select><button onclick="assign(${service.clientId},${service.id})">Asignar</button></div><p id="feedback-${service.id}" class="assignment-note" aria-live="polite"></p>`;
+      }catch(error){return `<p class="assignment-note">${escapeHtml(error.message)}</p>`}
+    }
+    async function renderClients(queue,staffByNumber){
+      const active=queue.filter(client=>client.estado!=='finalizado');
+      metricClients.textContent=active.length;clientCount.textContent=`${active.length} ${active.length===1?'cliente':'clientes'}`;
+      metricServices.textContent=`${active.reduce((total,client)=>total+client.servicios.filter(service=>service.estado!=='finalizado').length,0)} servicios por completar`;
+      if(!active.length){turnos.innerHTML='<div class="card empty-state"><h2>No hay clientes activos</h2><p class="muted">Los nuevos check-ins aparecerán aquí.</p></div>';return}
+      const cards=await Promise.all(active.map(async client=>{
+        const services=await Promise.all(client.servicios.map(async service=>{
+          service.clientId=client.id;const assigned=service.staff_numero?staffByNumber.get(service.staff_numero):null;
+          return `<div class="service-assignment area-${escapeHtml(service.area_key)}"><div class="service-info"><span class="area-dot"></span><div><b>${escapeHtml(service.nombre)}</b><div class="service-meta">${escapeHtml(service.area_key)} · ${escapeHtml(service.estado.replace('_',' '))}</div>${assigned?`<div class="assigned-to"><span>${escapeHtml(assigned.initials)}</span> #${assigned.numero} ${escapeHtml(assigned.alias)}</div>`:''}</div></div>${await eligibleOptions(service)}</div>`;
+        }));
+        const completed=client.servicios.filter(service=>service.staff_numero||service.estado==='finalizado').length;const percent=client.servicios.length?Math.round(completed/client.servicios.length*100):0;const initials=client.nombre.split(' ').slice(0,2).map(part=>part[0]).join('').toUpperCase();
+        return `<article class="client-card" data-search="${escapeHtml(client.nombre.toLowerCase())}"><div class="client-card-header"><div class="client-identity"><div class="client-avatar">${escapeHtml(initials)}</div><div><div class="client-turn">TURNO #${client.turno}</div><h3>${escapeHtml(client.nombre)}</h3></div></div><button class="situation-menu status-${client.situacion}" onclick="this.closest('.client-card').querySelector('.situation-actions').classList.toggle('visible')">${escapeHtml(client.situacion)}⌄</button></div><div class="progress-block"><div><span>Progreso de asignación</span><b>${completed}/${client.servicios.length}</b></div><div class="progress-track"><span style="width:${percent}%"></span></div></div><div class="service-assignment-list">${services.join('')}</div><div class="situation-actions"><span>Cambiar situación</span><button class="secondary" onclick="mark(${client.id},'normal')">Presente</button><button onclick="mark(${client.id},'ausente')">Ausente</button><button class="danger" onclick="mark(${client.id},'estafa')">Estafa</button></div></article>`;
+      }));turnos.innerHTML=cards.join('');
+    }
+    function renderStaff(staff){
+      const counts=Object.fromEntries(['disponible','ocupado','break'].map(status=>[status,staff.filter(person=>person.status===status).length]));metricAvailable.textContent=counts.disponible;metricBusy.textContent=counts.ocupado;metricBreak.textContent=counts.break;
+      staffSummary.innerHTML=`<button class="active" onclick="filterStaff('all',this)">Todos <b>${staff.length}</b></button>`+['disponible','ocupado','break'].map(status=>`<button onclick="filterStaff('${status}',this)">${statusLabels[status]} <b>${counts[status]}</b></button>`).join('');
+      staffStatus.innerHTML=staff.map(person=>`<article class="staff-status-card" data-status="${person.status}" data-search="${escapeHtml(`${person.alias} ${person.nombre}`.toLowerCase())}"><div class="staff-avatar">${escapeHtml(person.initials)}</div><div class="staff-copy"><b>${escapeHtml(person.alias)}</b><span>${person.areas.map(escapeHtml).join(' · ')}</span></div><span class="staff-state status-${person.status}">${statusLabels[person.status]}</span></article>`).join('');
+    }
+    function filterStaff(status,button){document.querySelectorAll('.staff-filter-tabs button').forEach(item=>item.classList.remove('active'));button.classList.add('active');document.querySelectorAll('.staff-status-card').forEach(card=>card.hidden=status!=='all'&&card.dataset.status!==status)}
+    dashboardSearch.oninput=()=>{const term=dashboardSearch.value.trim().toLowerCase();document.querySelectorAll('[data-search]').forEach(card=>card.hidden=!card.dataset.search.includes(term))};
+    async function load(){try{const [queue,staff]=await Promise.all([api('/queue'),api('/staff')]);renderStaff(staff);await renderClients(queue,new Map(staff.map(person=>[person.numero,person])))}catch(error){turnos.innerHTML=`<div class="card"><p class="selection-error">${escapeHtml(error.message)}</p></div>`}}
+    load();
+  </script>
+</body></html>

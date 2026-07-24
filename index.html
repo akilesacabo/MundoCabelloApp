@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Hub · El Mundo del Cabello — Demo</title>
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <script src="mockups/tokens.js"></script>
+  <script src="mockups/common.js"></script>
+  <script src="mockups/data.js"></script>
+  <style>
+    body { background: #fff8f1; }
+    .hub { max-width: 1100px; margin: 0 auto; padding: 48px 24px; }
+    .hub-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 24px; margin-top: 32px; }
+    .hub-card {
+      display: block; padding: 24px; background: #ffffff; border: 2px solid #1f1b11;
+      box-shadow: 4px 4px 0 #1f1b11; text-decoration: none; color: #1f1b11;
+      font-family: 'Inter', sans-serif; transition: transform .2s, box-shadow .2s;
+    }
+    .hub-card:hover { transform: translate(-2px, -2px); box-shadow: 6px 6px 0 #1f1b11; }
+    .hub-card h2 { font-family: 'Montserrat', sans-serif; font-size: 22px; font-weight: 700; margin: 0 0 8px; }
+    .hub-card p { color: #4e4633; font-size: 14px; margin: 0; }
+    .hub-card .num { font-family: 'Montserrat', sans-serif; font-weight: 900; font-size: 12px; letter-spacing: .1em; color: #745b00; text-transform: uppercase; }
+    .hub h1 { font-family: 'Montserrat', sans-serif; font-size: 36px; font-weight: 900; margin: 0; }
+    .hub .lede { color: #4e4633; max-width: 640px; margin-top: 8px; font: 16px/24px 'Inter', sans-serif; }
+    .stats { display:flex; flex-wrap:wrap; gap:12px; margin-top:24px; }
+    .stat { padding:10px 14px; background:#f6eddc; border:2px solid #1f1b11; font-size:13px; font-weight:600; }
+    .stat b { font-family:'Montserrat',sans-serif; font-size:20px; margin-right:6px; }
+  </style>
+</head>
+<body>
+  <main class="hub">
+    <h1>El Mundo del Cabello — Demo</h1>
+    <p class="lede">Mock navegable de las 4 pantallas del MVP. Los datos vienen del export real de Excel (personal + catálogo de servicios) y el flujo entre pantallas usa <code>localStorage</code> como mini-backend para la demo.</p>
+
+    <a href="mockups/v2/index.html" style="display:inline-flex;align-items:center;gap:10px;margin-top:20px;padding:14px 22px;background:linear-gradient(135deg,#c14f98,#6f2955);color:#fff;text-decoration:none;font-weight:700;box-shadow:4px 4px 0 #1f1b11;border:2px solid #1f1b11;">
+      ✨ Ver versión 2 (interfaz nueva) →
+    </a>
+    <p style="margin-top:8px;font-size:13px;color:#745b00;">Abajo, la versión clásica.</p>
+
+    <div id="stats" class="stats"></div>
+
+    <div class="hub-grid">
+      <a class="hub-card" href="mockups/03-checkin.html">
+        <div class="num">03 · Cliente</div>
+        <h2>Check-in</h2>
+        <p>5 campos obligatorios + selección múltiple de servicios por área. Genera el turno y persiste al panel.</p>
+      </a>
+      <a class="hub-card" href="mockups/01-confirmacion.html">
+        <div class="num">01 · Cliente</div>
+        <h2>Confirmación de Turno</h2>
+        <p>Splash con número de turno, servicios solicitados y total estimado.</p>
+      </a>
+      <a class="hub-card" href="mockups/02-panel.html">
+        <div class="num">02 · Administración</div>
+        <h2>Panel Maestro</h2>
+        <p>Cola en vivo, asignación de personal disponible por área y acción “Finalizar”.</p>
+      </a>
+      <a class="hub-card" href="mockups/04-staff.html">
+        <div class="num">04 · Administración</div>
+        <h2>Gestión de Personal</h2>
+        <p>Directorio completo con filtros por área y estado (Disponible / Ocupado / Break) + búsqueda.</p>
+      </a>
+    </div>
+
+    <p class="mt-10 text-sm text-on-surface-variant">
+      Flujo sugerido para la demo: <b>03 Check-in</b> → <b>01 Confirmación</b> → <b>02 Panel</b> (asignar) → <b>04 Personal</b> (ver estados).
+    </p>
+  </main>
+
+  <script>
+    const d = window.DEMO_DATA;
+    if (d) {
+      const byArea = a => d.servicios.filter(s => s.area === a).length;
+      document.getElementById('stats').innerHTML = [
+        `<div class="stat"><b>${d.staff.length}</b>profesionales</div>`,
+        `<div class="stat"><b>${d.servicios.length}</b>servicios en catálogo</div>`,
+        ...d.areas.map(a => `<div class="stat"><span style="display:inline-block;width:10px;height:10px;background:${a.color};border:1.5px solid #1f1b11;margin-right:6px;vertical-align:middle"></span><b>${byArea(a.key)}</b>${a.name}</div>`),
+      ].join('');
+    }
+  </script>
+</body>
+</html>

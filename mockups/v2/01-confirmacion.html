@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>¡Turno confirmado! · El Mundo del Cabello</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="app.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,1,0&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="app.css" />
+  <script src="../data.js"></script>
+  <script src="store.js"></script>
+  <style>
+    .turn-num {
+      font-family: 'Fraunces', serif; font-weight: 600; line-height: 1;
+      font-size: 128px; letter-spacing: -.03em;
+      background: linear-gradient(135deg, #c14f98, #6f2955);
+      -webkit-background-clip: text; background-clip: text; color: transparent;
+    }
+    .success-ring {
+      width: 92px; height: 92px; border-radius: 9999px;
+      background: linear-gradient(135deg, #4fbf8f, #2f8f6a);
+      display: grid; place-items: center; margin: 0 auto;
+      box-shadow: 0 16px 34px -10px rgba(79,191,143,.6);
+    }
+  </style>
+</head>
+<body>
+  <main class="max-w-xl mx-auto px-6 py-14 text-center">
+    <div class="success-ring pop">
+      <span class="material-symbols-rounded text-white" style="font-size:48px">check</span>
+    </div>
+    <p class="text-sm font-semibold uppercase tracking-widest text-brand-600 mt-6 fade-up">Turno confirmado</p>
+    <h1 class="font-display text-3xl text-ink mt-1 fade-up">Te esperamos, <span id="firstName">cliente</span></h1>
+
+    <div class="turn-num mt-4 pop" id="turn">—</div>
+    <p class="text-muted fade-up">Tu número de turno</p>
+
+    <div id="card" class="card p-6 mt-10 text-left fade-up">
+      <div class="flex items-center gap-3">
+        <div id="avatar" class="avatar w-11 h-11" style="background:linear-gradient(135deg,#c14f98,#6f2955)">—</div>
+        <div class="min-w-0">
+          <p id="nombre" class="font-semibold text-ink truncate">—</p>
+          <p id="contacto" class="text-sm text-muted truncate">—</p>
+        </div>
+      </div>
+      <div class="border-t border-line my-4"></div>
+      <p class="text-xs font-semibold uppercase tracking-wider text-muted mb-2">Servicios solicitados</p>
+      <div id="servicios" class="space-y-2"></div>
+      <div id="obsWrap" class="hidden mt-4 rounded-xl2 p-3" style="background:#faf3f8;border-radius:1rem">
+        <p class="text-xs font-semibold uppercase tracking-wider text-muted mb-1">Observaciones</p>
+        <p id="obs" class="text-sm text-ink"></p>
+      </div>
+      <div class="border-t border-line my-4"></div>
+      <div class="flex items-center justify-between">
+        <span class="text-muted">Total estimado</span>
+        <span id="total" class="font-display text-2xl text-ink">$0</span>
+      </div>
+    </div>
+
+    <div class="glass rounded-xl2 p-4 mt-6 text-sm text-ink flex items-center gap-2 justify-center fade-up" style="border-radius:1rem">
+      <span class="material-symbols-rounded text-brand-500">chair</span>
+      Toma asiento en recepción. Te llamaremos al asignar tu profesional.
+    </div>
+
+    <div class="flex gap-3 justify-center mt-8 fade-up">
+      <a href="03-checkin.html" class="btn-ghost">Otro check-in</a>
+      <a href="02-panel.html" class="btn-primary">Ver panel</a>
+    </div>
+  </main>
+
+  <script>
+    const D = window.DEMO_DATA;
+    const id = new URLSearchParams(location.search).get('id');
+    const state = window.PeluqStore.get();
+    const c = state.clientes.find(x => x.id === id) || state.clientes[state.clientes.length - 1];
+
+    if (c) {
+      const first = c.nombre.split(' ')[0];
+      const initials = c.nombre.split(' ').filter(Boolean).slice(0,2).map(w=>w[0]).join('').toUpperCase();
+      document.getElementById('firstName').textContent = first;
+      document.getElementById('turn').textContent = String(c.turno).padStart(2, '0');
+      document.getElementById('avatar').textContent = initials;
+      document.getElementById('nombre').textContent = c.nombre;
+      document.getElementById('contacto').textContent = `${c.cedula} · ${c.telefono}`;
+      const total = c.servicios.reduce((a, s) => a + s.precio_usd, 0);
+      document.getElementById('total').textContent = '$' + total.toFixed(0);
+      if (c.observacion) {
+        document.getElementById('obsWrap').classList.remove('hidden');
+        document.getElementById('obs').textContent = c.observacion;
+      }
+      document.getElementById('servicios').innerHTML = c.servicios.map(s => {
+        const a = D.areas.find(x => x.key === s.area);
+        return `<div class="flex items-center gap-2">
+          <span class="dot" style="background:${V2.areaColor[s.area]}"></span>
+          <span class="text-sm text-ink flex-1">${V2.titleCase(s.nombre)}</span>
+          <span class="text-sm text-muted">${a.name}</span>
+          <span class="text-sm font-semibold text-ink">$${s.precio_usd}</span>
+        </div>`;
+      }).join('');
+    } else {
+      document.getElementById('card').innerHTML =
+        '<p class="text-muted text-center">No hay turno activo. <a href="03-checkin.html" class="text-brand-600 font-semibold">Hacer check-in →</a></p>';
+      document.getElementById('turn').textContent = '—';
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Check-in · El Mundo del Cabello</title>
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <script src="tokens.js"></script>
+  <script src="common.js"></script>
+  <script src="data.js"></script>
+  <script src="store.js"></script>
+  <style>
+    .field { border: 2px solid #1f1b11; background: #fff; padding: 12px 14px; width: 100%; font-size: 16px; }
+    .field:focus { outline: 2px solid #f5c518; outline-offset: -4px; }
+    .chip { display:inline-flex; align-items:center; gap:6px; padding:6px 10px; border:2px solid #1f1b11; background:#fff; cursor:pointer; font-size:14px; }
+    .chip[data-on="1"] { background: #f5c518; box-shadow: 2px 2px 0 #1f1b11; }
+    .area-card { background:#fff; border:2px solid #1f1b11; padding:16px; box-shadow:4px 4px 0 #1f1b11; }
+    .area-dot { width:14px; height:14px; border:2px solid #1f1b11; display:inline-block; }
+    .submit { padding:14px 28px; background:#1f1b11; color:#fff; font-weight:700; border:2px solid #1f1b11; box-shadow:4px 4px 0 #745b00; cursor:pointer; letter-spacing:.05em; }
+    .submit:hover { transform: translate(-2px,-2px); box-shadow: 6px 6px 0 #745b00; }
+    .submit:disabled { opacity:.4; cursor:not-allowed; }
+    .err { color:#ba1a1a; font-size:13px; margin-top:4px; }
+  </style>
+</head>
+<body class="bg-surface-bright">
+  <main class="max-w-3xl mx-auto px-6 py-10">
+    <a href="../index.html" class="text-sm text-on-surface-variant hover:underline">← Hub</a>
+    <h1 class="font-display-lg mt-2" style="font:700 40px/48px Montserrat;">Check-in de Cliente</h1>
+    <p class="text-on-surface-variant mt-1">Completa los 5 campos y selecciona al menos un servicio.</p>
+
+    <form id="f" class="mt-8 space-y-5">
+      <div>
+        <label class="block text-sm font-semibold mb-1">Cédula</label>
+        <input class="field" name="cedula" placeholder="V-12.345.678" required />
+      </div>
+      <div>
+        <label class="block text-sm font-semibold mb-1">Nombre y Apellido</label>
+        <input class="field" name="nombre" placeholder="María Pérez" required />
+      </div>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+        <div>
+          <label class="block text-sm font-semibold mb-1">Teléfono</label>
+          <input class="field" name="telefono" placeholder="0414-1234567" required />
+        </div>
+        <div>
+          <label class="block text-sm font-semibold mb-1">Dirección</label>
+          <input class="field" name="direccion" placeholder="Caracas" required />
+        </div>
+      </div>
+
+      <div>
+        <div class="flex items-center justify-between mt-2">
+          <label class="block text-sm font-semibold">Servicios</label>
+          <span id="count" class="text-sm text-on-surface-variant">0 seleccionados · $0</span>
+        </div>
+        <div id="areas" class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-3"></div>
+        <div id="err-srv" class="err hidden">Selecciona al menos un servicio.</div>
+      </div>
+
+      <div class="pt-2">
+        <button type="submit" class="submit">REGISTRAR TURNO</button>
+      </div>
+    </form>
+  </main>
+
+  <script>
+    const data = window.DEMO_DATA;
+    const selected = new Set();
+
+    const areasEl = document.getElementById('areas');
+    data.areas.forEach(area => {
+      const services = data.servicios.filter(s => s.area === area.key);
+      const card = document.createElement('div');
+      card.className = 'area-card';
+      card.innerHTML = `
+        <div class="flex items-center gap-2 mb-2">
+          <span class="area-dot" style="background:${area.color}"></span>
+          <h3 class="font-headline-md" style="font:600 18px/24px Montserrat;">${area.name}</h3>
+          <span class="text-xs text-on-surface-variant">(${services.length})</span>
+        </div>
+        <div class="flex flex-wrap gap-2 max-h-44 overflow-auto pr-1">
+          ${services.slice(0, 30).map(s => `
+            <button type="button" class="chip" data-on="0"
+              data-area="${area.key}" data-name="${s.nombre.replace(/"/g,'&quot;')}" data-precio="${s.precio_usd}">
+              ${titleCase(s.nombre)} · $${s.precio_usd}
+            </button>`).join('')}
+        </div>
+      `;
+      areasEl.appendChild(card);
+    });
+
+    function titleCase(s) {
+      return s.toLowerCase().trim().split(/\s+/).map(w =>
+        w ? w[0].toUpperCase() + w.slice(1) : w
+      ).join(' ');
+    }
+
+    function refreshCount() {
+      let total = 0;
+      selected.forEach(k => { total += Number(k.split('|')[2]); });
+      document.getElementById('count').textContent =
+        `${selected.size} seleccionado${selected.size===1?'':'s'} · $${total.toFixed(2)}`;
+    }
+
+    areasEl.addEventListener('click', (e) => {
+      const btn = e.target.closest('.chip');
+      if (!btn) return;
+      const key = `${btn.dataset.area}|${btn.dataset.name}|${btn.dataset.precio}`;
+      if (selected.has(key)) { selected.delete(key); btn.dataset.on = '0'; }
+      else { selected.add(key); btn.dataset.on = '1'; }
+      refreshCount();
+    });
+
+    document.getElementById('f').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const errSrv = document.getElementById('err-srv');
+      if (selected.size === 0) { errSrv.classList.remove('hidden'); return; }
+      errSrv.classList.add('hidden');
+
+      const fd = new FormData(e.target);
+      const servicios = [...selected].map(k => {
+        const [area, nombre, precio] = k.split('|');
+        return { area, nombre, precio_usd: Number(precio) };
+      });
+      const cliente = window.PeluqStore.addCliente({
+        cedula: fd.get('cedula').trim(),
+        nombre: fd.get('nombre').trim(),
+        telefono: fd.get('telefono').trim(),
+        direccion: fd.get('direccion').trim(),
+        servicios,
+      });
+      location.href = `01-confirmacion.html?id=${cliente.id}`;
+    });
+  </script>
+</body>
+</html>

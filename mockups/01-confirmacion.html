@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>¡Registro Exitoso! · El Mundo del Cabello</title>
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <script src="tokens.js"></script>
+  <script src="common.js"></script>
+  <script src="data.js"></script>
+  <script src="store.js"></script>
+  <style>
+    .turn {
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 900;
+      font-size: 120px;
+      line-height: 1;
+      letter-spacing: -0.04em;
+      color: #1f1b11;
+      text-shadow: 6px 6px 0 #f5c518;
+    }
+    .ok {
+      width: 80px; height: 80px; border-radius: 9999px;
+      background: #c3e88d; border: 3px solid #1f1b11;
+      display: grid; place-items: center; margin: 0 auto 16px;
+      box-shadow: 4px 4px 0 #1f1b11;
+    }
+    .card { background:#fff; border:2px solid #1f1b11; box-shadow:6px 6px 0 #1f1b11; padding:32px; }
+    .pill { display:inline-block; padding:4px 10px; background:#f6eddc; border:2px solid #1f1b11; font-size:12px; font-weight:600; }
+  </style>
+</head>
+<body class="bg-surface-bright">
+  <main class="max-w-2xl mx-auto px-6 py-12 text-center">
+    <div class="ok">
+      <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#1f1b11" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+    </div>
+    <p class="font-label-md uppercase tracking-widest text-on-surface-variant">Registro exitoso</p>
+    <h1 class="mt-2" style="font:700 32px/40px Montserrat;">Tu turno es</h1>
+    <div id="turn" class="turn mt-4">—</div>
+
+    <div id="info" class="card mt-10 text-left">
+      <p class="text-sm text-on-surface-variant">Cliente</p>
+      <p id="nombre" class="text-xl font-bold mt-1">—</p>
+      <div class="mt-4">
+        <p class="text-sm text-on-surface-variant">Servicios solicitados</p>
+        <div id="servicios" class="mt-2 flex flex-wrap gap-2"></div>
+      </div>
+      <p id="total" class="mt-4 text-right text-lg font-bold">Total: $0.00</p>
+    </div>
+
+    <p class="mt-8 text-on-surface-variant">Por favor, espera en la zona de recepción. Te llamaremos cuando esté listo el personal asignado.</p>
+
+    <div class="mt-8 flex justify-center gap-3">
+      <a href="03-checkin.html" class="px-5 py-3 border-2 border-on-surface bg-white font-semibold hover:bg-surface-container">Otro check-in</a>
+      <a href="02-panel.html" class="px-5 py-3 border-2 border-on-surface bg-primary-container font-semibold shadow-brutal-sm">Ver panel</a>
+    </div>
+  </main>
+
+  <script>
+    const params = new URLSearchParams(location.search);
+    const id = params.get('id');
+    const state = window.PeluqStore.get();
+    const c = state.clientes.find(x => x.id === id) || state.clientes[state.clientes.length - 1];
+    if (c) {
+      document.getElementById('turn').textContent = String(c.turno).padStart(2, '0');
+      document.getElementById('nombre').textContent = c.nombre;
+      const total = c.servicios.reduce((a, s) => a + s.precio_usd, 0);
+      document.getElementById('total').textContent = `Total estimado: $${total.toFixed(2)}`;
+      const cont = document.getElementById('servicios');
+      c.servicios.forEach(s => {
+        const a = state.areas?.find(a => a.key === s.area) || (window.DEMO_DATA.areas.find(a => a.key === s.area));
+        const span = document.createElement('span');
+        span.className = 'pill';
+        span.innerHTML = `<span style="display:inline-block;width:8px;height:8px;background:${a?.color||'#ddd'};border:1px solid #1f1b11;margin-right:6px;vertical-align:middle"></span>${titleCase(s.nombre)} · $${s.precio_usd}`;
+        cont.appendChild(span);
+      });
+    } else {
+      document.getElementById('info').innerHTML = '<p class="text-on-surface-variant">No hay turno activo. <a href="03-checkin.html" class="underline">Hacer check-in</a>.</p>';
+    }
+    function titleCase(s) {
+      return s.toLowerCase().trim().split(/\s+/).map(w =>
+        w ? w[0].toUpperCase() + w.slice(1) : w
+      ).join(' ');
+    }
+  </script>
+</body>
+</html>

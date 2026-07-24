@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Historial de Servicios · El Mundo del Cabello</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="app.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,1,0&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="app.css" />
+  <script src="../data.js"></script>
+  <script src="store.js"></script>
+</head>
+<body>
+  <header class="glass sticky top-0 z-20" style="border-radius:0">
+    <div class="max-w-7xl mx-auto px-6 py-3.5 flex items-center gap-4">
+      <a href="index.html" class="flex items-center gap-2.5">
+        <div class="avatar w-9 h-9" style="background:linear-gradient(135deg,#c14f98,#6f2955)">EM</div>
+        <p class="font-display text-ink hidden sm:block">Historial de Servicios</p>
+      </a>
+      <a href="02-panel.html" class="btn-ghost text-sm ml-auto flex items-center gap-1"><span class="material-symbols-rounded text-base">arrow_back</span> Panel</a>
+    </div>
+  </header>
+
+  <main class="max-w-7xl mx-auto px-6 py-8">
+    <div class="flex flex-wrap items-end justify-between gap-4">
+      <div>
+        <h1 class="font-display text-4xl text-ink">Historial</h1>
+        <p id="counts" class="text-muted mt-1"></p>
+      </div>
+    </div>
+
+    <!-- Filtros -->
+    <div class="card p-4 mt-6 grid grid-cols-1 md:grid-cols-4 gap-3 items-end">
+      <div class="md:col-span-1">
+        <label class="block text-xs font-semibold text-ink mb-1.5">Cliente</label>
+        <input id="fCliente" class="input" placeholder="Nombre o cédula…" />
+      </div>
+      <div>
+        <label class="block text-xs font-semibold text-ink mb-1.5">Especialista</label>
+        <select id="fEsp" class="input"></select>
+      </div>
+      <div>
+        <label class="block text-xs font-semibold text-ink mb-1.5">Servicio</label>
+        <select id="fSvc" class="input"></select>
+      </div>
+      <div>
+        <label class="block text-xs font-semibold text-ink mb-1.5">Área</label>
+        <select id="fArea" class="input">
+          <option value="all">Todas</option>
+        </select>
+      </div>
+    </div>
+
+    <div id="list" class="mt-6 space-y-2.5"></div>
+  </main>
+
+  <script>
+    const D = window.DEMO_DATA;
+    const Store = window.PeluqStore;
+    const areaName = k => D.areas.find(a => a.key === k)?.name || k;
+    const filters = { cliente: '', esp: 'all', svc: 'all', area: 'all' };
+
+    function buildFilters() {
+      const s = Store.get();
+      const esps = [...new Map(s.historial.map(h => [h.staff_id, h.staff_nombre])).entries()]
+        .sort((a, b) => String(a[1]).localeCompare(b[1]));
+      document.getElementById('fEsp').innerHTML =
+        `<option value="all">Todos</option>` + esps.map(([id, n]) => `<option value="${id}">${V2.escape(n)}</option>`).join('');
+      const svcs = [...new Set(s.historial.map(h => h.servicio_nombre))].sort();
+      document.getElementById('fSvc').innerHTML =
+        `<option value="all">Todos</option>` + svcs.map(n => `<option value="${V2.escape(n)}">${V2.titleCase(n)}</option>`).join('');
+      document.getElementById('fArea').innerHTML =
+        `<option value="all">Todas</option>` + D.areas.map(a => `<option value="${a.key}">${a.name}</option>`).join('');
+    }
+
+    function render() {
+      const s = Store.get();
+      let rows = s.historial.slice().sort((a, b) => b.ts - a.ts);
+
+      rows = rows.filter(h => {
+        if (filters.cliente) {
+          const q = filters.cliente.toLowerCase();
+          if (!h.cliente_nombre.toLowerCase().includes(q) && !(h.cliente_cedula || '').toLowerCase().includes(q)) return false;
+        }
+        if (filters.esp !== 'all' && String(h.staff_id) !== filters.esp) return false;
+        if (filters.svc !== 'all' && h.servicio_nombre !== filters.svc) return false;
+        if (filters.area !== 'all' && h.area !== filters.area) return false;
+        return true;
+      });
+
+      const totalMonto = rows.reduce((a, h) => a + h.precio_usd, 0);
+      document.getElementById('counts').textContent =
+        `${rows.length} de ${s.historial.length} servicios · $${totalMonto.toFixed(0)} facturado`;
+
+      const list = document.getElementById('list');
+      if (rows.length === 0) {
+        list.innerHTML = `<div class="card p-10 text-center">
+          <span class="material-symbols-rounded text-5xl text-brand-200">history_toggle_off</span>
+          <p class="text-muted mt-2">No hay servicios que coincidan con los filtros.</p></div>`;
+        return;
+      }
+
+      list.innerHTML = rows.map(h => {
+        const t = new Date(h.ts).toLocaleString('es-VE', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' });
+        const inicial = h.cliente_nombre.split(' ').filter(Boolean).slice(0, 2).map(w => w[0]).join('').toUpperCase();
+        return `<div class="card p-4 flex items-center gap-4 fade-up">
+          <div class="avatar w-11 h-11 hidden sm:grid" style="background:linear-gradient(135deg,#d46fb0,#872f68)">${inicial}</div>
+          <div class="flex-1 min-w-0">
+            <p class="font-semibold text-ink truncate">${V2.titleCase(h.servicio_nombre)}
+              <span class="pill ml-1" style="background:${V2.areaSoft[h.area]};color:${V2.areaColor[h.area]}"><span class="dot" style="background:${V2.areaColor[h.area]}"></span>${areaName(h.area)}</span>
+              ${h.cambios && h.cambios.length ? `<span class="pill ml-1" style="background:#fbf1dd;color:#b97f28" title="${V2.escape(h.cambios.map(c=>c.motivo).join(' · '))}"><span class="material-symbols-rounded text-[13px]">swap_horiz</span>${h.cambios.length} cambio(s)</span>` : ''}
+            </p>
+            <p class="text-xs text-muted truncate">${V2.escape(h.cliente_nombre)} · ${h.cliente_cedula || '—'}</p>
+          </div>
+          <div class="text-right hidden md:block">
+            <p class="text-sm text-ink flex items-center gap-1 justify-end"><span class="material-symbols-rounded text-[16px] text-brand-400">person</span>${V2.escape(h.staff_nombre)}</p>
+            <p class="text-xs text-muted">${t}</p>
+          </div>
+          <p class="font-display text-xl text-ink">$${h.precio_usd}</p>
+        </div>`;
+      }).join('');
+    }
+
+    document.getElementById('fCliente').addEventListener('input', e => { filters.cliente = e.target.value.trim(); render(); });
+    document.getElementById('fEsp').addEventListener('change', e => { filters.esp = e.target.value; render(); });
+    document.getElementById('fSvc').addEventListener('change', e => { filters.svc = e.target.value; render(); });
+    document.getElementById('fArea').addEventListener('change', e => { filters.area = e.target.value; render(); });
+
+    Store.onChange(() => { buildFilters(); render(); });
+    buildFilters();
+    render();
+  </script>
+</body>
+</html>

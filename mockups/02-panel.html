@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Panel de Control · El Mundo del Cabello</title>
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <script src="tokens.js"></script>
+  <script src="common.js"></script>
+  <script src="data.js"></script>
+  <script src="store.js"></script>
+  <style>
+    .col { background:#fff; border:2px solid #1f1b11; box-shadow:4px 4px 0 #1f1b11; }
+    .queue-item { border-bottom:1px solid #d1c5ac; padding:14px 16px; }
+    .queue-item:last-child { border-bottom:0; }
+    .turn-num { font-family:Montserrat; font-weight:900; font-size:28px; line-height:1; color:#745b00; }
+    .badge { padding:2px 8px; font-size:11px; font-weight:700; border:1.5px solid #1f1b11; }
+    .badge-wait { background:#ffe08b; }
+    .badge-busy { background:#a3defe; }
+    .staff-card { display:flex; gap:10px; align-items:center; padding:10px 12px; background:#fff; border:2px solid #1f1b11; cursor:pointer; }
+    .staff-card:hover { background:#fcf3e1; }
+    .staff-card[data-status="OCUPADO"] { opacity:.55; cursor:not-allowed; background:#ebe1d1; }
+    .staff-card[data-status="BREAK"] { opacity:.55; cursor:not-allowed; background:#ebe1d1; }
+    .avatar { width:38px; height:38px; border-radius:9999px; background:#f5c518; border:2px solid #1f1b11; display:grid; place-items:center; font-weight:700; font-size:13px; }
+    .area-chip { display:inline-flex; align-items:center; gap:6px; padding:4px 10px; border:2px solid #1f1b11; background:#fff; font-size:12px; font-weight:600; }
+    dialog { border:none; padding:0; background:transparent; }
+    dialog::backdrop { background: rgba(31,27,17,.5); }
+    .modal { background:#fff; border:2px solid #1f1b11; box-shadow:6px 6px 0 #1f1b11; padding:24px; max-width:560px; }
+    .btn { padding:8px 14px; border:2px solid #1f1b11; font-weight:600; cursor:pointer; }
+    .btn-primary { background:#f5c518; }
+    .btn-ghost { background:#fff; }
+    .btn-finish { background:#c3e88d; }
+  </style>
+</head>
+<body class="bg-surface-bright">
+  <header class="border-b-2 border-on-surface bg-white">
+    <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+      <div>
+        <a href="../index.html" class="text-xs text-on-surface-variant hover:underline">← Hub</a>
+        <h1 class="text-2xl font-bold" style="font:700 24px/28px Montserrat;">Panel de Control Maestro</h1>
+      </div>
+      <div class="text-right">
+        <p id="now" class="text-sm text-on-surface-variant"></p>
+        <div class="flex gap-2 mt-1">
+          <a href="03-checkin.html" class="btn btn-ghost text-sm">+ Check-in</a>
+          <a href="04-staff.html" class="btn btn-ghost text-sm">Personal</a>
+          <button id="reset" class="btn btn-ghost text-sm">Reset demo</button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-7xl mx-auto px-6 py-8 grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <!-- Cola -->
+    <section class="col lg:col-span-1">
+      <div class="px-4 py-3 border-b-2 border-on-surface bg-primary-container flex items-center justify-between">
+        <h2 class="font-bold" style="font:700 18px Montserrat;">Cola en espera</h2>
+        <span id="qcount" class="badge badge-wait">0</span>
+      </div>
+      <div id="queue" class="max-h-[70vh] overflow-auto"></div>
+    </section>
+
+    <!-- Personal por area -->
+    <section class="lg:col-span-2 space-y-6">
+      <div id="areas"></div>
+    </section>
+  </main>
+
+  <!-- Modal asignar -->
+  <dialog id="dlg">
+    <div class="modal">
+      <p class="text-xs uppercase tracking-widest text-on-surface-variant">Asignar turno</p>
+      <h3 id="dlgTitle" class="mt-1 text-xl font-bold">—</h3>
+      <p id="dlgClient" class="mt-1 text-on-surface-variant"></p>
+      <div id="dlgServicios" class="mt-3 flex flex-wrap gap-2"></div>
+      <hr class="my-4 border-on-surface" />
+      <p class="text-sm font-semibold mb-2">Selecciona personal disponible:</p>
+      <div id="dlgStaff" class="grid grid-cols-2 gap-2 max-h-72 overflow-auto"></div>
+      <div class="flex justify-end gap-2 mt-5">
+        <button class="btn btn-ghost" onclick="document.getElementById('dlg').close()">Cancelar</button>
+      </div>
+    </div>
+  </dialog>
+
+  <script>
+    const Store = window.PeluqStore;
+    const D = window.DEMO_DATA;
+
+    function render() {
+      const s = Store.get();
+      const enEspera = s.clientes.filter(c => c.estado === 'EN_ESPERA');
+      const enAtencion = s.clientes.filter(c => c.estado === 'EN_ATENCION');
+
+      // Cola
+      document.getElementById('qcount').textContent = `${enEspera.length} en espera`;
+      const q = document.getElementById('queue');
+      if (enEspera.length === 0) {
+        q.innerHTML = '<div class="queue-item text-on-surface-variant text-sm">No hay turnos en espera. <a href="03-checkin.html" class="underline">Crear uno</a>.</div>';
+      } else {
+        q.innerHTML = enEspera.map(c => {
+          const total = c.servicios.reduce((a,x)=>a+x.precio_usd,0);
+          const areas = [...new Set(c.servicios.map(x=>x.area))];
+          return `
+            <div class="queue-item flex items-center gap-3">
+              <div class="turn-num">${String(c.turno).padStart(2,'0')}</div>
+              <div class="flex-1 min-w-0">
+                <p class="font-semibold truncate">${escapeHtml(c.nombre)}</p>
+                <p class="text-xs text-on-surface-variant">${c.servicios.length} servicio(s) · $${total.toFixed(0)} · ${minsAgo(c.ts)}</p>
+                <div class="mt-1 flex gap-1 flex-wrap">${areas.map(a => {
+                  const def = D.areas.find(x=>x.key===a);
+                  return `<span class="area-chip"><span style="width:8px;height:8px;background:${def.color};border:1px solid #1f1b11;display:inline-block"></span>${def.name}</span>`;
+                }).join('')}</div>
+              </div>
+              <button class="btn btn-primary text-sm" data-assign="${c.id}">Asignar</button>
+            </div>`;
+        }).join('');
+      }
+
+      // Areas con personal
+      const areasEl = document.getElementById('areas');
+      areasEl.innerHTML = D.areas.map(area => {
+        const staff = s.staff.filter(st => st.area === area.key);
+        const disp = staff.filter(st => st.status === 'DISPONIBLE').length;
+        const ocup = staff.filter(st => st.status === 'OCUPADO').length;
+        return `
+          <div class="col mb-6">
+            <div class="px-4 py-3 border-b-2 border-on-surface flex items-center gap-3" style="background:${area.color}">
+              <h2 class="font-bold flex-1" style="font:700 18px Montserrat;">${area.name}</h2>
+              <span class="badge bg-white">${disp} libres</span>
+              <span class="badge badge-busy">${ocup} ocupados</span>
+              <span class="badge bg-white">${staff.length} total</span>
+            </div>
+            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 p-4">
+              ${staff.slice(0, 12).map(st => `
+                <div class="staff-card" data-status="${st.status}">
+                  <div class="avatar">${st.initials}</div>
+                  <div class="min-w-0">
+                    <p class="text-sm font-semibold truncate">${escapeHtml(st.alias)}</p>
+                    <p class="text-[11px] text-on-surface-variant">#${st.numero} · ${st.status}</p>
+                    ${st.status==='OCUPADO' && st.cliente_id ? `<button class="text-[11px] underline mt-0.5" data-finish="${st.cliente_id}">Finalizar</button>`:''}
+                  </div>
+                </div>
+              `).join('')}
+              ${staff.length > 12 ? `<a href="04-staff.html?area=${area.key}" class="staff-card text-sm justify-center text-on-surface-variant">+${staff.length-12} más →</a>` : ''}
+            </div>
+          </div>`;
+      }).join('');
+
+      document.getElementById('now').textContent = new Date().toLocaleString('es-VE', {dateStyle:'long', timeStyle:'short'});
+    }
+
+    function minsAgo(ts) {
+      const m = Math.max(0, Math.round((Date.now()-ts)/60000));
+      return m===0?'recién':`hace ${m} min`;
+    }
+    function escapeHtml(s) { return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+    document.addEventListener('click', (e) => {
+      const a = e.target.closest('[data-assign]');
+      if (a) return openAssign(a.dataset.assign);
+      const f = e.target.closest('[data-finish]');
+      if (f) { Store.finish(f.dataset.finish); render(); return; }
+      const st = e.target.closest('[data-staff-pick]');
+      if (st) {
+        const dlg = document.getElementById('dlg');
+        Store.assign(dlg.dataset.cliente, Number(st.dataset.staffPick));
+        dlg.close();
+        render();
+      }
+    });
+
+    function openAssign(clienteId) {
+      const s = Store.get();
+      const c = s.clientes.find(x => x.id === clienteId);
+      if (!c) return;
+      const dlg = document.getElementById('dlg');
+      dlg.dataset.cliente = clienteId;
+      document.getElementById('dlgTitle').textContent = `Turno #${String(c.turno).padStart(2,'0')}`;
+      document.getElementById('dlgClient').textContent = `${c.nombre} · ${c.telefono}`;
+      const areas = [...new Set(c.servicios.map(x=>x.area))];
+      document.getElementById('dlgServicios').innerHTML = c.servicios.map(sv => {
+        const a = D.areas.find(x=>x.key===sv.area);
+        return `<span class="area-chip"><span style="width:8px;height:8px;background:${a.color};border:1px solid #1f1b11;display:inline-block"></span>${sv.nombre}</span>`;
+      }).join('');
+      const dispStaff = s.staff.filter(st => areas.includes(st.area) && st.status === 'DISPONIBLE');
+      document.getElementById('dlgStaff').innerHTML = dispStaff.length === 0
+        ? '<p class="col-span-2 text-on-surface-variant text-sm p-4">No hay personal disponible en estas áreas ahora mismo.</p>'
+        : dispStaff.map(st => {
+          const a = D.areas.find(x => x.key === st.area);
+          return `<button class="staff-card" data-staff-pick="${st.numero}">
+            <div class="avatar" style="background:${a.color}">${st.initials}</div>
+            <div class="min-w-0 text-left">
+              <p class="text-sm font-semibold truncate">${escapeHtml(st.alias)}</p>
+              <p class="text-[11px] text-on-surface-variant">#${st.numero} · ${a.name}</p>
+            </div>
+          </button>`;
+        }).join('');
+      dlg.showModal();
+    }
+
+    document.getElementById('reset').addEventListener('click', () => {
+      if (confirm('Reiniciar la demo (limpia turnos del día)?')) Store.reset();
+    });
+
+    Store.onChange(render);
+    render();
+    setInterval(render, 30000);
+  </script>
+</body>
+</html>
