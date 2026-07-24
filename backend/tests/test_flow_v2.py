@@ -268,6 +268,8 @@ async def test_progressive_profile_search_client_database_and_duplicate_guard(ap
     assert matches.status_code == 200
     assert matches.json()[0]["nombre"] == "Ambar Vegas"
     assert matches.json()[0]["cedula"] == "V-25482938"
+    assert matches.json()[0]["active_turno_id"] == created.json()["id"]
+    assert matches.json()[0]["active_turno"] == created.json()["turno"]
 
     profiles = await ac.get(
         "/api/queue/clients", headers=api["admin_headers"]
@@ -293,6 +295,13 @@ async def test_progressive_profile_search_client_database_and_duplicate_guard(ap
 
 async def test_admin_can_update_visit_tags_and_observation(api):
     client = await _checkin(api["ac"], api)
+    initial = await api["ac"].patch(
+        f"/api/queue/{client['id']}/details",
+        json={"observacion": "Primera nota", "etiquetas": ["F"]},
+        headers=api["admin_headers"],
+    )
+    assert initial.status_code == 200
+
     updated = await api["ac"].patch(
         f"/api/queue/{client['id']}/details",
         json={"observacion": "Usar producto suave", "etiquetas": ["F", "AC"]},
@@ -301,6 +310,45 @@ async def test_admin_can_update_visit_tags_and_observation(api):
     assert updated.status_code == 200
     assert updated.json()["observacion"] == "Usar producto suave"
     assert updated.json()["etiquetas"] == ["AC", "F"]
+
+
+async def test_selected_profile_can_append_services_to_active_turn(api):
+    ac = api["ac"]
+    client = await ac.post(
+        "/api/queue/checkin",
+        json={
+            "cedula": "V-25482938",
+            "nombre": "Ambar Vegas",
+            "telefono": "04145551212",
+            "direccion": "Los Palos Grandes",
+            "etiquetas": ["INT"],
+            "service_ids": [api["corte_id"]],
+        },
+    )
+    assert client.status_code == 201
+    original = client.json()
+
+    appended = await ac.post(
+        "/api/queue/checkin",
+        json={
+            "cedula": "V25482938",
+            "nombre": "Ambar Vegas",
+            "telefono": "04145551212",
+            "direccion": "Los Palos Grandes",
+            "observacion": "Agregar hidratación",
+            "etiquetas": ["F"],
+            "service_ids": [api["hidra_id"]],
+            "active_turno_id": original["id"],
+        },
+    )
+
+    assert appended.status_code == 201, appended.text
+    body = appended.json()
+    assert body["id"] == original["id"]
+    assert body["turno"] == original["turno"]
+    assert len(body["servicios"]) == 2
+    assert body["observacion"] == "Agregar hidratación"
+    assert body["etiquetas"] == ["F", "INT"]
 
 
 async def test_admin_can_open_detailed_client_history(api):

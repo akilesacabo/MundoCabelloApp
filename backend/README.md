@@ -1,7 +1,7 @@
 # El Mundo del Cabello — Backend (Fase 1)
 
-API FastAPI para el MVP: registro de clientes (check-in) y gestión
-manual de la cola con asignación de personal.
+API FastAPI para el MVP: autenticación por roles, registro e historial de
+clientes, check-in y gestión de la cola con asignación de especialistas.
 
 ## Stack
 
@@ -24,11 +24,12 @@ backend/
 │   ├── dependencies.py    # DbSession typed alias
 │   ├── pagination.py      # PageParams / Page (no usado en Fase 1)
 │   ├── main.py            # FastAPI app, lifespan, CORS, exception handler
-│   ├── seed.py            # Carga 4 áreas, 12 servicios, 48 profesionales
-│   ├── clients/           # Dominio: clientes (5 campos)
+│   ├── seed.py            # Carga el catálogo, especialistas y usuarios demo
+│   ├── auth/              # Login y autorización por roles
+│   ├── historial/         # Historial detallado de servicios por cliente
 │   ├── services/          # Dominio: catálogo (áreas + servicios)
 │   ├── staff/             # Dominio: personal con status
-│   └── queue/             # Dominio: cola con transiciones
+│   └── turnos/            # Clientes, turnos, etiquetas y transiciones
 ├── alembic/               # migraciones async
 ├── tests/                 # tests async con DB en memoria
 ├── requirements/          # base / dev / prod
@@ -53,7 +54,7 @@ pip install aiosqlite        # driver SQLite async
 cp .env.example .env         # DATABASE_URL apunta a sqlite+aiosqlite:///./peluq.db
 
 alembic upgrade head         # crea las tablas
-python -m src.seed           # carga 4 áreas, 12 servicios, 48 profesionales
+python -m src.seed           # carga catálogo, especialistas y usuarios demo
 
 uvicorn src.main:app --reload
 # docs: http://localhost:8000/docs
@@ -65,45 +66,48 @@ uvicorn src.main:app --reload
 |---|---|---|
 | GET | `/health` | Liveness |
 | GET | `/ready` | Readiness (hace `SELECT 1` contra la DB) |
-| GET | `/api/services` | Catálogo agrupado por área (lo consume el check-in) |
-| POST | `/api/queue/checkin` | Crea cliente + entry, devuelve turno |
-| GET | `/api/queue?status=en_espera` | Lista la cola filtrada por status |
-| GET | `/api/queue/{id}` | Detalle de una entry |
-| POST | `/api/queue/{id}/assign` | Asigna staff disponible → `en_servicio` |
-| POST | `/api/queue/{id}/finish` | Marca `finalizado` y libera al staff |
-| GET | `/api/staff?area_id=1&status=disponible` | Personal filtrado |
-| GET | `/api/staff/{id}` | Detalle |
-| PATCH | `/api/staff/{id}/status` | Cambia status manualmente |
-| POST | `/api/clients` | Crea cliente (raro en Fase 1, se usa el check-in) |
-| GET | `/api/clients` | Lista clientes (paginado básico) |
+| POST | `/api/auth/login` | Autentica administrador o especialista |
+| GET | `/api/auth/me` | Devuelve el usuario autenticado |
+| GET | `/api/services` | Catálogo agrupado por área |
+| POST | `/api/queue/checkin` | Crea un turno o agrega servicios al turno activo |
+| GET | `/api/queue` | Lista clientes activos |
+| GET | `/api/queue/public/status` | Estado público de la cola |
+| GET | `/api/queue/client-search` | Busca perfiles y señala su turno activo |
+| GET | `/api/queue/clients` | Lista la base de clientes registrados |
+| GET | `/api/queue/clients/{id}` | Ficha e historial de un cliente |
+| POST | `/api/queue/{id}/services/{service_id}/assign` | Asigna un especialista elegible |
+| POST | `/api/queue/{id}/services/{service_id}/finish` | Finaliza un servicio |
+| PATCH | `/api/queue/{id}/details` | Actualiza etiquetas y observación |
+| GET | `/api/staff/eligible` | Especialistas elegibles por servicio |
+| PATCH | `/api/staff/{numero}/manual-status` | Cambia el estado operativo |
+| GET | `/api/historial` | Consulta el historial de servicios |
 
 ## Reglas de negocio (Fase 1)
 
-- **Asignar** requiere: la entry está `en_espera` **y** el staff está
-  `disponible`. Cualquier otra combinación devuelve 400 con mensaje
-  específico.
-- **Finalizar** requiere: la entry está `en_servicio`. Devuelve 400 en
-  otro caso.
+- **Asignar** requiere que el servicio esté pendiente y el especialista sea
+  elegible por área y estado.
+- **Finalizar** requiere que el servicio esté en atención.
 - Al finalizar, el staff asignado vuelve automáticamente a `disponible`
   (si estaba `ocupado`).
 - **Cédula** validada con regex `^[VEve\-]?\d{6,10}$` (acepta prefijo
   V/E venezolano).
 - **Teléfono** validado con `^\+?\d[\d\s\-()]{9,18}$`.
-- **Check-in** con la misma cédula reusa el cliente y actualiza sus
-  datos (Fase 1: prepare el camino para la búsqueda/historial de Fase 2).
-- **Turn number** = count de entries + 1 al momento del check-in. Es
-  estable durante la vida de la entry.
+- **Check-in** con una cédula existente reutiliza el perfil. Si el frontend
+  confirma su `active_turno_id`, los servicios nuevos se agregan al mismo
+  turno en vez de duplicarlo.
+- Las etiquetas de una visita se sincronizan: conservar una etiqueta ya
+  guardada no intenta insertarla nuevamente.
+- El número de turno se conserva durante toda la visita activa.
 
 ## Tests
 
 ```bash
-pytest
+PYTHONPATH=. .venv/bin/pytest -q
 ```
 
-Cubre: el flujo happy-path completo (check-in → asignar → finalizar),
-los 400 cuando se intenta asignar staff ocupado o finalizar entry en
-`en_espera`, validación 422 de cédula inválida, e incremento de turn
-numbers.
+La suite actual contiene 29 pruebas y cubre autenticación, check-in,
+asignación/finalización, perfiles e historial, etiquetas, validaciones,
+adición de servicios a un turno activo y contratos esenciales del frontend.
 
 Usa SQLite in-memory por test, así que no toca `peluq.db`.
 

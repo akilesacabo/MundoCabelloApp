@@ -28,8 +28,27 @@ curl -s -X POST http://localhost:8000/api/queue/checkin \
   }'
 ```
 
-Resultado esperado: búsqueda `200`; check-in `201`. Repetir el mismo check-in antes de
-finalizarlo debe responder `409` con el número del turno activo.
+Resultado esperado: búsqueda `200`; check-in `201`. La búsqueda devuelve
+`active_turno_id` y `active_turno` cuando ya existe una visita activa. Repetir el mismo
+check-in sin indicar el identificador debe responder `409`.
+
+Para agregar servicios al turno activo seleccionado:
+
+```bash
+curl -s -X POST http://localhost:8000/api/queue/checkin \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "cedula":"V-25482938",
+    "nombre":"Ambar Vegas",
+    "telefono":"04145551212",
+    "direccion":"Los Palos Grandes",
+    "service_ids":[<service-id>],
+    "active_turno_id":<active-turno-id>
+  }'
+```
+
+Resultado esperado: `201`, el mismo `id` y número de turno, con el servicio nuevo en
+estado `pendiente`.
 
 ## Base de clientes y edición de visita
 

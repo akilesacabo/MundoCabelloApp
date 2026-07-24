@@ -25,10 +25,8 @@ function applyRoleNavigation(){
   document.body.classList.add('top-nav-page');
   const role=sessionRole();
   const links=role==='admin'?[
-    ['checkin.html','＋','Nuevo check-in'],
     ['admin.html','◎','Asignar clientes'],
     ['admin-team.html','◷','Estado del equipo'],
-    ['admin-clients.html','♧','Clientes'],
     ['admin-staff.html','♙','Editar especialistas'],
     ['admin-services.html','✦','Servicios y productos'],
     ['queue.html','◉','Cola pública']

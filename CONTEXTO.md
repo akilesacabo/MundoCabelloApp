@@ -1,7 +1,7 @@
 # CONTEXTO — El Mundo del Cabello (peluq-project)
 
 > Documento de handoff para retomar el proyecto en una sesión nueva.
-> Última actualización: 2026-07-04.
+> Última actualización: 2026-07-24.
 
 ---
 
@@ -387,4 +387,37 @@ Objetivo: **backend real que refleje la v2** y camino a deploy.
 - ✅ Inspección real: Ámbar mostró #16, #15 y #14; Pedro mostró una visita, tres
   servicios y `#4 Yurbi`. En tablet 768×1024 no hubo desbordamiento horizontal,
   el botón mide 44 px y el modal desplaza internamente. Consola sin errores.
+- Estado: implementado y probado en local. **Pendiente desplegar en producción.**
+
+### Ajustes finales de operación, búsqueda y tablet (2026-07-24)
+
+- ✅ **Asignar clientes** queda como vista administrativa principal. Los accesos
+  **Registrar nuevo check-in** y **Clientes registrados** están encima de Flujo de hoy;
+  se retiraron del menú superior para evitar desplazamiento lateral.
+- ✅ El check-in selecciona progresivamente la ficha existente y avanza a Servicios.
+  Si existe un turno activo, envía su identificador y agrega los servicios a esa misma
+  visita. El backend valida cédula e identificador y desempata turnos históricos por
+  fecha e ID descendentes.
+- ✅ Al completar el flujo aparece una confirmación con número de turno, **Registrar otra
+  persona** y, para administración, **Volver a asignar clientes**.
+- ✅ El buscador de servicios filtra por nombre y no por el nombre general del área.
+  `CEJA` devuelve únicamente los tres servicios que contienen esa palabra.
+- ✅ La edición de etiquetas sincroniza altas y bajas, conservando las existentes; se
+  eliminó el `IntegrityError` por código duplicado.
+- ✅ El selector de especialista sigue consultando `/staff/eligible?area=...`, pero ahora
+  permite buscar por nombre o número y conserva el resaltado antes de confirmar.
+- ✅ Clientes registrados usa tabla de 25 filas por página, ficha histórica y descarga
+  CSV compatible con Excel. La consulta de perfiles usa carga agrupada y elimina el
+  patrón de una consulta adicional por cliente.
+- ✅ La cola pública comparte la cabecera oscura del producto. El panel conserva los
+  datos visibles ante un fallo de actualización y muestra **Reintentar**.
+- ✅ Base real inspeccionada: integridad `ok`, 4 turnos activos y 2 perfiles; no hubo
+  eliminación de datos. La pantalla vacía reportada fue una carga fallida no comunicada,
+  no una pérdida confirmada.
+- ✅ Verificación automática: 29 tests, Ruff, sintaxis JavaScript y `git diff --check`
+  limpios.
+- ✅ Flujo real validado con una copia temporal de la base: selección de Ámbar, filtro
+  `PIGMENTO DE CEJAS`, adición al turno #16, confirmación y reinicio para otra persona.
+- ✅ Tablet: 1024×768 y 768×1024 sin desbordamiento de página; menú sin scroll lateral.
+  La vista del especialista mostró una tarjeta y botones Finalizar de 48 px.
 - Estado: implementado y probado en local. **Pendiente desplegar en producción.**

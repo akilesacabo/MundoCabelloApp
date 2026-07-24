@@ -35,7 +35,8 @@ Requiere token. Devuelve identidad, rol y nombre visible.
 ### `GET /queue/client-search?q=<texto>`
 
 Público para la estación de recepción. Requiere entre 4 y 30 caracteres y devuelve
-como máximo ocho coincidencias por cédula.
+como máximo ocho coincidencias por cédula. Cada coincidencia incluye
+`active_turno_id` y `active_turno` cuando el cliente ya tiene una visita activa.
 
 ### `POST /queue/checkin`
 
@@ -49,12 +50,16 @@ Público. Crea la ficha del cliente o actualiza sus datos y registra una visita:
   "direccion": "Los Palos Grandes",
   "service_ids": [1, 8],
   "etiquetas": ["XL", "CM"],
-  "observacion": "Usar producto suave"
+  "observacion": "Usar producto suave",
+  "active_turno_id": null
 }
 ```
 
 Etiquetas admitidas: `INT`, `F`, `CORTO`, `LAVADO`, `AC`, `TC`, `XL`, `CM`, `DC`.
-Responde `201`. Si la cédula ya posee un turno activo, responde `409` e informa su número.
+Responde `201`. Para un cliente sin visita activa crea un turno nuevo. Si la búsqueda
+devolvió un `active_turno_id`, enviarlo agrega los servicios al mismo turno y combina
+las etiquetas sin duplicarlas. Si la cédula ya posee un turno activo y el identificador
+no fue enviado o no coincide, responde `409`.
 
 ### `POST /queue/lookup?cedula=<cedula>`
 
@@ -78,7 +83,8 @@ Solo incluye turnos `presente`.
 Todos requieren rol `admin`:
 
 - `GET /queue`: turnos completos.
-- `GET /queue/clients`: perfiles únicos con cantidad de visitas y etiquetas recientes.
+- `GET /queue/clients`: perfiles únicos con cantidad de visitas, etiquetas recientes
+  y número de turno activo cuando corresponde.
 - `GET /queue/clients/{profile_id}`: ficha permanente y visitas ordenadas de la más
   reciente a la más antigua. Cada visita incluye turno, fecha, estado, situación,
   etiquetas, observación y servicios con precio y especialista asignado.

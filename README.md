@@ -10,7 +10,7 @@ registro de clientes y la gestión visual de la cola con asignación
 | Fase | Estado | Descripción |
 |---|---|---|
 | 0 — Mockups navegables | ✅ Listo | 4 pantallas extraídas de Stitch, servibles como spec visual |
-| 1 — Backend FastAPI | ✅ Local | API, roles, perfiles de clientes, cola y 26 tests |
+| 1 — Backend FastAPI | ✅ Local | API, roles, perfiles de clientes, cola y 29 tests |
 
 **Próximas fases** (no en este commit):
 - 2 — Frontend React + Vite + Tailwind
@@ -90,6 +90,12 @@ Servir el repositorio y abrir:
 - `app/queue.html`: cola pública con animación discreta al avanzar.
 
 Estas vistas consumen la API local en `http://localhost:8000/api`.
+
+El panel administrativo usa **Asignar clientes** como inicio. Desde allí se accede a
+**Registrar nuevo check-in** y **Clientes registrados**. El check-in recupera fichas
+existentes, agrega servicios al turno activo cuando corresponde y ofrece registrar otra
+persona al finalizar. La base de clientes se presenta como tabla paginada y se puede
+descargar como CSV compatible con Excel.
 
 ## Stack
 

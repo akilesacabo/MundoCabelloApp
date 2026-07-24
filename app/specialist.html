@@ -4,10 +4,10 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width">
   <title>Mis clientes</title>
-  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="styles.css?v=20260724">
 </head>
 <body class="modern-page"><div class="app-shell"><aside class="app-sidebar"><a class="dashboard-logo" href="specialist.html"><span class="logo-mark">M</span><span><b>Mundo</b><small>del Cabello</small></span></a><nav class="site-nav dashboard-nav" aria-label="Navegación principal"><a class="active" href="specialist.html"><span>◎</span>Mis clientes</a><a href="checkin.html"><span>＋</span>Check-in</a><a href="queue.html"><span>◉</span>Cola pública</a></nav><div class="sidebar-profile"><div class="profile-avatar">ES</div><div><b>Especialista</b><small>Agenda activa</small></div><button onclick="logout()" title="Cerrar sesión">↗</button></div></aside><div class="app-content"><header class="app-topbar"><div class="app-topbar-copy"><b>Tu espacio de trabajo</b><span>Servicios asignados y pendientes</span></div><span class="live-indicator"><span></span>Actualización automática</span></header><main class="app-main"><div class="page-heading"><div><span class="section-kicker">AGENDA PERSONAL</span><h1>Mis clientes pendientes</h1><p class="muted">Todo lo que necesitas para acompañar cada servicio de principio a fin.</p></div></div><div class="filter-bar"><div class="search-field"><span>⌕</span><input id="clientSearch" type="search" placeholder="Buscar cliente o servicio" aria-label="Buscar clientes"></div><span id="clientCount" class="result-count">Cargando…</span></div><div id="list" class="specialist-grid" aria-live="polite"></div></main></div></div><div id="toast" class="toast" hidden></div>
-  <script src="api.js"></script>
+  <script src="api.js?v=20260724"></script>
   <script>
     let clients=[];const normalize=value=>String(value).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();const escapeHtml=value=>String(value).replace(/[&<>'"]/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[char]));
     function notify(message){toast.textContent=message;toast.hidden=false;clearTimeout(notify.timer);notify.timer=setTimeout(()=>toast.hidden=true,2400)}

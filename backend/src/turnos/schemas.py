@@ -21,6 +21,14 @@ class CheckInRequest(BaseModel):
     observacion: str = Field(default="", max_length=1000)
     etiquetas: list[EtiquetaCodigo] = Field(default_factory=list, max_length=9)
     service_ids: list[int] = Field(min_length=1)
+    active_turno_id: int | None = Field(
+        default=None,
+        gt=0,
+        description=(
+            "Turno activo seleccionado durante la búsqueda. Si coincide con la cédula, "
+            "los servicios se agregan a esa visita."
+        ),
+    )
 
 
 class CambioRead(BaseModel):
@@ -88,6 +96,8 @@ class ClienteProfileRead(BaseModel):
     nombre: str
     telefono: str
     direccion: str
+    active_turno_id: int | None = None
+    active_turno: int | None = None
 
 
 class ClienteProfileSummary(ClienteProfileRead):

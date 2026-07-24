@@ -66,6 +66,46 @@ def _to_read(c: Cliente) -> ClienteRead:
     )
 
 
+def _active_visit(profile: ClienteProfile) -> Cliente | None:
+    return next(
+        (
+            visit
+            for visit in sorted(
+                profile.turnos,
+                key=lambda item: (item.created_at, item.id),
+                reverse=True,
+            )
+            if visit.activo
+        ),
+        None,
+    )
+
+
+def _profile_to_read(profile: ClienteProfile) -> ClienteProfileRead:
+    active = _active_visit(profile)
+    return ClienteProfileRead(
+        id=profile.id,
+        cedula=profile.cedula,
+        nombre=profile.nombre,
+        telefono=profile.telefono,
+        direccion=profile.direccion,
+        active_turno_id=active.id if active else None,
+        active_turno=active.turno if active else None,
+    )
+
+
+def _sync_tags(cliente: Cliente, desired: list[str]) -> None:
+    desired_codes = set(desired)
+    current = {tag.codigo: tag for tag in cliente.etiquetas}
+    cliente.etiquetas[:] = [
+        tag for code, tag in current.items() if code in desired_codes
+    ]
+    cliente.etiquetas.extend(
+        ClienteEtiqueta(codigo=code)
+        for code in sorted(desired_codes - current.keys())
+    )
+
+
 async def _load_cliente(db: AsyncSession, cliente_id: int) -> Cliente:
     stmt = (
         select(Cliente)
@@ -101,7 +141,9 @@ async def _active_for_cedula(
     stmt = select(Cliente).where(Cliente.cedula == cedula, Cliente.activo.is_(True))
     if exclude_id is not None:
         stmt = stmt.where(Cliente.id != exclude_id)
-    return (await db.execute(stmt.order_by(Cliente.created_at.desc()))).scalars().first()
+    return (
+        await db.execute(stmt.order_by(Cliente.created_at.desc(), Cliente.id.desc()))
+    ).scalars().first()
 
 
 async def _upsert_profile(
@@ -129,12 +171,32 @@ async def _upsert_profile(
 async def check_in(db: AsyncSession, payload: CheckInRequest) -> ClienteRead:
     cedula = normalize_cedula(payload.cedula)
     active = await _active_for_cedula(db, cedula)
-    if active is not None:
-        raise Conflict(
-            f"El cliente ya tiene el turno activo #{active.turno}. "
-            "Actualiza ese turno en lugar de registrarlo nuevamente."
-        )
     catalog = await services_service.get_many_or_404(db, payload.service_ids)
+    if active is not None:
+        if payload.active_turno_id != active.id:
+            raise Conflict(
+                f"El cliente ya tiene el turno activo #{active.turno}. "
+                "Selecciónalo en la búsqueda para agregar los servicios a esa visita."
+            )
+        active = await _load_cliente(db, active.id)
+        active.servicios.extend(
+            TurnoServicio(
+                area_key=service.area_key,
+                nombre=service.nombre,
+                precio_usd=service.precio_usd,
+                estado=ServicioEstado.PENDIENTE,
+            )
+            for service in catalog
+        )
+        if payload.observacion.strip():
+            active.observacion = payload.observacion.strip()
+        merged_tags = {tag.codigo for tag in active.etiquetas}
+        merged_tags.update(tag.value for tag in payload.etiquetas)
+        _sync_tags(active, sorted(merged_tags))
+        await _upsert_profile(db, payload, cedula)
+        await db.commit()
+        return _to_read(await _load_cliente(db, active.id))
+
     profile = await _upsert_profile(db, payload, cedula)
     turno = await _next_turno(db)
     cliente = Cliente(
@@ -197,12 +259,14 @@ async def find_profile(db: AsyncSession, cedula: str) -> ClienteProfileRead:
     normalized = normalize_cedula(cedula)
     profile = (
         await db.execute(
-            select(ClienteProfile).where(ClienteProfile.cedula == normalized)
+            select(ClienteProfile)
+            .options(selectinload(ClienteProfile.turnos))
+            .where(ClienteProfile.cedula == normalized)
         )
     ).scalar_one_or_none()
     if profile is None:
         raise NotFound("cliente no encontrado")
-    return ClienteProfileRead.model_validate(profile, from_attributes=True)
+    return _profile_to_read(profile)
 
 
 async def search_profiles(db: AsyncSession, query: str) -> list[ClienteProfileRead]:
@@ -213,6 +277,7 @@ async def search_profiles(db: AsyncSession, query: str) -> list[ClienteProfileRe
         patterns.extend([f"%{compact}%", f"%{compact[:1]}-{compact[1:]}%"])
     stmt = (
         select(ClienteProfile)
+        .options(selectinload(ClienteProfile.turnos))
         .where(
             or_(
                 ClienteProfile.cedula.ilike(patterns[0]),
@@ -223,25 +288,27 @@ async def search_profiles(db: AsyncSession, query: str) -> list[ClienteProfileRe
         .limit(8)
     )
     profiles = (await db.execute(stmt)).scalars().all()
-    return [
-        ClienteProfileRead.model_validate(profile, from_attributes=True)
-        for profile in profiles
-    ]
+    return [_profile_to_read(profile) for profile in profiles]
 
 
 async def list_profiles(db: AsyncSession) -> list[ClienteProfileSummary]:
     profiles = (
-        await db.execute(select(ClienteProfile).order_by(ClienteProfile.nombre))
+        await db.execute(
+            select(ClienteProfile)
+            .options(
+                selectinload(ClienteProfile.turnos).selectinload(Cliente.etiquetas)
+            )
+            .order_by(ClienteProfile.nombre)
+        )
     ).scalars().all()
     rows: list[ClienteProfileSummary] = []
     for profile in profiles:
-        stmt = (
-            select(Cliente)
-            .options(selectinload(Cliente.etiquetas))
-            .where(Cliente.perfil_id == profile.id)
-            .order_by(Cliente.created_at.desc())
+        visits = sorted(
+            profile.turnos,
+            key=lambda visit: (visit.created_at, visit.id),
+            reverse=True,
         )
-        visits = list((await db.execute(stmt)).scalars().all())
+        active = _active_visit(profile)
         rows.append(
             ClienteProfileSummary(
                 id=profile.id,
@@ -252,6 +319,8 @@ async def list_profiles(db: AsyncSession) -> list[ClienteProfileSummary]:
                 visitas=len(visits),
                 ultima_visita=visits[0].created_at if visits else None,
                 etiquetas=[tag.codigo for tag in visits[0].etiquetas] if visits else [],
+                active_turno_id=active.id if active else None,
+                active_turno=active.turno if active else None,
             )
         )
     return rows
@@ -318,9 +387,7 @@ async def update_details(
 ) -> ClienteRead:
     cliente = await _load_cliente(db, cliente_id)
     cliente.observacion = payload.observacion.strip()
-    cliente.etiquetas = [
-        ClienteEtiqueta(codigo=tag.value) for tag in payload.etiquetas
-    ]
+    _sync_tags(cliente, [tag.value for tag in payload.etiquetas])
     await db.commit()
     return _to_read(await _load_cliente(db, cliente_id))
 

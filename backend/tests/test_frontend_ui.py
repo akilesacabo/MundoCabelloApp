@@ -30,8 +30,10 @@ def test_admin_dashboard_prioritizes_status_and_assignment():
     assert "/staff/eligible?area=" in html
     assert "/services/${serviceId}/assign" in html
     assert "applyRoleNavigation()" in (APP_DIR / "api.js").read_text()
-    assert 'onchange="highlightSpecialist(this)"' in html
+    assert 'oninput="highlightSpecialist(this)"' in html
     assert "specialist-selected" in html
+    assert 'class="specialist-search"' in html
+    assert "<datalist" in html
 
 
 def test_public_queue_preserves_and_recognizes_team_session():
@@ -66,6 +68,11 @@ def test_checkin_is_three_steps_with_live_client_search_and_submit_lock():
     assert "/queue/client-search?q=" in html
     assert "if(submitting)return" in html
     assert 'name="etiquetas"' in html
+    assert "normalize(service.nombre).includes(term)" in html
+    assert "active_turno_id:selectedProfile?.active_turno_id" in html
+    assert "goToStep(2)" in html
+    assert "Registrar otra persona" in html
+    assert 'id="checkinSuccess"' in html
 
 
 def test_admin_has_separate_assignment_team_and_client_database_screens():
@@ -81,9 +88,15 @@ def test_admin_has_separate_assignment_team_and_client_database_screens():
     assert 'id="clientModal"' in clients
     assert "Historial de visitas" in clients
     assert "service.especialista" in clients
-    assert "['checkin.html','＋','Nuevo check-in']" in api_js
+    assert 'href="checkin.html"' in assignment
+    assert "Registrar nuevo check-in" in assignment
+    assert 'href="admin-clients.html"' in assignment
+    assert "Clientes registrados" in assignment
     assert "admin-team.html" in api_js
-    assert "admin-clients.html" in api_js
+    assert 'class="client-table"' in clients
+    assert "downloadClients()" in clients
+    assert "text/csv;charset=utf-8" in clients
+    assert "const PAGE_SIZE=25" in clients
 
 
 def test_public_queue_explains_parallel_attention():
@@ -92,6 +105,7 @@ def test_public_queue_explains_parallel_attention():
     assert "La atención ocurre en paralelo" in html
     assert "¿Cómo leer esta pantalla?" in html
     assert "Después siguen" in html
+    assert 'class="queue-topbar"' in html
 
 
 def test_staff_areas_use_visual_multi_selection():
@@ -160,9 +174,9 @@ def test_all_screens_expose_role_appropriate_navigation():
         "queue.html",
         "admin.html",
         "admin-team.html",
-        "admin-clients.html",
         "admin-staff.html",
         "admin-services.html",
         "specialist.html",
     ):
         assert link in api_js
+    assert 'href="admin-clients.html"' in (APP_DIR / "admin.html").read_text()

@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="es">
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>Clientes · Mundo del Cabello</title><link rel="stylesheet" href="styles.css"></head>
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>Clientes · Mundo del Cabello</title><link rel="stylesheet" href="styles.css?v=20260724"></head>
 <body class="modern-page top-nav-page">
   <div class="app-shell">
     <aside class="app-sidebar">
@@ -9,9 +9,17 @@
       <div class="sidebar-profile"><div class="profile-avatar">AD</div><div><b>Administración</b><small>Base de clientes</small></div><button onclick="logout()">↗</button></div>
     </aside>
     <div class="app-content"><main class="app-main">
-      <div class="page-heading"><span class="section-kicker">BASE DE CLIENTES</span><h1>Clientes registrados</h1><p class="muted">Una ficha por cédula, con sus datos actuales y resumen de visitas.</p></div>
-      <div class="filter-bar"><div class="search-field"><span>⌕</span><input id="clientSearch" type="search" placeholder="Buscar por nombre, cédula o teléfono"></div><span id="clientCount" class="result-count"></span></div>
-      <section id="clientList" class="client-database" aria-live="polite"></section>
+      <div class="page-heading"><span class="section-kicker">BASE DE CLIENTES</span><h1>Clientes registrados</h1><p class="muted">Consulta la lista completa y abre cualquier fila para revisar su historial.</p></div>
+      <div class="filter-bar client-table-tools"><div class="search-field"><span>⌕</span><input id="clientSearch" type="search" placeholder="Buscar por nombre, cédula o teléfono"></div><button type="button" class="secondary" onclick="downloadClients()">Descargar para Excel</button><span id="clientCount" class="result-count"></span></div>
+      <section class="client-table-card" aria-live="polite">
+        <div class="client-table-scroll">
+          <table class="client-table">
+            <thead><tr><th>Nombre</th><th>Cédula</th><th>Teléfono</th><th>Visitas</th><th>Última visita</th><th>Turno activo</th><th></th></tr></thead>
+            <tbody id="clientList"><tr><td colspan="7">Cargando clientes…</td></tr></tbody>
+          </table>
+        </div>
+        <div id="clientPagination" class="table-pagination"></div>
+      </section>
     </main></div>
   </div>
   <div id="clientModal" class="modal-backdrop" hidden onclick="if(event.target===this)closeClient()">
@@ -23,31 +31,48 @@
       <div id="clientDetail" aria-live="polite"></div>
     </section>
   </div>
-  <script src="api.js"></script>
+  <script src="api.js?v=20260724"></script>
   <script>
-    let clients=[];
+    let clients=[],page=1;
+    const PAGE_SIZE=25;
     const normalize=value=>String(value).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
     const escapeHtml=value=>String(value).replace(/[&<>'"]/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[char]));
     const stateLabels={en_espera:'En espera',en_atencion:'En atención',finalizado:'Finalizado',pendiente:'Pendiente'};
     const situationLabels={presente:'Presente',ausente:'Ausente',estafa:'Estafa'};
     const formatDate=value=>new Intl.DateTimeFormat('es-VE',{dateStyle:'medium',timeStyle:'short'}).format(new Date(value));
-    function render(){
+    function filteredClients(){
       const term=normalize(clientSearch.value);
-      const rows=clients.filter(client=>normalize(`${client.nombre} ${client.cedula} ${client.telefono}`).includes(term));
+      return clients.filter(client=>normalize(`${client.nombre} ${client.cedula} ${client.telefono}`).includes(term));
+    }
+    function render(){
+      const rows=filteredClients();
+      const pages=Math.max(1,Math.ceil(rows.length/PAGE_SIZE));page=Math.min(page,pages);
+      const visible=rows.slice((page-1)*PAGE_SIZE,page*PAGE_SIZE);
       clientCount.textContent=`${rows.length} de ${clients.length}`;
-      clientList.innerHTML=rows.length?rows.map(client=>`
-        <article class="card client-profile-card">
-          <span class="tag">${client.visitas} visita${client.visitas===1?'':'s'}</span>
-          <h2>${escapeHtml(client.nombre)}</h2>
-          <div class="profile-contact">
-            <span><b>Cédula:</b> ${escapeHtml(client.cedula)}</span>
-            <span><b>Teléfono:</b> ${escapeHtml(client.telefono)}</span>
-            <span><b>Dirección:</b> ${escapeHtml(client.direccion)}</span>
-            <span><b>Última visita:</b> ${client.ultima_visita?new Date(client.ultima_visita).toLocaleDateString('es-VE'):'Sin visitas'}</span>
-          </div>
-          <div class="tag-actions">${client.etiquetas.length?client.etiquetas.map(code=>`<span class="tag">${escapeHtml(code)}</span>`).join(''):'<span class="muted">Sin etiquetas recientes</span>'}</div>
-          <button class="secondary client-history-button" type="button" onclick="openClient(${client.id})">Ver ficha e historial</button>
-        </article>`).join(''):'<div class="card empty-state"><h2>No hay clientes registrados</h2><p class="muted">Los perfiles aparecerán después del primer check-in.</p></div>';
+      clientList.innerHTML=visible.length?visible.map(client=>`
+        <tr>
+          <td><b>${escapeHtml(client.nombre)}</b><small>${escapeHtml(client.direccion)}</small></td>
+          <td>${escapeHtml(client.cedula)}</td>
+          <td>${escapeHtml(client.telefono)}</td>
+          <td>${client.visitas}</td>
+          <td>${client.ultima_visita?new Date(client.ultima_visita).toLocaleDateString('es-VE'):'Sin visitas'}</td>
+          <td>${client.active_turno?`<span class="status-pill">#${client.active_turno}</span>`:'—'}</td>
+          <td><button class="secondary table-action" type="button" onclick="openClient(${client.id})">Ver historial</button></td>
+        </tr>`).join(''):'<tr><td colspan="7"><div class="empty-state"><b>No hay clientes registrados</b><p class="muted">Prueba con otra búsqueda.</p></div></td></tr>';
+      clientPagination.innerHTML=rows.length>PAGE_SIZE?`<button class="secondary" type="button" onclick="changePage(-1)" ${page===1?'disabled':''}>← Anterior</button><span>Página ${page} de ${pages}</span><button class="secondary" type="button" onclick="changePage(1)" ${page===pages?'disabled':''}>Siguiente →</button>`:'';
+    }
+    function changePage(delta){page+=delta;render()}
+    function csvCell(value){
+      let text=String(value??'');if(/^[=+\-@]/.test(text))text=`'${text}`;
+      return `"${text.replaceAll('"','""')}"`;
+    }
+    function downloadClients(){
+      const rows=filteredClients();
+      const header=['Nombre','Cédula','Teléfono','Dirección','Visitas','Última visita','Turno activo'];
+      const body=rows.map(client=>[client.nombre,client.cedula,client.telefono,client.direccion,client.visitas,client.ultima_visita?new Date(client.ultima_visita).toLocaleDateString('es-VE'):'',client.active_turno||'']);
+      const csv='\ufeff'+[header,...body].map(row=>row.map(csvCell).join(',')).join('\r\n');
+      const url=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));const link=document.createElement('a');
+      link.href=url;link.download=`clientes-registrados-${new Date().toISOString().slice(0,10)}.csv`;link.click();URL.revokeObjectURL(url);
     }
     function renderService(service){
       const specialist=service.especialista
@@ -88,7 +113,7 @@
     }
     function closeClient(){clientModal.hidden=true}
     document.addEventListener('keydown',event=>{if(event.key==='Escape')closeClient()});
-    clientSearch.oninput=render;async function load(){try{clients=await api('/queue/clients');render()}catch(error){clientList.textContent=error.message}}load();
+    clientSearch.oninput=()=>{page=1;render()};async function load(){try{clients=await api('/queue/clients');render()}catch(error){clientList.innerHTML=`<tr><td colspan="7">${escapeHtml(error.message)}</td></tr>`}}load();
   </script>
 </body>
 </html>

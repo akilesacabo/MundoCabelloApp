@@ -1,8 +1,8 @@
 <!doctype html>
 <html lang="es">
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>Cola pública · Mundo del Cabello</title><link rel="stylesheet" href="styles.css"></head>
-<body class="modern-page">
-  <header><a class="brand" href="checkin.html" style="color:inherit;text-decoration:none">Mundo del Cabello</a><nav class="site-nav" aria-label="Navegación principal"><a href="checkin.html">Nuevo check-in</a><a id="sessionLink" href="login.html">Acceso del equipo</a></nav></header>
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>Cola pública · Mundo del Cabello</title><link rel="stylesheet" href="styles.css?v=20260724"></head>
+<body class="modern-page queue-public-page">
+  <header class="queue-topbar"><a class="dashboard-logo" href="checkin.html" aria-label="Mundo del Cabello"><span class="logo-mark">M</span><span><b>Mundo</b><small>del Cabello</small></span></a><nav class="site-nav" aria-label="Navegación principal"><a href="checkin.html">Registrar check-in</a><a id="sessionLink" href="login.html">Acceso del equipo</a></nav></header>
   <main class="public-shell">
     <div class="page-heading"><div><span class="section-kicker">ESTADO EN VIVO</span><h1>Consulta la cola</h1><p class="muted">La atención ocurre en paralelo: puede haber varios números siendo atendidos al mismo tiempo.</p></div><span class="live-indicator"><span></span>Actualización automática</span></div>
     <div class="queue-explanation"><b>¿Cómo leer esta pantalla?</b> Busca tu número en “Atendiendo ahora”. Si aparece en “Después siguen”, todavía estás en espera.</div>
@@ -11,7 +11,7 @@
       <section class="card queue-next"><span class="section-kicker">ORDEN DE LLEGADA</span><h2>Después siguen</h2><div id="waiting" class="queue-number-list"><span class="muted">Cargando…</span></div><p class="muted">Esta pantalla se actualiza automáticamente cada 5 segundos.</p></section>
     </div>
   </main>
-  <script src="api.js"></script>
+  <script src="api.js?v=20260724"></script>
   <script>
     const role=sessionRole();if(role){sessionLink.href=sessionHome();sessionLink.textContent=role==='admin'?'Volver a asignaciones':'Volver a mis clientes'}
     let previous='';

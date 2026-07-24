@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width">
   <title>Nuevo check-in · Mundo del Cabello</title>
-  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="styles.css?v=20260724">
 </head>
 <body class="modern-page top-nav-page">
   <div class="app-shell">
@@ -21,7 +21,7 @@
           <p class="muted">Completa los tres pasos. El turno se crea solamente al final.</p>
         </div>
 
-        <ol class="wizard-progress" aria-label="Progreso del check-in">
+        <ol id="wizardProgress" class="wizard-progress" aria-label="Progreso del check-in">
           <li class="active" data-step-indicator="1"><b>1</b><span>Cliente</span></li>
           <li data-step-indicator="2"><b>2</b><span>Servicios</span></li>
           <li data-step-indicator="3"><b>3</b><span>Etiquetas y observación</span></li>
@@ -48,6 +48,7 @@
           <section class="wizard-step" data-step="2" hidden>
             <span class="section-kicker">PASO 2 DE 3</span>
             <h2>Servicios para hoy</h2>
+            <p id="activeTurnNotice" class="active-turn-notice" hidden></p>
             <fieldset class="service-picker">
               <legend class="sr-only">Servicios</legend>
               <input id="serviceSearch" type="search" placeholder="Buscar un servicio" aria-label="Buscar servicios">
@@ -76,13 +77,23 @@
             <div class="wizard-actions"><button type="button" class="secondary" onclick="goToStep(2)">← Volver</button><button id="submitButton" class="pink-button">Guardar y crear turno</button></div>
           </section>
         </form>
+        <section id="checkinSuccess" class="wizard-card card checkin-success" hidden aria-live="polite">
+          <span class="section-kicker">REGISTRO COMPLETADO</span>
+          <div class="success-mark">✓</div>
+          <h2 id="successTitle">Turno registrado</h2>
+          <p id="successMessage" class="muted"></p>
+          <div class="success-actions">
+            <button type="button" class="pink-button" onclick="resetCheckin()">＋ Registrar otra persona</button>
+            <a id="returnToAssignments" class="secondary button-link" href="admin.html">Volver a asignar clientes</a>
+          </div>
+        </section>
       </main>
     </div>
   </div>
-  <script src="api.js"></script>
+  <script src="api.js?v=20260724"></script>
   <script>
     const TAGS={INT:'Interno',F:'Cabello fuerte',CORTO:'Cabello corto',LAVADO:'Cabello limpio',AC:'Asesoría de color',TC:'Trabajo de color',XL:'Cabello largo',CM:'Cabello maltratado',DC:'Diseño de corte'};
-    let serviceCatalog=[],currentStep=1,lookupTimer,submitting=false;
+    let serviceCatalog=[],currentStep=1,lookupTimer,submitting=false,selectedProfile=null;
     const selectedIds=new Set();
     const normalize=value=>String(value).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
     const escapeHtml=value=>String(value).replace(/[&<>'"]/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[char]));
@@ -118,7 +129,7 @@
 
     function renderServices(){
       const term=normalize(serviceSearch.value);
-      const groups=serviceCatalog.map(group=>({...group,servicios:group.servicios.filter(service=>normalize(`${service.nombre} ${group.area_key}`).includes(term))})).filter(group=>group.servicios.length);
+      const groups=serviceCatalog.map(group=>({...group,servicios:group.servicios.filter(service=>normalize(service.nombre).includes(term))})).filter(group=>group.servicios.length);
       serviceGroups.innerHTML=groups.length?groups.map(group=>`<section class="service-group"><h3>${escapeHtml(group.area_key)}</h3>${group.servicios.map(service=>`<label class="service-option"><input type="checkbox" value="${service.id}" ${selectedIds.has(service.id)?'checked':''}><span><span>${escapeHtml(service.nombre)}</span><b>$${service.precio_usd}</b></span></label>`).join('')}</section>`).join(''):'<p class="muted">No se encontraron servicios.</p>';
       serviceGroups.querySelectorAll('input[type="checkbox"]').forEach(input=>input.onchange=()=>{const id=+input.value;input.checked?selectedIds.add(id):selectedIds.delete(id);updateSelection()});
       updateSelection();
@@ -133,8 +144,13 @@
     }
 
     function selectProfile(profile){
+      selectedProfile=profile;
       cedula.value=profile.cedula;nombre.value=profile.nombre;telefono.value=profile.telefono;direccion.value=profile.direccion;
-      clientMatches.hidden=true;clientMessage.textContent=`Cliente existente: ${profile.nombre}. Confirma sus datos antes de continuar.`;
+      clientMatches.hidden=true;
+      clientMessage.textContent=`Cliente existente: ${profile.nombre}. Datos recuperados correctamente.`;
+      activeTurnNotice.hidden=!profile.active_turno_id;
+      activeTurnNotice.textContent=profile.active_turno_id?`Este cliente ya tiene el turno activo #${profile.active_turno}. Los servicios nuevos se agregarán a esa visita.`:'';
+      goToStep(2);
     }
 
     function renderMatches(matches){
@@ -144,26 +160,35 @@
     }
 
     cedula.oninput=()=>{
-      clearTimeout(lookupTimer);clientMessage.textContent='';
+      clearTimeout(lookupTimer);clientMessage.textContent='';selectedProfile=null;activeTurnNotice.hidden=true;activeTurnNotice.textContent='';
       const query=cedula.value.trim();
       if(query.replace(/\D/g,'').length<4){clientMatches.hidden=true;return}
       lookupTimer=setTimeout(async()=>{try{renderMatches(await api(`/queue/client-search?q=${encodeURIComponent(query)}`))}catch(error){clientMatches.hidden=true;clientMessage.textContent=error.message}},250);
     };
     document.addEventListener('click',event=>{if(!event.target.closest('.autocomplete-field'))clientMatches.hidden=true});
     serviceSearch.oninput=renderServices;
+    serviceSearch.onkeydown=event=>{if(event.key==='Enter'){event.preventDefault();renderServices();serviceGroups.querySelector('input')?.focus()}};
     clearServices.onclick=()=>{selectedIds.clear();renderServices()};
+
+    function resetCheckin(){
+      form.reset();selectedIds.clear();selectedProfile=null;activeTurnNotice.hidden=true;activeTurnNotice.textContent='';message.textContent='';clientMessage.textContent='';renderServices();
+      checkinSuccess.hidden=true;form.hidden=false;wizardProgress.hidden=false;goToStep(1);cedula.focus();
+    }
 
     form.onsubmit=async event=>{
       event.preventDefault();
       if(submitting)return;
       if(currentStep!==3){goToStep(currentStep+1);return}
       const data=new FormData(form);
-      const payload={cedula:data.get('cedula'),nombre:data.get('nombre'),telefono:data.get('telefono'),direccion:data.get('direccion'),observacion:data.get('observacion'),etiquetas:data.getAll('etiquetas'),service_ids:[...selectedIds]};
+      const payload={cedula:data.get('cedula'),nombre:data.get('nombre'),telefono:data.get('telefono'),direccion:data.get('direccion'),observacion:data.get('observacion'),etiquetas:data.getAll('etiquetas'),service_ids:[...selectedIds],active_turno_id:selectedProfile?.active_turno_id||null};
       submitting=true;submitButton.disabled=true;submitButton.textContent='Creando turno…';message.textContent='';
       try{
         const client=await api('/queue/checkin',{method:'POST',body:JSON.stringify(payload)});
-        form.reset();selectedIds.clear();renderServices();goToStep(1);
-        clientMessage.innerHTML=`Turno registrado correctamente: <b>#${client.turno}</b>`;
+        const appended=Boolean(selectedProfile?.active_turno_id);
+        successTitle.textContent=appended?'Servicios agregados correctamente':'Turno registrado correctamente';
+        successMessage.textContent=appended?`Los servicios se agregaron al turno activo #${client.turno}.`:`El cliente recibió el turno #${client.turno}.`;
+        returnToAssignments.hidden=sessionRole()!=='admin';
+        form.hidden=true;wizardProgress.hidden=true;checkinSuccess.hidden=false;window.scrollTo({top:0,behavior:'smooth'});
       }catch(error){message.textContent=error.message}
       finally{submitting=false;submitButton.disabled=false;submitButton.textContent='Guardar y crear turno'}
     };

@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
   <meta charset="utf-8"><meta name="viewport" content="width=device-width">
-  <title>Panel operativo · Administración</title><link rel="stylesheet" href="styles.css">
+  <title>Panel operativo · Administración</title><link rel="stylesheet" href="styles.css?v=20260724">
 </head>
 <body class="admin-dashboard-body top-nav-page">
   <aside class="dashboard-sidebar">
@@ -21,38 +21,46 @@
         <article class="metric-card metric-busy"><div class="metric-icon">◷</div><div><span>En atención</span><b id="metricBusy">—</b><small>Trabajando ahora</small></div></article>
         <article class="metric-card metric-break"><div class="metric-icon">☕</div><div><span>En pausa</span><b id="metricBreak">—</b><small>Fuera temporalmente</small></div></article>
       </section>
+      <section class="dashboard-actions" aria-label="Acciones rápidas">
+        <a class="quick-action primary" href="checkin.html"><span>＋</span><div><b>Registrar nuevo check-in</b><small>Buscar o registrar una llegada</small></div></a>
+        <a class="quick-action" href="admin-clients.html"><span>♧</span><div><b>Clientes registrados</b><small>Consultar fichas e historial</small></div></a>
+      </section>
+      <div id="dashboardStatus" class="load-status" hidden role="alert"></div>
       <div class="dashboard-columns assignment-only">
         <section class="dashboard-section clients-section" aria-labelledby="clients-title"><div class="section-heading"><div><span class="section-kicker">FLUJO DE HOY</span><h2 id="clients-title">Clientes activos</h2></div><span id="clientCount" class="count-badge">0 clientes</span></div><div id="turnos" class="client-list"><div class="dashboard-skeleton"></div></div></section>
       </div>
     </main>
   </div>
   <div id="detailsModal" class="modal-backdrop" hidden><section class="edit-modal" role="dialog" aria-modal="true" aria-labelledby="detailsTitle"><div class="modal-heading"><div><span class="section-kicker">DATOS DE LA VISITA</span><h2 id="detailsTitle">Etiquetas y observación</h2></div><button class="close-button" type="button" onclick="closeDetails()" aria-label="Cerrar">×</button></div><form id="detailsForm"><input id="detailsClientId" type="hidden"><div id="detailsTags" class="tag-picker"></div><label>Observación<textarea id="detailsObservation" maxlength="1000" rows="4"></textarea></label><div class="modal-actions"><button type="button" class="secondary" onclick="closeDetails()">Cancelar</button><button type="submit" class="pink-button">Guardar cambios</button></div></form></section></div>
-  <script src="api.js"></script>
+  <script src="api.js?v=20260724"></script>
   <script>
     const statusLabels={disponible:'Disponible',ocupado:'Ocupado',break:'En pausa'};
     const situationLabels={presente:'Presente',ausente:'Ausente',estafa:'Estafa'};
     const tagLabels={INT:'Interno',F:'Cabello fuerte',CORTO:'Cabello corto',LAVADO:'Cabello limpio',AC:'Asesoría de color',TC:'Trabajo de color',XL:'Cabello largo',CM:'Cabello maltratado',DC:'Diseño de corte'};
     let currentQueue=[];
     const escapeHtml=value=>String(value).replace(/[&<>'"]/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[char]));
-    function highlightSpecialist(select){
-      const selected=select.value!=='';
-      select.classList.toggle('specialist-selected',selected);
-      const feedback=document.getElementById(`feedback-${select.id.replace('staff-','')}`);
-      feedback.textContent=selected?`Seleccionado: ${select.options[select.selectedIndex].text}. Pulsa Asignar para confirmar.`:'';
+    function highlightSpecialist(input){
+      const serviceId=input.id.replace('staff-','');
+      const option=[...document.querySelectorAll(`#staff-options-${serviceId} option`)].find(item=>item.value===input.value);
+      input.dataset.staffNumber=option?.dataset.number||'';
+      const selected=Boolean(input.dataset.staffNumber);
+      input.classList.toggle('specialist-selected',selected);
+      const feedback=document.getElementById(`feedback-${serviceId}`);
+      feedback.textContent=selected?`Seleccionado: ${input.value}. Pulsa Asignar para confirmar.`:(input.value?'Selecciona un nombre de la lista.':'');
     }
     async function mark(id,situacion){try{await api(`/queue/${id}/situacion`,{method:'PATCH',body:JSON.stringify({situacion})});await load()}catch(error){alert(error.message)}}
     async function assign(clientId,serviceId,area){
-      const select=document.getElementById(`staff-${serviceId}`);const feedback=document.getElementById(`feedback-${serviceId}`);
-      if(!select.value){feedback.textContent='Selecciona un especialista disponible.';return}
+      const input=document.getElementById(`staff-${serviceId}`);const feedback=document.getElementById(`feedback-${serviceId}`);
+      if(!input.dataset.staffNumber){feedback.textContent='Selecciona un especialista disponible de la lista.';return}
       feedback.textContent='Asignando…';
-      try{await api(`/queue/${clientId}/services/${serviceId}/assign`,{method:'POST',body:JSON.stringify({staff_numero:+select.value})});await load()}catch(error){feedback.textContent=error.message}
+      try{await api(`/queue/${clientId}/services/${serviceId}/assign`,{method:'POST',body:JSON.stringify({staff_numero:+input.dataset.staffNumber})});await load()}catch(error){feedback.textContent=error.message}
     }
     async function eligibleOptions(service){
       if(service.staff_numero||service.estado==='finalizado')return '';
       try{
         const staff=await api(`/staff/eligible?area=${encodeURIComponent(service.area_key)}`);
         if(!staff.length)return '<p class="assignment-note">No hay especialistas disponibles para esta área.</p>';
-        return `<div class="assign-control"><select id="staff-${service.id}" aria-label="Especialista para ${escapeHtml(service.nombre)}" onchange="highlightSpecialist(this)"><option value="">Seleccionar especialista</option>${staff.map(person=>`<option value="${person.numero}">#${person.numero} ${escapeHtml(person.alias)}</option>`).join('')}</select><button onclick="assign(${service.clientId},${service.id})">Asignar</button></div><p id="feedback-${service.id}" class="assignment-note" aria-live="polite"></p>`;
+        return `<div class="assign-control"><input id="staff-${service.id}" class="specialist-search" type="search" list="staff-options-${service.id}" placeholder="Buscar especialista" autocomplete="off" aria-label="Especialista para ${escapeHtml(service.nombre)}" oninput="highlightSpecialist(this)"><datalist id="staff-options-${service.id}">${staff.map(person=>`<option value="#${person.numero} ${escapeHtml(person.alias)}" data-number="${person.numero}"></option>`).join('')}</datalist><button onclick="assign(${service.clientId},${service.id})">Asignar</button></div><p id="feedback-${service.id}" class="assignment-note" aria-live="polite"></p>`;
       }catch(error){return `<p class="assignment-note">${escapeHtml(error.message)}</p>`}
     }
     async function renderClients(queue,staffByNumber){
@@ -79,7 +87,7 @@
     function closeDetails(){detailsModal.hidden=true}
     detailsModal.onclick=event=>{if(event.target===detailsModal)closeDetails()};
     detailsForm.onsubmit=async event=>{event.preventDefault();const etiquetas=[...detailsTags.querySelectorAll('input:checked')].map(input=>input.value);try{await api(`/queue/${detailsClientId.value}/details`,{method:'PATCH',body:JSON.stringify({observacion:detailsObservation.value,etiquetas})});closeDetails();await load()}catch(error){alert(error.message)}};
-    async function load(){try{const [queue,staff]=await Promise.all([api('/queue'),api('/staff')]);currentQueue=queue;renderStaff(staff);await renderClients(queue,new Map(staff.map(person=>[person.numero,person])))}catch(error){turnos.innerHTML=`<div class="card"><p class="selection-error">${escapeHtml(error.message)}</p></div>`}}
+    async function load(){dashboardStatus.hidden=true;try{const [queue,staff]=await Promise.all([api('/queue'),api('/staff')]);currentQueue=queue;renderStaff(staff);await renderClients(queue,new Map(staff.map(person=>[person.numero,person])))}catch(error){dashboardStatus.hidden=false;dashboardStatus.innerHTML=`<span>No fue posible actualizar: ${escapeHtml(error.message)}</span><button type="button" onclick="load()">Reintentar</button>`;if(!currentQueue.length)turnos.innerHTML='<div class="card empty-state"><h2>No se pudo cargar el flujo</h2><p class="muted">Revisa la conexión y pulsa Reintentar.</p></div>'}}
     load();
   </script>
 </body></html>
