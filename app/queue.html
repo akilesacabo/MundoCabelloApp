@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="es">
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>Cola pública · Mundo del Cabello</title><link rel="stylesheet" href="styles.css?v=20260724"></head>
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>Cola pública · Mundo del Cabello</title><link rel="stylesheet" href="styles.css?v=20260729"></head>
 <body class="modern-page queue-public-page">
   <header class="queue-topbar"><a class="dashboard-logo" href="checkin.html" aria-label="Mundo del Cabello"><span class="logo-mark">M</span><span><b>Mundo</b><small>del Cabello</small></span></a><nav class="site-nav" aria-label="Navegación principal"><a href="checkin.html">Registrar check-in</a><a id="sessionLink" href="login.html">Acceso del equipo</a></nav></header>
   <main class="public-shell">
@@ -8,10 +8,10 @@
     <div class="queue-explanation"><b>¿Cómo leer esta pantalla?</b> Busca tu número en “Atendiendo ahora”. Si aparece en “Después siguen”, todavía estás en espera.</div>
     <div class="queue-stage">
       <section class="card queue-now"><span class="section-kicker">CLIENTES EN ATENCIÓN</span><h2>Atendiendo ahora</h2><div id="current" class="queue-number-list"><span class="muted">Cargando…</span></div><p class="muted">Cada número puede estar con un especialista diferente.</p></section>
-      <section class="card queue-next"><span class="section-kicker">ORDEN DE LLEGADA</span><h2>Después siguen</h2><div id="waiting" class="queue-number-list"><span class="muted">Cargando…</span></div><p class="muted">Esta pantalla se actualiza automáticamente cada 5 segundos.</p></section>
+      <section class="card queue-next"><span class="section-kicker">ORDEN DE ATENCIÓN</span><h2>Después siguen</h2><div id="resting" class="queue-resting"></div><div id="waiting" class="queue-number-list"><span class="muted">Cargando…</span></div><p class="muted">La prioridad INT aparece primero; dentro de cada nivel se ordena por nombre. Esta pantalla se actualiza cada 5 segundos.</p></section>
     </div>
   </main>
-  <script src="api.js?v=20260724"></script>
+  <script src="api.js?v=20260729"></script>
   <script>
     const role=sessionRole();if(role){sessionLink.href=sessionHome();sessionLink.textContent=role==='admin'?'Volver a asignaciones':'Volver a mis clientes'}
     let previous='';
@@ -22,6 +22,7 @@
         current.innerHTML=queue.atendiendo.length?queue.atendiendo.map(number=>`<span class="queue-number-chip">#${number}</span>`).join(''):'<div class="empty-state"><b>No hay clientes en atención</b><p class="muted">El equipo está disponible.</p></div>';
         if(previous&&previous!==signature){current.classList.remove('queue-advance');void current.offsetWidth;current.classList.add('queue-advance')}
         previous=signature;
+        resting.innerHTML=queue.en_reposo.length?`<p><b>En reposo:</b> ${queue.en_reposo.map(number=>`#${number}`).join(', ')}</p>`:'';
         waiting.innerHTML=queue.en_espera.length?queue.en_espera.map((number,index)=>`<span class="tag">${index+1}. Turno #${number}</span>`).join(''):'<div class="empty-state"><b>Sin turnos pendientes</b><p class="muted">La sala está al día.</p></div>';
       }catch(error){waiting.textContent=error.message}
     }

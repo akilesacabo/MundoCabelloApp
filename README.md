@@ -10,7 +10,7 @@ registro de clientes y la gestión visual de la cola con asignación
 | Fase | Estado | Descripción |
 |---|---|---|
 | 0 — Mockups navegables | ✅ Listo | 4 pantallas extraídas de Stitch, servibles como spec visual |
-| 1 — Backend FastAPI | ✅ Local | API, roles, perfiles de clientes, cola y 29 tests |
+| 1 — Backend FastAPI | ✅ Local | API, roles, perfiles, cola operativa y 34 tests |
 
 **Próximas fases** (no en este commit):
 - 2 — Frontend React + Vite + Tailwind
@@ -64,16 +64,19 @@ uvicorn src.main:app --reload
 # docs: http://localhost:8000/docs
 ```
 
-## Áreas de servicio (4)
+## Áreas de servicio (5)
 
 | Área | Personal seed | Color |
 |---|---|---|
-| Peluquería | 20 | `#ffb4ab` |
-| Hidratación | 3 | `#a3defe` |
-| Manicure y Pedicure | 20 | `#f5c518` |
-| Cejas | 5 | `#c3e88d` |
+| Peluquería | Según nómina | `#ffb4ab` |
+| Hidratación | Aplicadoras | `#a3defe` |
+| Manicure y Pedicure | Manicuristas | `#f5c518` |
+| Cejas y depilación | Lashistas | `#c3e88d` |
+| Maquillaje | Maquilladoras | `#e8b7d4` |
 
-**Datos actuales:** 81 profesionales y 132 servicios en catálogo.
+**Datos actuales:** 90 profesionales activos: las 80 personas del listado validado
+más 10 especialistas complementarios que ya existían. Las lashistas atienden cejas y
+todas las depilaciones.
 
 ## Vistas API v2
 
@@ -97,9 +100,14 @@ existentes, agrega servicios al turno activo cuando corresponde y ofrece registr
 persona al finalizar. La base de clientes se presenta como tabla paginada y se puede
 descargar como CSV compatible con Excel.
 
+La cola prioriza `INT` y luego ordena alfabéticamente por cliente. El panel permite
+consultar por turno, nombre o cédula cuántas personas hay delante. Los servicios pueden
+pasar a **Reposo** sin bloquear al especialista y el estado **Almorzando** impide nuevas
+asignaciones. Cada visita conserva quién realizó el registro.
+
 ## Stack
 
 - **Backend:** FastAPI 0.136 + SQLAlchemy 2.0 async + Pydantic v2 + Alembic
 - **DB local:** SQLite (aiosqlite) — Postgres en producción
-- **Frontend (próxima fase):** React + Vite + TypeScript + Tailwind + TanStack Query
+- **Frontend:** HTML, CSS y JavaScript responsive consumiendo la API
 - **Despliegue (próxima fase):** Docker Compose

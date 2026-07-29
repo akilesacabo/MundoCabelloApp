@@ -94,3 +94,37 @@ curl -s -X PATCH http://localhost:8000/api/staff/<numero>/manual-status \
 
 Resultado esperado: `200`, con `manual_status` y `status` iguales a `ocupado` cuando no
 tiene servicios activos.
+
+Para bloquear asignaciones durante el almuerzo:
+
+```bash
+curl -s -X PATCH http://localhost:8000/api/staff/<numero>/manual-status \
+  -H "Authorization: Bearer $TOKEN" \
+  -H 'Content-Type: application/json' \
+  -d '{"manual_status":"almorzando"}'
+```
+
+## Reposo y reanudación
+
+```bash
+curl -s -X POST \
+  http://localhost:8000/api/queue/<cliente-id>/services/<servicio-id>/rest \
+  -H "Authorization: Bearer $TOKEN"
+
+curl -s -X POST \
+  http://localhost:8000/api/queue/<cliente-id>/services/<servicio-id>/resume \
+  -H "Authorization: Bearer $TOKEN"
+```
+
+Resultado esperado: el primer llamado deja el servicio en `reposo` y el especialista
+vuelve a ser elegible; el segundo devuelve el servicio a `en_atencion`.
+
+## Consultar cuántas personas faltan
+
+```bash
+curl -s 'http://localhost:8000/api/queue/position-search?q=20' \
+  -H "Authorization: Bearer $TOKEN"
+```
+
+La respuesta incluye `posicion`, `personas_delante`, `estado` y `prioridad_int`. La
+misma consulta acepta parte del nombre o de la cédula.

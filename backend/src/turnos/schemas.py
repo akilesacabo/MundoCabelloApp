@@ -64,6 +64,9 @@ class ClienteRead(BaseModel):
     etiquetas: list[EtiquetaCodigo]
     situacion: SituacionTurno
     activo: bool
+    registrado_por_role: str | None
+    registrado_por_subject: str | None
+    registrado_por_nombre: str | None
     created_at: datetime
     estado: TurnoEstado
     servicios: list[TurnoServicioRead]
@@ -124,6 +127,7 @@ class ClienteHistoryVisitRead(BaseModel):
     etiquetas: list[EtiquetaCodigo] = Field(default_factory=list)
     situacion: SituacionTurno
     activo: bool
+    registrado_por_nombre: str | None
     estado: TurnoEstado
     servicios: list[ClienteHistoryServiceRead] = Field(default_factory=list)
 
@@ -139,5 +143,16 @@ class TurnoDetailsUpdate(BaseModel):
 
 class PublicQueueRead(BaseModel):
     atendiendo: list[int]
+    en_reposo: list[int]
     en_espera: list[int]
     ultimo_cambio: datetime | None
+
+
+class QueuePositionRead(BaseModel):
+    id: int
+    turno: int
+    nombre: str
+    estado: TurnoEstado
+    prioridad_int: bool
+    posicion: int | None
+    personas_delante: int

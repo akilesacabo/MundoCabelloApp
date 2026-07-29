@@ -9,8 +9,10 @@ Base local: `http://localhost:8000/api`. Los endpoints protegidos reciben
 - **Turno/check-in:** visita concreta del cliente; conserva servicios, etiquetas,
   observación y situación.
 - **Situación:** `presente`, `ausente` o `estafa`.
-- **Estado del turno:** `en_espera`, `en_atencion` o `finalizado`; se deriva de sus servicios.
-- **Estado del especialista:** `disponible`, `ocupado` o `break` (En pausa).
+- **Estado del turno:** `en_espera`, `en_atencion`, `reposo` o `finalizado`; se deriva
+  de sus servicios.
+- **Estado del especialista:** `disponible`, `ocupado`, `break` (En pausa) o
+  `almorzando`.
 
 ## Autenticación
 
@@ -40,7 +42,9 @@ como máximo ocho coincidencias por cédula. Cada coincidencia incluye
 
 ### `POST /queue/checkin`
 
-Público. Crea la ficha del cliente o actualiza sus datos y registra una visita:
+Público. Crea la ficha del cliente o actualiza sus datos y registra una visita. Si
+recibe un token válido, también guarda el rol, identificador y nombre visible de quien
+realizó el registro:
 
 ```json
 {
@@ -73,7 +77,7 @@ no existe.
 Público. Devuelve:
 
 ```json
-{"atendiendo":[13,14],"en_espera":[15,16],"ultimo_cambio":"2026-07-24T10:00:00"}
+{"atendiendo":[13,14],"en_reposo":[18],"en_espera":[15,16],"ultimo_cambio":"2026-07-29T10:00:00"}
 ```
 
 Solo incluye turnos `presente`.
@@ -91,16 +95,23 @@ Todos requieren rol `admin`:
 - `PATCH /queue/{cliente_id}/details`: body `{observacion, etiquetas}`.
 - `PATCH /queue/{cliente_id}/situacion`: body `{situacion}` con `presente`,
   `ausente` o `estafa`.
+- `GET /queue/position-search?q=<texto>`: busca por turno exacto, nombre o cédula e
+  informa la posición y cuántas personas hay delante.
 - `POST /queue/{cliente_id}/services/{servicio_id}/assign`.
 - `POST /queue/{cliente_id}/services/assign-many`.
 - `POST /queue/{cliente_id}/services/{servicio_id}/change-specialist`.
-- `PATCH /staff/{numero}/manual-status`: `disponible`, `ocupado` o `break`.
+- `PATCH /staff/{numero}/manual-status`: `disponible`, `ocupado`, `break` o
+  `almorzando`.
 - `POST /staff` y `PATCH /staff/{numero}`.
 - `POST /services` y `PATCH /services/{id}`.
 
-Un especialista marcado manualmente como `ocupado` o `break` no acepta nuevas
-asignaciones. Si tiene servicios activos, su estado efectivo permanece `ocupado` aunque
-su estado manual se cambie a `disponible`.
+Un especialista marcado manualmente como `ocupado`, `break` o `almorzando` no acepta
+nuevas asignaciones. Un servicio `en_atencion` ocupa al especialista; un servicio en
+`reposo` permanece visible en su carga, pero lo libera para atender otra persona.
+
+La cola administrativa ordena primero los turnos con etiqueta `INT` y luego por nombre
+del cliente, con fecha e identificador como desempate estable. El número de turno se
+conserva como identificador, pero no define la prioridad.
 
 Ejemplo abreviado de la ficha:
 
@@ -118,6 +129,7 @@ Ejemplo abreviado de la ficha:
     "observacion": "Usar producto suave",
     "etiquetas": ["CM", "XL"],
     "situacion": "presente",
+    "registrado_por_nombre": "Administración",
     "activo": true,
     "estado": "en_atencion",
     "servicios": [{
@@ -137,7 +149,12 @@ Un perfil inexistente responde `404`; una petición sin rol administrador respon
 
 ## Especialista
 
-- `GET /queue/specialist/mine`: solamente sus servicios pendientes o en atención.
+- `GET /queue/specialist/mine`: solamente los servicios asignados a su identidad que
+  estén pendientes, en atención o en reposo.
+- `POST /queue/{cliente_id}/services/{servicio_id}/rest`: pasa un servicio en atención
+  a reposo y libera al especialista para otra asignación.
+- `POST /queue/{cliente_id}/services/{servicio_id}/resume`: reanuda un servicio en
+  reposo; admite trabajo simultáneo cuando la operación lo requiere.
 - `POST /queue/{cliente_id}/services/{servicio_id}/finish`: un especialista solo puede
   finalizar servicios asignados a su identidad; el administrador puede finalizar cualquiera.
 

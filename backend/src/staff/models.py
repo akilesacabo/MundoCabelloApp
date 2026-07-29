@@ -18,7 +18,7 @@ staff_area = Table(
 
 
 class Staff(Base):
-    """Especialista. `numero` es la identidad del negocio (1..81)."""
+    """Especialista. `numero` es la identidad estable dentro del negocio."""
 
     __tablename__ = "staff"
 

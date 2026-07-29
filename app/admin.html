@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
   <meta charset="utf-8"><meta name="viewport" content="width=device-width">
-  <title>Panel operativo · Administración</title><link rel="stylesheet" href="styles.css?v=20260724">
+  <title>Panel operativo · Administración</title><link rel="stylesheet" href="styles.css?v=20260729">
 </head>
 <body class="admin-dashboard-body top-nav-page">
   <aside class="dashboard-sidebar">
@@ -25,6 +25,7 @@
         <a class="quick-action primary" href="checkin.html"><span>＋</span><div><b>Registrar nuevo check-in</b><small>Buscar o registrar una llegada</small></div></a>
         <a class="quick-action" href="admin-clients.html"><span>♧</span><div><b>Clientes registrados</b><small>Consultar fichas e historial</small></div></a>
       </section>
+      <section class="card queue-position-tool" aria-labelledby="position-title"><div><span class="section-kicker">CONSULTA RÁPIDA</span><h2 id="position-title">¿Cuántas personas faltan?</h2><p class="muted">Busca por turno, nombre o cédula.</p></div><div class="position-search-row"><input id="positionSearch" type="search" placeholder="Ej. 20 o nombre del cliente"><button type="button" onclick="searchPosition()">Consultar</button></div><div id="positionResults" aria-live="polite"></div></section>
       <div id="dashboardStatus" class="load-status" hidden role="alert"></div>
       <div class="dashboard-columns assignment-only">
         <section class="dashboard-section clients-section" aria-labelledby="clients-title"><div class="section-heading"><div><span class="section-kicker">FLUJO DE HOY</span><h2 id="clients-title">Clientes activos</h2></div><span id="clientCount" class="count-badge">0 clientes</span></div><div id="turnos" class="client-list"><div class="dashboard-skeleton"></div></div></section>
@@ -32,7 +33,7 @@
     </main>
   </div>
   <div id="detailsModal" class="modal-backdrop" hidden><section class="edit-modal" role="dialog" aria-modal="true" aria-labelledby="detailsTitle"><div class="modal-heading"><div><span class="section-kicker">DATOS DE LA VISITA</span><h2 id="detailsTitle">Etiquetas y observación</h2></div><button class="close-button" type="button" onclick="closeDetails()" aria-label="Cerrar">×</button></div><form id="detailsForm"><input id="detailsClientId" type="hidden"><div id="detailsTags" class="tag-picker"></div><label>Observación<textarea id="detailsObservation" maxlength="1000" rows="4"></textarea></label><div class="modal-actions"><button type="button" class="secondary" onclick="closeDetails()">Cancelar</button><button type="submit" class="pink-button">Guardar cambios</button></div></form></section></div>
-  <script src="api.js?v=20260724"></script>
+  <script src="api.js?v=20260729"></script>
   <script>
     const statusLabels={disponible:'Disponible',ocupado:'Ocupado',break:'En pausa'};
     const situationLabels={presente:'Presente',ausente:'Ausente',estafa:'Estafa'};
@@ -60,7 +61,7 @@
       try{
         const staff=await api(`/staff/eligible?area=${encodeURIComponent(service.area_key)}`);
         if(!staff.length)return '<p class="assignment-note">No hay especialistas disponibles para esta área.</p>';
-        return `<div class="assign-control"><input id="staff-${service.id}" class="specialist-search" type="search" list="staff-options-${service.id}" placeholder="Buscar especialista" autocomplete="off" aria-label="Especialista para ${escapeHtml(service.nombre)}" oninput="highlightSpecialist(this)"><datalist id="staff-options-${service.id}">${staff.map(person=>`<option value="#${person.numero} ${escapeHtml(person.alias)}" data-number="${person.numero}"></option>`).join('')}</datalist><button onclick="assign(${service.clientId},${service.id})">Asignar</button></div><p id="feedback-${service.id}" class="assignment-note" aria-live="polite"></p>`;
+        return `<div class="assign-control"><input id="staff-${service.id}" class="specialist-search" type="search" list="staff-options-${service.id}" placeholder="Buscar especialista" autocomplete="off" aria-label="Especialista para ${escapeHtml(service.nombre)}" oninput="highlightSpecialist(this)"><datalist id="staff-options-${service.id}">${staff.map(person=>`<option value="#${person.numero} ${escapeHtml(person.alias)}${person.en_prueba?' · EN PRUEBA':''}" data-number="${person.numero}"></option>`).join('')}</datalist><button onclick="assign(${service.clientId},${service.id})">Asignar</button></div><p id="feedback-${service.id}" class="assignment-note" aria-live="polite"></p>`;
       }catch(error){return `<p class="assignment-note">${escapeHtml(error.message)}</p>`}
     }
     async function renderClients(queue,staffByNumber){
@@ -75,7 +76,7 @@
         }));
         const completed=client.servicios.filter(service=>service.staff_numero||service.estado==='finalizado').length;const percent=client.servicios.length?Math.round(completed/client.servicios.length*100):0;const initials=client.nombre.split(' ').slice(0,2).map(part=>part[0]).join('').toUpperCase();
         const tags=client.etiquetas.map(code=>`<span class="tag">${escapeHtml(code)}</span>`).join('');
-        return `<article class="client-card" data-search="${escapeHtml(`${client.nombre} ${client.cedula}`.toLowerCase())}"><div class="client-card-header"><div class="client-identity"><div class="client-avatar">${escapeHtml(initials)}</div><div><div class="client-turn">TURNO #${client.turno}</div><h3>${escapeHtml(client.nombre)}</h3><div class="tag-actions">${tags||'<span class="muted">Sin etiquetas</span>'}</div></div></div><button class="situation-menu status-${client.situacion}" onclick="this.closest('.client-card').querySelector('.situation-actions').classList.toggle('visible')">${escapeHtml(situationLabels[client.situacion]||client.situacion)}⌄</button></div><div class="progress-block"><div><span>Progreso de asignación</span><b>${completed}/${client.servicios.length}</b></div><div class="progress-track"><span style="width:${percent}%"></span></div></div><div class="service-assignment-list">${services.join('')}</div><div class="situation-actions"><span>Estado y datos de la visita</span><button class="secondary" onclick="mark(${client.id},'presente')">Presente</button><button onclick="mark(${client.id},'ausente')">Ausente</button><button class="danger" onclick="mark(${client.id},'estafa')">Estafa</button><button class="secondary" onclick="openDetails(${client.id})">Etiquetas y observación</button></div></article>`;
+        return `<article class="client-card ${client.etiquetas.includes('INT')?'priority-client':''}" data-search="${escapeHtml(`${client.nombre} ${client.cedula}`.toLowerCase())}"><div class="client-card-header"><div class="client-identity"><div class="client-avatar">${escapeHtml(initials)}</div><div><div class="client-turn">${client.etiquetas.includes('INT')?'PRIORIDAD INT · ':''}TURNO #${client.turno}</div><h3>${escapeHtml(client.nombre)}</h3><div class="tag-actions">${tags||'<span class="muted">Sin etiquetas</span>'}</div></div></div><button class="situation-menu status-${client.situacion}" onclick="this.closest('.client-card').querySelector('.situation-actions').classList.toggle('visible')">${escapeHtml(situationLabels[client.situacion]||client.situacion)}⌄</button></div><div class="progress-block"><div><span>Progreso de asignación</span><b>${completed}/${client.servicios.length}</b></div><div class="progress-track"><span style="width:${percent}%"></span></div></div><div class="service-assignment-list">${services.join('')}</div><div class="situation-actions"><span>Estado y datos de la visita</span><button class="secondary" onclick="mark(${client.id},'presente')">Presente</button><button onclick="mark(${client.id},'ausente')">Ausente</button><button class="danger" onclick="mark(${client.id},'estafa')">Estafa</button><button class="secondary" onclick="openDetails(${client.id})">Etiquetas y observación</button></div></article>`;
       }));turnos.innerHTML=cards.join('');
     }
     function renderStaff(staff){
@@ -87,6 +88,8 @@
     function closeDetails(){detailsModal.hidden=true}
     detailsModal.onclick=event=>{if(event.target===detailsModal)closeDetails()};
     detailsForm.onsubmit=async event=>{event.preventDefault();const etiquetas=[...detailsTags.querySelectorAll('input:checked')].map(input=>input.value);try{await api(`/queue/${detailsClientId.value}/details`,{method:'PATCH',body:JSON.stringify({observacion:detailsObservation.value,etiquetas})});closeDetails();await load()}catch(error){alert(error.message)}};
+    async function searchPosition(){const query=positionSearch.value.trim();if(!query){positionResults.innerHTML='<p class="selection-error">Escribe un turno, nombre o cédula.</p>';return}positionResults.innerHTML='<p class="muted">Consultando…</p>';try{const rows=await api(`/queue/position-search?q=${encodeURIComponent(query)}`);positionResults.innerHTML=rows.length?rows.map(row=>`<div class="position-result"><b>${escapeHtml(row.nombre)} · Turno #${row.turno}</b><span>${row.estado==='en_espera'?`${row.personas_delante} persona${row.personas_delante===1?'':'s'} por delante · posición ${row.posicion}`:row.estado.replace('_',' ')}${row.prioridad_int?' · Prioridad INT':''}</span></div>`).join(''):'<p class="muted">No encontramos coincidencias.</p>'}catch(error){positionResults.innerHTML=`<p class="selection-error">${escapeHtml(error.message)}</p>`}}
+    positionSearch.addEventListener('keydown',event=>{if(event.key==='Enter'){event.preventDefault();searchPosition()}});
     async function load(){dashboardStatus.hidden=true;try{const [queue,staff]=await Promise.all([api('/queue'),api('/staff')]);currentQueue=queue;renderStaff(staff);await renderClients(queue,new Map(staff.map(person=>[person.numero,person])))}catch(error){dashboardStatus.hidden=false;dashboardStatus.innerHTML=`<span>No fue posible actualizar: ${escapeHtml(error.message)}</span><button type="button" onclick="load()">Reintentar</button>`;if(!currentQueue.length)turnos.innerHTML='<div class="card empty-state"><h2>No se pudo cargar el flujo</h2><p class="muted">Revisa la conexión y pulsa Reintentar.</p></div>'}}
     load();
   </script>

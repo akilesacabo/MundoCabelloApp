@@ -421,3 +421,29 @@ Objetivo: **backend real que refleje la v2** y camino a deploy.
 - ✅ Tablet: 1024×768 y 768×1024 sin desbordamiento de página; menú sin scroll lateral.
   La vista del especialista mostró una tarjeta y botones Finalizar de 48 px.
 - Estado: implementado y probado en local. **Pendiente desplegar en producción.**
+
+### Reposo, prioridad y nómina validada (2026-07-29)
+
+- ✅ Nuevo estado de servicio **Reposo**: mantiene visible a la clienta en la carga,
+  libera al especialista para otra atención y permite reanudar el servicio.
+- ✅ Nuevo estado de especialista **Almorzando**; impide nuevas asignaciones.
+- ✅ La etiqueta `INT` sube automáticamente el turno. Después se ordena por nombre del
+  cliente, con fecha e ID como desempate; el ticket queda solo como identificador.
+- ✅ Consulta administrativa por turno, nombre o cédula para informar posición y
+  cantidad real de personas por delante.
+- ✅ El check-in autenticado registra el rol, identificador y nombre del usuario que
+  creó la visita. El historial muestra ese dato.
+- ✅ Los especialistas **En prueba** se identifican con un color y distintivo especial.
+- ✅ Nómina reconciliada con `LISTADO PERSONAL PARA SISTEMA AUTOMATIZADO.xlsx`: 80/80
+  coincidencias exactas más 10 especialistas complementarios existentes, para 90
+  activos. No se eliminó ni desactivó a nadie.
+- ✅ Mapeo acordado: estilistas → Peluquería, manicuristas → Manicure, aplicadoras →
+  Hidratación, maquillaje → Maquillaje y **lashistas → Cejas y depilación**. En este
+  salón las lashistas atienden todas las depilaciones.
+- ✅ Se añadió el área Maquillaje y se corrigieron registros incompletos sin cambiar
+  los números globales ya existentes.
+- ✅ Migración real aplicada a `peluq.db`; integridad `ok`. Respaldo previo:
+  `/private/tmp/peluq-before-20260729.db`.
+- ✅ Verificación de migración desde base vacía, pruebas automáticas, Ruff, sintaxis
+  JavaScript y revisión responsive en tablet.
+- Estado: implementado y probado en local. **Pendiente desplegar en producción.**

@@ -1,9 +1,11 @@
 """Flujo v2: check-in → asignación por servicio → cambio con PIN → finalizar → historial."""
 from __future__ import annotations
 
+import json
+
 import pytest
 
-from src.seed import _unique_staff_rows
+from src.seed import DATA_PATH, _unique_staff_rows
 
 pytestmark = pytest.mark.asyncio
 
@@ -17,6 +19,20 @@ async def test_seed_preserves_duplicate_staff_with_explicit_provisional_number()
     )
     assert [row["numero"] for row in rows] == [20, 21]
     assert "duplicado 20" in warnings[0]
+
+
+async def test_master_roster_contains_excel_and_supplemental_staff():
+    data = json.loads(DATA_PATH.read_text())
+    assert len(data["staff"]) == 90
+    assert len({row["numero"] for row in data["staff"]}) == 90
+    by_alias = {row["alias"].casefold(): row for row in data["staff"]}
+    assert by_alias["marilyn"]["areas"] == ["cejas"]
+    assert by_alias["aura"]["areas"] == ["maquillaje"]
+    assert by_alias["day"]["areas"] == ["hidratacion"]
+    assert "kendry" in by_alias  # incorporación existente conservada
+    assert next(area for area in data["areas"] if area["key"] == "cejas")[
+        "name"
+    ] == "Cejas y depilación"
 
 
 async def test_health(api):
@@ -501,7 +517,140 @@ async def test_specialist_only_sees_and_finishes_own_work(api):
     headers = {"Authorization": f"Bearer {login.json()['access_token']}"}
     mine = await ac.get("/api/queue/specialist/mine", headers=headers)
     assert [row["id"] for row in mine.json()] == [cli["id"]]
+    assert [service["id"] for service in mine.json()[0]["servicios"]] == [corte["id"]]
     finished = await ac.post(
         f"/api/queue/{cli['id']}/services/{corte['id']}/finish", headers=headers
     )
     assert finished.status_code == 200
+
+
+async def test_reposo_releases_specialist_and_allows_parallel_attention(api):
+    ac = api["ac"]
+    first = await _checkin(ac, api)
+    first_service = next(
+        service for service in first["servicios"] if service["area_key"] == "peluqueria"
+    )
+    assigned = await ac.post(
+        f"/api/queue/{first['id']}/services/{first_service['id']}/assign",
+        json={"staff_numero": 1},
+        headers=api["admin_headers"],
+    )
+    assert assigned.status_code == 200
+
+    resting = await ac.post(
+        f"/api/queue/{first['id']}/services/{first_service['id']}/rest",
+        headers=api["admin_headers"],
+    )
+    assert resting.status_code == 200
+    assert resting.json()["estado"] == "reposo"
+    staff = await ac.get("/api/staff/1")
+    assert staff.json()["status"] == "disponible"
+    assert staff.json()["activos"][0]["estado"] == "reposo"
+
+    second = await ac.post(
+        "/api/queue/checkin",
+        json={
+            "cedula": "V-24681357",
+            "nombre": "Cliente Dos",
+            "telefono": "04141234567",
+            "direccion": "Calle 2",
+            "service_ids": [api["corte_id"]],
+        },
+    )
+    second_body = second.json()
+    second_service = second_body["servicios"][0]
+    assigned_second = await ac.post(
+        f"/api/queue/{second_body['id']}/services/{second_service['id']}/assign",
+        json={"staff_numero": 1},
+        headers=api["admin_headers"],
+    )
+    assert assigned_second.status_code == 200
+
+    resumed = await ac.post(
+        f"/api/queue/{first['id']}/services/{first_service['id']}/resume",
+        headers=api["admin_headers"],
+    )
+    assert resumed.status_code == 200
+    staff = await ac.get("/api/staff/1")
+    assert staff.json()["status"] == "ocupado"
+    assert len(staff.json()["activos"]) == 2
+
+
+async def test_almorzando_is_not_eligible_or_assignable(api):
+    ac = api["ac"]
+    changed = await ac.patch(
+        "/api/staff/1/manual-status",
+        json={"manual_status": "almorzando"},
+        headers=api["admin_headers"],
+    )
+    assert changed.status_code == 200
+    assert changed.json()["status"] == "almorzando"
+    eligible = await ac.get("/api/staff/eligible", params={"area": "peluqueria"})
+    assert 1 not in [row["numero"] for row in eligible.json()]
+
+    client = await _checkin(ac, api)
+    service = next(
+        item for item in client["servicios"] if item["area_key"] == "peluqueria"
+    )
+    rejected = await ac.post(
+        f"/api/queue/{client['id']}/services/{service['id']}/assign",
+        json={"staff_numero": 1},
+        headers=api["admin_headers"],
+    )
+    assert rejected.status_code == 400
+
+
+async def test_int_priority_name_order_position_and_registrar(api):
+    ac = api["ac"]
+
+    async def create(cedula: str, nombre: str, tags: list[str]):
+        response = await ac.post(
+            "/api/queue/checkin",
+            json={
+                "cedula": cedula,
+                "nombre": nombre,
+                "telefono": "04141234567",
+                "direccion": "Calle",
+                "etiquetas": tags,
+                "service_ids": [api["corte_id"]],
+            },
+            headers=api["admin_headers"],
+        )
+        assert response.status_code == 201, response.text
+        return response.json()
+
+    zeta = await create("V-11111111", "Zeta Pérez", [])
+    ana = await create("V-22222222", "Ana Pérez", [])
+    beta = await create("V-33333333", "Beta Pérez", ["INT"])
+
+    queue = await ac.get("/api/queue", headers=api["admin_headers"])
+    assert [row["nombre"] for row in queue.json()] == [
+        "Beta Pérez",
+        "Ana Pérez",
+        "Zeta Pérez",
+    ]
+    assert beta["registrado_por_nombre"] == "Administración"
+    assert zeta["registrado_por_role"] == "admin"
+
+    position = await ac.get(
+        "/api/queue/position-search",
+        params={"q": str(zeta["turno"])},
+        headers=api["admin_headers"],
+    )
+    assert position.status_code == 200
+    assert position.json()[0]["posicion"] == 3
+    assert position.json()[0]["personas_delante"] == 2
+    assert position.json()[0]["prioridad_int"] is False
+
+    updated = await ac.patch(
+        f"/api/queue/{ana['id']}/details",
+        json={"etiquetas": ["INT"], "observacion": ""},
+        headers=api["admin_headers"],
+    )
+    assert updated.status_code == 200
+    queue = await ac.get("/api/queue", headers=api["admin_headers"])
+    assert [row["nombre"] for row in queue.json()] == [
+        "Ana Pérez",
+        "Beta Pérez",
+        "Zeta Pérez",
+    ]

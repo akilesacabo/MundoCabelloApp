@@ -7,6 +7,7 @@ class ManualStatus(StrEnum):
     DISPONIBLE = "disponible"
     OCUPADO = "ocupado"
     BREAK = "break"
+    ALMORZANDO = "almorzando"
 
 
 class EffectiveStatus(StrEnum):
@@ -15,3 +16,4 @@ class EffectiveStatus(StrEnum):
     DISPONIBLE = "disponible"
     OCUPADO = "ocupado"
     BREAK = "break"
+    ALMORZANDO = "almorzando"

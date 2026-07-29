@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="es">
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>Clientes · Mundo del Cabello</title><link rel="stylesheet" href="styles.css?v=20260724"></head>
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>Clientes · Mundo del Cabello</title><link rel="stylesheet" href="styles.css?v=20260729"></head>
 <body class="modern-page top-nav-page">
   <div class="app-shell">
     <aside class="app-sidebar">
@@ -31,13 +31,13 @@
       <div id="clientDetail" aria-live="polite"></div>
     </section>
   </div>
-  <script src="api.js?v=20260724"></script>
+  <script src="api.js?v=20260729"></script>
   <script>
     let clients=[],page=1;
     const PAGE_SIZE=25;
     const normalize=value=>String(value).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
     const escapeHtml=value=>String(value).replace(/[&<>'"]/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[char]));
-    const stateLabels={en_espera:'En espera',en_atencion:'En atención',finalizado:'Finalizado',pendiente:'Pendiente'};
+    const stateLabels={en_espera:'En espera',en_atencion:'En atención',reposo:'En reposo',finalizado:'Finalizado',pendiente:'Pendiente'};
     const situationLabels={presente:'Presente',ausente:'Ausente',estafa:'Estafa'};
     const formatDate=value=>new Intl.DateTimeFormat('es-VE',{dateStyle:'medium',timeStyle:'short'}).format(new Date(value));
     function filteredClients(){
@@ -88,6 +88,7 @@
       return `<article class="history-visit">
         <header><div><span class="client-turn">TURNO #${visit.turno}</span><h3>${formatDate(visit.created_at)}</h3></div><div class="visit-statuses"><span class="status-pill">${escapeHtml(stateLabels[visit.estado]||visit.estado)}</span><span class="status-pill status-${visit.situacion}">${escapeHtml(situationLabels[visit.situacion]||visit.situacion)}</span></div></header>
         <div class="tag-actions">${tags}</div>
+        <p class="history-registrar"><b>Registrado por:</b> ${escapeHtml(visit.registrado_por_nombre||'Usuario no registrado')}</p>
         ${visit.observacion?`<p class="history-observation"><b>Observación:</b> ${escapeHtml(visit.observacion)}</p>`:'<p class="history-observation muted">Sin observaciones</p>'}
         <ul class="history-services">${visit.servicios.map(renderService).join('')}</ul>
       </article>`;

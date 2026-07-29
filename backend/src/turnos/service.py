@@ -7,12 +7,13 @@ from sqlalchemy import func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
+from src.auth.schemas import AuthUser
 from src.config import settings
 from src.exceptions import BadRequest, Conflict, NotFound, PermissionDenied
 from src.historial.models import Historial
 from src.services import service as services_service
 from src.staff import service as staff_service
-from src.staff.constants import ManualStatus
+from src.staff.constants import EffectiveStatus, ManualStatus
 from src.staff.models import Staff
 from src.turnos.constants import ServicioEstado, SituacionTurno, TurnoEstado
 from src.turnos.models import (
@@ -43,8 +44,10 @@ from src.turnos.schemas import (
 def _turno_estado(c: Cliente) -> TurnoEstado:
     if c.servicios and all(sv.estado == ServicioEstado.FINALIZADO for sv in c.servicios):
         return TurnoEstado.FINALIZADO
-    if any(sv.estado != ServicioEstado.PENDIENTE for sv in c.servicios):
+    if any(sv.estado == ServicioEstado.EN_ATENCION for sv in c.servicios):
         return TurnoEstado.EN_ATENCION
+    if any(sv.estado == ServicioEstado.REPOSO for sv in c.servicios):
+        return TurnoEstado.REPOSO
     return TurnoEstado.EN_ESPERA
 
 
@@ -60,6 +63,9 @@ def _to_read(c: Cliente) -> ClienteRead:
         etiquetas=sorted(tag.codigo for tag in c.etiquetas),
         situacion=c.situacion,
         activo=c.activo,
+        registrado_por_role=c.registrado_por_role,
+        registrado_por_subject=c.registrado_por_subject,
+        registrado_por_nombre=c.registrado_por_nombre,
         created_at=c.created_at,
         estado=_turno_estado(c),
         servicios=[TurnoServicioRead.model_validate(sv) for sv in c.servicios],
@@ -168,7 +174,9 @@ async def _upsert_profile(
     return profile
 
 
-async def check_in(db: AsyncSession, payload: CheckInRequest) -> ClienteRead:
+async def check_in(
+    db: AsyncSession, payload: CheckInRequest, registered_by: AuthUser | None = None
+) -> ClienteRead:
     cedula = normalize_cedula(payload.cedula)
     active = await _active_for_cedula(db, cedula)
     catalog = await services_service.get_many_or_404(db, payload.service_ids)
@@ -209,6 +217,11 @@ async def check_in(db: AsyncSession, payload: CheckInRequest) -> ClienteRead:
         observacion=payload.observacion.strip(),
         situacion=SituacionTurno.PRESENTE,
         activo=True,
+        registrado_por_role=registered_by.role if registered_by else None,
+        registrado_por_subject=registered_by.subject if registered_by else None,
+        registrado_por_nombre=(
+            registered_by.display_name if registered_by else "Autoservicio"
+        ),
         etiquetas=[ClienteEtiqueta(codigo=tag.value) for tag in payload.etiquetas],
         servicios=[
             TurnoServicio(
@@ -236,6 +249,14 @@ async def list_clientes(db: AsyncSession, estado: str | None = None) -> list[Cli
     )
     result = await db.execute(stmt)
     all_c = [_to_read(c) for c in result.scalars().all()]
+    all_c.sort(
+        key=lambda client: (
+            "INT" not in client.etiquetas,
+            client.nombre.casefold(),
+            client.created_at,
+            client.id,
+        )
+    )
     if estado is not None:
         all_c = [c for c in all_c if c.estado == estado]
     return all_c
@@ -363,6 +384,7 @@ async def get_profile_detail(
                 etiquetas=sorted(tag.codigo for tag in visit.etiquetas),
                 situacion=visit.situacion,
                 activo=visit.activo,
+                registrado_por_nombre=visit.registrado_por_nombre,
                 estado=_turno_estado(visit),
                 servicios=[
                     ClienteHistoryServiceRead(
@@ -414,28 +436,68 @@ async def public_queue(db: AsyncSession) -> PublicQueueRead:
     clientes = await list_clientes(db)
     visibles = [c for c in clientes if c.situacion == SituacionTurno.PRESENTE]
     atendiendo = [c.turno for c in visibles if c.estado == TurnoEstado.EN_ATENCION]
+    en_reposo = [c.turno for c in visibles if c.estado == TurnoEstado.REPOSO]
     en_espera = [c.turno for c in visibles if c.estado == TurnoEstado.EN_ESPERA]
     ultimo = max((c.created_at for c in visibles), default=None)
     return PublicQueueRead(
-        atendiendo=atendiendo, en_espera=en_espera, ultimo_cambio=ultimo
+        atendiendo=atendiendo,
+        en_reposo=en_reposo,
+        en_espera=en_espera,
+        ultimo_cambio=ultimo,
     )
+
+
+async def queue_positions(db: AsyncSession, query: str) -> list[dict]:
+    """Busca clientes activos y calcula su posición sobre la espera efectiva."""
+    clientes = [
+        client
+        for client in await list_clientes(db)
+        if client.activo and client.situacion == SituacionTurno.PRESENTE
+    ]
+    waiting = [client for client in clientes if client.estado == TurnoEstado.EN_ESPERA]
+    positions = {client.id: index + 1 for index, client in enumerate(waiting)}
+    term = query.strip().casefold()
+    digits = "".join(char for char in term if char.isdigit())
+    matches = [
+        client
+        for client in clientes
+        if term in client.nombre.casefold()
+        or term in client.cedula.casefold()
+        or (digits and str(client.turno) == digits)
+    ][:10]
+    return [
+        {
+            "id": client.id,
+            "turno": client.turno,
+            "nombre": client.nombre,
+            "estado": client.estado,
+            "prioridad_int": "INT" in client.etiquetas,
+            "posicion": positions.get(client.id),
+            "personas_delante": max(0, positions.get(client.id, 1) - 1),
+        }
+        for client in matches
+    ]
 
 
 async def assigned_to_staff(db: AsyncSession, staff_numero: int) -> list[ClienteRead]:
     clientes = await list_clientes(db)
-    return [
-        c
-        for c in clientes
-        if any(
-            sv.staff_numero == staff_numero and sv.estado != ServicioEstado.FINALIZADO
-            for sv in c.servicios
-        )
-    ]
+    assigned: list[ClienteRead] = []
+    for client in clientes:
+        own_services = [
+            service
+            for service in client.servicios
+            if service.staff_numero == staff_numero
+            and service.estado != ServicioEstado.FINALIZADO
+        ]
+        if own_services:
+            assigned.append(client.model_copy(update={"servicios": own_services}))
+    return assigned
 
 
 async def _validate_staff_for_area(db: AsyncSession, staff_numero: int, area_key: str) -> Staff:
     st = await staff_service.get_or_404(db, staff_numero)
-    if st.manual_status != ManualStatus.DISPONIBLE:
+    effective = await staff_service.get_read_or_404(db, staff_numero)
+    if effective.status != EffectiveStatus.DISPONIBLE:
         raise BadRequest(
             f"el especialista {st.alias} no está disponible para nuevas asignaciones"
         )
@@ -469,7 +531,8 @@ async def assign_many(
         raise NotFound(f"servicios no encontrados en el turno: {sorted(missing)}")
 
     st = await staff_service.get_or_404(db, payload.staff_numero)
-    if st.manual_status != ManualStatus.DISPONIBLE:
+    effective = await staff_service.get_read_or_404(db, payload.staff_numero)
+    if effective.status != EffectiveStatus.DISPONIBLE:
         raise BadRequest(
             f"el especialista {st.alias} no está disponible para nuevas asignaciones"
         )
@@ -516,6 +579,35 @@ async def finish_service(
     )
     if all(item.estado == ServicioEstado.FINALIZADO for item in c.servicios):
         c.activo = False
+    await db.commit()
+    return _to_read(await _load_cliente(db, cliente_id))
+
+
+async def rest_service(
+    db: AsyncSession, cliente_id: int, servicio_id: int
+) -> ClienteRead:
+    _, service = await _get_servicio(db, cliente_id, servicio_id)
+    if service.estado != ServicioEstado.EN_ATENCION:
+        raise BadRequest("solo un servicio EN_ATENCION puede pasar a reposo")
+    service.estado = ServicioEstado.REPOSO
+    await db.commit()
+    return _to_read(await _load_cliente(db, cliente_id))
+
+
+async def resume_service(
+    db: AsyncSession, cliente_id: int, servicio_id: int
+) -> ClienteRead:
+    _, service = await _get_servicio(db, cliente_id, servicio_id)
+    if service.estado != ServicioEstado.REPOSO:
+        raise BadRequest("solo un servicio EN_REPOSO puede reanudarse")
+    if service.staff_numero is None:
+        raise BadRequest("el servicio no tiene especialista asignado")
+    staff = await staff_service.get_or_404(db, service.staff_numero)
+    if staff.manual_status != ManualStatus.DISPONIBLE:
+        raise BadRequest(
+            f"el especialista {staff.alias} no está disponible para reanudar"
+        )
+    service.estado = ServicioEstado.EN_ATENCION
     await db.commit()
     return _to_read(await _load_cliente(db, cliente_id))
 

@@ -2,7 +2,7 @@ from typing import Annotated
 
 from fastapi import APIRouter, Query, status
 
-from src.auth.dependencies import AdminUser, CurrentUser
+from src.auth.dependencies import AdminUser, CurrentUser, OptionalUser
 from src.dependencies import DbSession
 from src.exceptions import PermissionDenied
 from src.turnos import service as turnos_service
@@ -16,6 +16,7 @@ from src.turnos.schemas import (
     ClienteProfileSummary,
     ClienteRead,
     PublicQueueRead,
+    QueuePositionRead,
     SituacionUpdate,
     TurnoDetailsUpdate,
 )
@@ -28,8 +29,10 @@ router = APIRouter(prefix="/queue", tags=["turnos"])
     response_model=ClienteRead,
     status_code=status.HTTP_201_CREATED,
 )
-async def check_in(payload: CheckInRequest, db: DbSession) -> ClienteRead:
-    return await turnos_service.check_in(db, payload)
+async def check_in(
+    payload: CheckInRequest, db: DbSession, user: OptionalUser
+) -> ClienteRead:
+    return await turnos_service.check_in(db, payload, registered_by=user)
 
 
 @router.get("", response_model=list[ClienteRead])
@@ -46,6 +49,15 @@ async def list_turnos(
 @router.get("/public/status", response_model=PublicQueueRead)
 async def get_public_queue(db: DbSession) -> PublicQueueRead:
     return await turnos_service.public_queue(db)
+
+
+@router.get("/position-search", response_model=list[QueuePositionRead])
+async def position_search(
+    q: Annotated[str, Query(min_length=1, max_length=128)],
+    db: DbSession,
+    admin: AdminUser,
+) -> list[QueuePositionRead]:
+    return await turnos_service.queue_positions(db, q)
 
 
 @router.get("/specialist/mine", response_model=list[ClienteRead])
@@ -117,6 +129,39 @@ async def finish_service(
         if servicio is None or servicio.staff_numero != int(user.subject):
             raise PermissionDenied("El servicio no está asignado a este especialista.")
     return await turnos_service.finish_service(db, cliente_id, servicio_id)
+
+
+async def _ensure_service_owner(
+    cliente_id: int, servicio_id: int, db: DbSession, user: CurrentUser
+) -> None:
+    if user.role != "especialista":
+        return
+    turno = await turnos_service.get_cliente(db, cliente_id)
+    servicio = next((s for s in turno.servicios if s.id == servicio_id), None)
+    if servicio is None or servicio.staff_numero != int(user.subject):
+        raise PermissionDenied("El servicio no está asignado a este especialista.")
+
+
+@router.post(
+    "/{cliente_id}/services/{servicio_id}/rest",
+    response_model=ClienteRead,
+)
+async def rest_service(
+    cliente_id: int, servicio_id: int, db: DbSession, user: CurrentUser
+) -> ClienteRead:
+    await _ensure_service_owner(cliente_id, servicio_id, db, user)
+    return await turnos_service.rest_service(db, cliente_id, servicio_id)
+
+
+@router.post(
+    "/{cliente_id}/services/{servicio_id}/resume",
+    response_model=ClienteRead,
+)
+async def resume_service(
+    cliente_id: int, servicio_id: int, db: DbSession, user: CurrentUser
+) -> ClienteRead:
+    await _ensure_service_owner(cliente_id, servicio_id, db, user)
+    return await turnos_service.resume_service(db, cliente_id, servicio_id)
 
 
 @router.post(

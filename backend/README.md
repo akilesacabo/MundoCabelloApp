@@ -72,11 +72,14 @@ uvicorn src.main:app --reload
 | POST | `/api/queue/checkin` | Crea un turno o agrega servicios al turno activo |
 | GET | `/api/queue` | Lista clientes activos |
 | GET | `/api/queue/public/status` | Estado público de la cola |
+| GET | `/api/queue/position-search` | Busca un turno y calcula personas por delante |
 | GET | `/api/queue/client-search` | Busca perfiles y señala su turno activo |
 | GET | `/api/queue/clients` | Lista la base de clientes registrados |
 | GET | `/api/queue/clients/{id}` | Ficha e historial de un cliente |
 | POST | `/api/queue/{id}/services/{service_id}/assign` | Asigna un especialista elegible |
 | POST | `/api/queue/{id}/services/{service_id}/finish` | Finaliza un servicio |
+| POST | `/api/queue/{id}/services/{service_id}/rest` | Pone el servicio en reposo |
+| POST | `/api/queue/{id}/services/{service_id}/resume` | Reanuda el servicio |
 | PATCH | `/api/queue/{id}/details` | Actualiza etiquetas y observación |
 | GET | `/api/staff/eligible` | Especialistas elegibles por servicio |
 | PATCH | `/api/staff/{numero}/manual-status` | Cambia el estado operativo |
@@ -87,6 +90,11 @@ uvicorn src.main:app --reload
 - **Asignar** requiere que el servicio esté pendiente y el especialista sea
   elegible por área y estado.
 - **Finalizar** requiere que el servicio esté en atención.
+- **Reposo** libera al especialista para atender otra persona, pero conserva el
+  servicio visible en su carga. Se puede reanudar después.
+- **Almorzando** bloquea nuevas asignaciones igual que `ocupado` y `break`.
+- La etiqueta **INT** tiene prioridad; después la cola se ordena por nombre, no por
+  número de turno.
 - Al finalizar, el staff asignado vuelve automáticamente a `disponible`
   (si estaba `ocupado`).
 - **Cédula** validada con regex `^[VEve\-]?\d{6,10}$` (acepta prefijo
@@ -105,7 +113,7 @@ uvicorn src.main:app --reload
 PYTHONPATH=. .venv/bin/pytest -q
 ```
 
-La suite actual contiene 29 pruebas y cubre autenticación, check-in,
+La suite actual contiene 34 pruebas y cubre autenticación, check-in,
 asignación/finalización, perfiles e historial, etiquetas, validaciones,
 adición de servicios a un turno activo y contratos esenciales del frontend.
 

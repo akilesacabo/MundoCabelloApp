@@ -48,6 +48,9 @@ class Cliente(Base):
         String(16), default=SituacionTurno.PRESENTE, index=True
     )
     activo: Mapped[bool] = mapped_column(Boolean, default=True, index=True)
+    registrado_por_role: Mapped[str | None] = mapped_column(String(20), nullable=True)
+    registrado_por_subject: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    registrado_por_nombre: Mapped[str | None] = mapped_column(String(128), nullable=True)
     created_at: Mapped[datetime] = mapped_column(server_default=func.now(), index=True)
 
     perfil: Mapped[ClienteProfile | None] = relationship(back_populates="turnos")

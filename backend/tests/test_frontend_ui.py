@@ -106,6 +106,27 @@ def test_public_queue_explains_parallel_attention():
     assert "¿Cómo leer esta pantalla?" in html
     assert "Después siguen" in html
     assert 'class="queue-topbar"' in html
+    assert 'id="resting"' in html
+    assert "queue.en_reposo" in html
+
+
+def test_operational_feedback_ui_is_present():
+    admin = (APP_DIR / "admin.html").read_text()
+    specialist = (APP_DIR / "specialist.html").read_text()
+    team = (APP_DIR / "admin-team.html").read_text()
+    staff = (APP_DIR / "admin-staff.html").read_text()
+    clients = (APP_DIR / "admin-clients.html").read_text()
+
+    assert "/queue/position-search?q=" in admin
+    assert "priority-client" in admin
+    assert "'rest'" in specialist
+    assert "'resume'" in specialist
+    assert "/${action}" in specialist
+    assert "almorzando" in team
+    assert "item.estado" in team
+    assert 'name="en_prueba"' in staff
+    assert "trial-badge" in staff
+    assert "registrado_por_nombre" in clients
 
 
 def test_staff_areas_use_visual_multi_selection():

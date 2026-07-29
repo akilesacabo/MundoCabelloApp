@@ -4,6 +4,7 @@ from enum import StrEnum
 class ServicioEstado(StrEnum):
     PENDIENTE = "pendiente"
     EN_ATENCION = "en_atencion"
+    REPOSO = "reposo"
     FINALIZADO = "finalizado"
 
 
@@ -12,6 +13,7 @@ class TurnoEstado(StrEnum):
 
     EN_ESPERA = "en_espera"
     EN_ATENCION = "en_atencion"
+    REPOSO = "reposo"
     FINALIZADO = "finalizado"
 
 

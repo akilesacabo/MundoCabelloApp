@@ -8,3 +8,4 @@ class AreaKey(StrEnum):
     HIDRATACION = "hidratacion"
     MANICURE = "manicure"
     CEJAS = "cejas"
+    MAQUILLAJE = "maquillaje"

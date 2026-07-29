@@ -1,6 +1,6 @@
 """Staff con áreas múltiples y estado efectivo.
 
-El panel guarda DISPONIBLE, OCUPADO o BREAK. Un servicio EN_ATENCION siempre
+El panel guarda DISPONIBLE, OCUPADO, BREAK o ALMORZANDO. Un servicio EN_ATENCION
 tiene prioridad y mantiene el estado efectivo OCUPADO.
 """
 from __future__ import annotations
@@ -25,12 +25,14 @@ from src.turnos.models import Cliente, TurnoServicio
 
 
 async def _active_by_staff(db: AsyncSession) -> dict[int, list[StaffActivo]]:
-    """Mapa staff_numero -> servicios EN_ATENCION que tiene asignados."""
+    """Servicios en atención o reposo visibles en la carga del especialista."""
     stmt = (
         select(TurnoServicio, Cliente)
         .join(Cliente, Cliente.id == TurnoServicio.cliente_id)
         .where(
-            TurnoServicio.estado == ServicioEstado.EN_ATENCION,
+            TurnoServicio.estado.in_(
+                [ServicioEstado.EN_ATENCION, ServicioEstado.REPOSO]
+            ),
             TurnoServicio.staff_numero.is_not(None),
         )
     )
@@ -43,6 +45,7 @@ async def _active_by_staff(db: AsyncSession) -> dict[int, list[StaffActivo]]:
                 turno=cli.turno,
                 cliente=cli.nombre,
                 servicio=sv.nombre,
+                estado=sv.estado,
             )
         )
     return active
@@ -50,9 +53,8 @@ async def _active_by_staff(db: AsyncSession) -> dict[int, list[StaffActivo]]:
 
 def _to_read(s: Staff, active: dict[int, list[StaffActivo]]) -> StaffRead:
     activos = active.get(s.numero, [])
-    status = (
-        EffectiveStatus.OCUPADO if activos else EffectiveStatus(s.manual_status)
-    )
+    atendiendo = any(item.estado == ServicioEstado.EN_ATENCION for item in activos)
+    status = EffectiveStatus.OCUPADO if atendiendo else EffectiveStatus(s.manual_status)
     return StaffRead(
         numero=s.numero,
         alias=s.alias,

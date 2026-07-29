@@ -10,6 +10,7 @@ class StaffActivo(BaseModel):
     turno: int
     cliente: str
     servicio: str
+    estado: str
 
 
 class StaffRead(BaseModel):

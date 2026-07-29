@@ -1,14 +1,10 @@
-"""Seed real desde `mockups/data.json` (81 staff, 126 servicios).
+"""Seed real desde `mockups/data.json`.
 
 Corrida:
     .venv/bin/python -m src.seed
 
-Idempotente: refresca áreas/servicios; el staff sólo se inserta si la tabla
-está vacía (evita pisar cambios manuales del admin).
-
-Áreas por especialista: usa la misma heurística que `mockups/v2/store.js`
-(por rango de número). Debería ser reemplazada por datos reales cuando el
-cliente confirme las áreas de cada persona.
+Idempotente: refresca áreas, servicios y datos maestros de los especialistas.
+Conserva el estado manual y la marca de período de prueba de perfiles existentes.
 """
 from __future__ import annotations
 
@@ -19,40 +15,14 @@ from pathlib import Path
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 
 from src.database import async_session
-from src.services.constants import AreaKey
 from src.services.models import Area, ServiceCatalog
 from src.staff.constants import ManualStatus
-from src.staff.models import Staff, staff_area
+from src.staff.models import Staff
 
 DATA_PATH = Path(__file__).resolve().parents[2] / "mockups" / "data.json"
-
-
-AREA_KEYS_ORDER: list[str] = [
-    AreaKey.PELUQUERIA,
-    AreaKey.HIDRATACION,
-    AreaKey.MANICURE,
-    AreaKey.CEJAS,
-]
-
-
-def _areas_for(numero: int) -> list[str]:
-    """Heurística tomada de `mockups/v2/store.js`."""
-    if 56 <= numero <= 76:
-        primary = AreaKey.HIDRATACION
-    elif numero >= 77:
-        primary = AreaKey.MANICURE
-    else:
-        primary = AreaKey.PELUQUERIA
-    if numero in (4, 12, 18, 25, 33):
-        primary = AreaKey.CEJAS
-    areas = [primary]
-    if numero % 3 == 0:
-        alt = AREA_KEYS_ORDER[(AREA_KEYS_ORDER.index(primary) + 1) % len(AREA_KEYS_ORDER)]
-        if alt != primary:
-            areas.append(alt)
-    return areas
 
 
 def _manual_status_for(idx: int) -> str:
@@ -137,39 +107,39 @@ async def upsert_services(db: AsyncSession, data: dict) -> int:
     return added
 
 
-async def insert_staff(db: AsyncSession, data: dict) -> int:
-    """Sólo carga el staff si la tabla está vacía. Además de la fila en
-    `staff`, escribe cada área en la M:N `staff_area`.
-    """
-    has_any = await db.scalar(select(Staff).limit(1))
-    if has_any is not None:
-        return 0
-
+async def sync_staff(db: AsyncSession, data: dict) -> int:
+    """Concilia la nómina explícita sin borrar personal ni pisar su estado."""
     staff_rows, warnings = _unique_staff_rows(data["staff"])
     for warning in warnings:
         print(f"ADVERTENCIA seed: {warning}")
 
+    existing = {
+        staff.numero: staff
+        for staff in (
+            await db.execute(select(Staff).options(selectinload(Staff.areas)))
+        ).scalars()
+    }
+    area_by_key = {
+        area.key: area for area in (await db.execute(select(Area))).scalars()
+    }
+    added = 0
     for idx, s in enumerate(staff_rows):
-        db.add(
-            Staff(
+        staff = existing.get(s["numero"])
+        if staff is None:
+            staff = Staff(
                 numero=s["numero"],
-                alias=s["alias"],
-                nombre=s["nombre"],
-                cedula=s["cedula"],
-                initials=s["initials"],
                 manual_status=_manual_status_for(idx),
                 en_prueba=_en_prueba_for(s["numero"]),
             )
-        )
-    await db.flush()
-
-    for s in staff_rows:
-        for area in _areas_for(s["numero"]):
-            await db.execute(
-                staff_area.insert().values(staff_numero=s["numero"], area_key=area)
-            )
+            db.add(staff)
+            added += 1
+        staff.alias = s["alias"]
+        staff.nombre = s["nombre"]
+        staff.cedula = s["cedula"]
+        staff.initials = s["initials"]
+        staff.areas = [area_by_key[key] for key in s["areas"]]
     await db.commit()
-    return len(staff_rows)
+    return added
 
 
 async def main() -> None:
@@ -179,7 +149,7 @@ async def main() -> None:
     async with async_session() as db:
         await upsert_areas(db, data)
         n_new_services = await upsert_services(db, data)
-        n_new_staff = await insert_staff(db, data)
+        n_new_staff = await sync_staff(db, data)
 
         na = await db.scalar(select(func.count()).select_from(Area)) or 0
         ns = await db.scalar(select(func.count()).select_from(ServiceCatalog)) or 0
