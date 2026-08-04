@@ -106,14 +106,16 @@ async def assign_service(
     db: DbSession,
     admin: AdminUser,
 ) -> ClienteRead:
-    return await turnos_service.assign_service(db, cliente_id, servicio_id, payload)
+    return await turnos_service.assign_service(
+        db, cliente_id, servicio_id, payload, assigned_by=admin
+    )
 
 
 @router.post("/{cliente_id}/services/assign-many", response_model=ClienteRead)
 async def assign_many(
     cliente_id: int, payload: AssignManyRequest, db: DbSession, admin: AdminUser
 ) -> ClienteRead:
-    return await turnos_service.assign_many(db, cliente_id, payload)
+    return await turnos_service.assign_many(db, cliente_id, payload, assigned_by=admin)
 
 
 @router.post(
@@ -175,7 +177,9 @@ async def change_specialist(
     db: DbSession,
     admin: AdminUser,
 ) -> ClienteRead:
-    return await turnos_service.change_specialist(db, cliente_id, servicio_id, payload)
+    return await turnos_service.change_specialist(
+        db, cliente_id, servicio_id, payload, changed_by=admin
+    )
 
 
 @router.post("/lookup", response_model=ClienteProfileRead)
@@ -187,7 +191,9 @@ async def lookup_cliente(cedula: str, db: DbSession) -> ClienteProfileRead:
 async def set_situacion(
     cliente_id: int, payload: SituacionUpdate, db: DbSession, admin: AdminUser
 ) -> ClienteRead:
-    return await turnos_service.update_situacion(db, cliente_id, payload)
+    return await turnos_service.update_situacion(
+        db, cliente_id, payload, updated_by=admin
+    )
 
 
 @router.patch("/{cliente_id}/details", response_model=ClienteRead)
@@ -197,4 +203,4 @@ async def set_turno_details(
     db: DbSession,
     admin: AdminUser,
 ) -> ClienteRead:
-    return await turnos_service.update_details(db, cliente_id, payload)
+    return await turnos_service.update_details(db, cliente_id, payload, updated_by=admin)

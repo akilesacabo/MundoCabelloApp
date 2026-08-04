@@ -17,3 +17,15 @@ class HistorialRead(BaseModel):
     precio_usd: Decimal
     staff_numero: int | None
     staff_nombre: str
+
+
+class HistorialAreaSummary(BaseModel):
+    area_key: str
+    total_servicios: int
+    total_usd: Decimal
+
+
+class HistorialSummaryRead(BaseModel):
+    total_servicios: int
+    total_usd: Decimal
+    por_area: list[HistorialAreaSummary]

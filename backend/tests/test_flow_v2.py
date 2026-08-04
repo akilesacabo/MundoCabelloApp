@@ -175,6 +175,7 @@ async def test_assign_and_finish_flow(api):
     assert body["estado"] == "en_atencion"
     assigned = next(s for s in body["servicios"] if s["id"] == corte_sv["id"])
     assert assigned["estado"] == "en_atencion"
+    assert assigned["asignado_por_nombre"] == "Administración"
 
     # 2) Ana ya está OCUPADO por el corte activo
     r = await ac.get("/api/staff/1")
@@ -204,10 +205,16 @@ async def test_assign_and_finish_flow(api):
     )
     assert r.status_code == 200
     r = await ac.get("/api/historial")
+    assert r.status_code == 403
+    r = await ac.get("/api/historial", headers=api["admin_headers"])
     hist = r.json()
     assert len(hist) == 1
     assert hist[0]["servicio_nombre"] == "CORTE DAMA"
     assert hist[0]["staff_numero"] == 1
+    r = await ac.get("/api/historial/summary", headers=api["admin_headers"])
+    assert r.status_code == 200
+    assert r.json()["total_servicios"] == 1
+    assert r.json()["por_area"][0]["area_key"] == "peluqueria"
 
     # 6) Ana vuelve a DISPONIBLE (no tiene más servicios EN_ATENCION)
     r = await ac.get("/api/staff/1")
@@ -255,10 +262,12 @@ async def test_change_specialist_requires_pin(api):
     assert r.status_code == 200, r.text
     sv = next(s for s in r.json()["servicios"] if s["id"] == corte_sv["id"])
     assert sv["staff_numero"] == 3
+    assert sv["asignado_por_nombre"] == "Administración"
     assert len(sv["cambios"]) == 1
     assert sv["cambios"][0]["de_staff"] == 1
     assert sv["cambios"][0]["a_staff"] == 3
     assert sv["cambios"][0]["motivo"] == "cliente prefiere a Cami"
+    assert sv["cambios"][0]["cambiado_por_nombre"] == "Administración"
 
 
 async def test_assign_many_to_same_staff(api):
@@ -275,6 +284,28 @@ async def test_assign_many_to_same_staff(api):
     for sv in r.json()["servicios"]:
         assert sv["staff_numero"] == 1
         assert sv["estado"] == "en_atencion"
+        assert sv["asignado_por_nombre"] == "Administración"
+
+
+async def test_admin_updates_visit_details_are_audited(api):
+    ac = api["ac"]
+    cli = await _checkin(ac, api)
+
+    details = await ac.patch(
+        f"/api/queue/{cli['id']}/details",
+        json={"observacion": "Color sensible", "etiquetas": ["INT"]},
+        headers=api["admin_headers"],
+    )
+    assert details.status_code == 200, details.text
+    assert details.json()["actualizado_por_nombre"] == "Administración"
+
+    situation = await ac.patch(
+        f"/api/queue/{cli['id']}/situacion",
+        json={"situacion": "ausente"},
+        headers=api["admin_headers"],
+    )
+    assert situation.status_code == 200, situation.text
+    assert situation.json()["actualizado_por_nombre"] == "Administración"
 
 
 async def test_eligible_staff_excludes_break_and_wrong_area(api):

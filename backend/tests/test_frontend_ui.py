@@ -109,6 +109,7 @@ def test_admin_has_separate_assignment_team_and_client_database_screens():
     assert 'href="admin-clients.html"' in assignment
     assert "Clientes registrados" in assignment
     assert "admin-team.html" in api_js
+    assert "admin-history.html" in api_js
     assert 'class="client-table"' in clients
     assert "downloadClients()" in clients
     assert "text/csv;charset=utf-8" in clients
@@ -146,6 +147,23 @@ def test_operational_feedback_ui_is_present():
     assert 'id="staffNumber"' in staff
     assert "setNextStaffNumber" in staff
     assert "readonly" in staff
+
+
+def test_admin_history_screen_exposes_secure_history_and_totals():
+    html = (APP_DIR / "admin-history.html").read_text()
+    api_js = (APP_DIR / "api.js").read_text()
+    admin = (APP_DIR / "admin.html").read_text()
+
+    assert "Historial administrativo" in html
+    assert "/historial/summary" in html
+    assert "/historial" in html
+    assert "filterClient" in html
+    assert "filterStaff" in html
+    assert "filterService" in html
+    assert "filterArea" in html
+    assert "Totales por área" in html
+    assert 'href="admin-history.html"' in admin
+    assert "admin-history.html" in api_js
 
 
 def test_staff_areas_use_visual_multi_selection():
@@ -203,6 +221,7 @@ def test_all_screens_expose_role_appropriate_navigation():
         "specialist.html",
         "admin-team.html",
         "admin-clients.html",
+        "admin-history.html",
     )
     for filename in filenames:
         html = (APP_DIR / filename).read_text()
@@ -214,6 +233,7 @@ def test_all_screens_expose_role_appropriate_navigation():
         "queue.html",
         "admin.html",
         "admin-team.html",
+        "admin-history.html",
         "admin-staff.html",
         "admin-services.html",
         "specialist.html",

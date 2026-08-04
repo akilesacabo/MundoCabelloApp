@@ -134,3 +134,17 @@ curl -s 'http://localhost:8000/api/queue/position-search?q=20' \
 
 La respuesta incluye `posicion`, `personas_delante`, `estado` y `prioridad_int`. La
 misma consulta acepta parte del nombre o de la cédula.
+
+## Historial administrativo
+
+```bash
+curl -s http://localhost:8000/api/historial \
+  -H "Authorization: Bearer $TOKEN"
+
+curl -s 'http://localhost:8000/api/historial/summary?cliente=ambar' \
+  -H "Authorization: Bearer $TOKEN"
+```
+
+Resultado esperado: ambos `200`. `/historial` devuelve servicios finalizados y
+`/historial/summary` devuelve `total_servicios`, `total_usd` y `por_area`. Sin token,
+ambos endpoints responden `403`.

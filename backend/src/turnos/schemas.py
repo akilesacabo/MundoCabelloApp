@@ -37,6 +37,7 @@ class CambioRead(BaseModel):
     de_staff: int | None
     a_staff: int
     motivo: str
+    cambiado_por_nombre: str | None = None
 
 
 class TurnoServicioRead(BaseModel):
@@ -49,6 +50,7 @@ class TurnoServicioRead(BaseModel):
     staff_numero: int | None
     estado: ServicioEstado
     pendientes_area: int = 0
+    asignado_por_nombre: str | None = None
     cambios: list[CambioRead] = Field(default_factory=list)
 
 
@@ -68,6 +70,7 @@ class ClienteRead(BaseModel):
     registrado_por_role: str | None
     registrado_por_subject: str | None
     registrado_por_nombre: str | None
+    actualizado_por_nombre: str | None
     created_at: datetime
     estado: TurnoEstado
     servicios: list[TurnoServicioRead]

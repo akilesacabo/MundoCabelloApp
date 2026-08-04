@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="es">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>Historial · Mundo del Cabello</title><link rel="stylesheet" href="styles.css?v=20260729"></head>
+<body class="modern-page top-nav-page">
+  <div class="app-shell">
+    <aside class="app-sidebar">
+      <a class="dashboard-logo" href="admin.html"><span class="logo-mark">M</span><span><b>Mundo</b><small>del Cabello</small></span></a>
+      <nav class="site-nav dashboard-nav" aria-label="Navegación principal"></nav>
+      <div class="sidebar-profile"><div class="profile-avatar">AD</div><div><b>Administración</b><small>Historial global</small></div><button onclick="logout()">↗</button></div>
+    </aside>
+    <div class="app-content"><main class="app-main">
+      <div class="page-heading"><span class="section-kicker">CONTROL ADMINISTRATIVO</span><h1>Historial administrativo</h1><p class="muted">Consulta servicios finalizados, filtra por cliente, especialista, servicio o área y revisa totales rápidos.</p></div>
+      <section class="metric-grid" aria-label="Resumen del historial">
+        <article class="metric-card metric-clients"><div class="metric-icon">◴</div><div><span>Servicios finalizados</span><b id="metricHistoryServices">—</b><small>Según filtros activos</small></div></article>
+        <article class="metric-card metric-available"><div class="metric-icon">$</div><div><span>Total vendido</span><b id="metricHistoryUsd">—</b><small>Servicios cerrados</small></div></article>
+        <article class="metric-card metric-busy"><div class="metric-icon">◎</div><div><span>Áreas con actividad</span><b id="metricHistoryAreas">—</b><small id="metricHistoryAreaDetail">Cargando…</small></div></article>
+      </section>
+      <section class="card history-admin-tools">
+        <div><span class="section-kicker">FILTROS</span><h2>Buscar en historial</h2></div>
+        <div class="history-filter-grid">
+          <label>Cliente<input id="filterClient" type="search" placeholder="Nombre o cédula"></label>
+          <label>Especialista #<input id="filterStaff" type="number" min="1" placeholder="Ej. 14"></label>
+          <label>Servicio<input id="filterService" type="search" placeholder="Ej. corte"></label>
+          <label>Área<input id="filterArea" type="search" placeholder="peluqueria"></label>
+        </div>
+        <div class="modal-actions"><button type="button" class="secondary" onclick="clearFilters()">Limpiar</button><button type="button" class="pink-button" onclick="loadHistory()">Buscar</button></div>
+      </section>
+      <section class="client-table-card" aria-live="polite">
+        <div class="client-table-scroll">
+          <table class="client-table">
+            <thead><tr><th>Fecha</th><th>Cliente</th><th>Servicio</th><th>Área</th><th>Especialista</th><th>Monto</th></tr></thead>
+            <tbody id="historyList"><tr><td colspan="6">Cargando historial…</td></tr></tbody>
+          </table>
+        </div>
+      </section>
+      <section class="card history-area-card"><div class="section-heading"><div><span class="section-kicker">DETALLE</span><h2>Totales por área</h2></div></div><div id="areaSummary" class="history-area-summary"></div></section>
+    </main></div>
+  </div>
+  <script src="api.js?v=20260729"></script>
+  <script>
+    const escapeHtml=value=>String(value??'').replace(/[&<>'"]/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[char]));
+    const money=value=>`$${Number(value||0).toFixed(2)}`;
+    const formatDate=value=>new Intl.DateTimeFormat('es-VE',{dateStyle:'medium',timeStyle:'short'}).format(new Date(value));
+    function params(){
+      const query=new URLSearchParams();
+      if(filterClient.value.trim())query.set('cliente',filterClient.value.trim());
+      if(filterStaff.value.trim())query.set('staff',filterStaff.value.trim());
+      if(filterService.value.trim())query.set('servicio',filterService.value.trim());
+      if(filterArea.value.trim())query.set('area',filterArea.value.trim());
+      return query.toString();
+    }
+    function rowHtml(item){
+      return `<tr>
+        <td>${formatDate(item.ts)}</td>
+        <td><b>${escapeHtml(item.cliente_nombre)}</b><small>${escapeHtml(item.cliente_cedula)}</small></td>
+        <td>${escapeHtml(item.servicio_nombre)}</td>
+        <td>${escapeHtml(item.area_key)}</td>
+        <td>${item.staff_numero?`#${item.staff_numero} ${escapeHtml(item.staff_nombre)}`:'—'}</td>
+        <td><b>${money(item.precio_usd)}</b></td>
+      </tr>`;
+    }
+    function renderSummary(summary){
+      metricHistoryServices.textContent=summary.total_servicios;
+      metricHistoryUsd.textContent=money(summary.total_usd);
+      metricHistoryAreas.textContent=summary.por_area.length;
+      metricHistoryAreaDetail.textContent=summary.por_area.length?'Con servicios cerrados':'Sin datos';
+      areaSummary.innerHTML=summary.por_area.length?summary.por_area.map(row=>`<span class="status-pill"><b>${escapeHtml(row.area_key)}</b> · ${row.total_servicios} · ${money(row.total_usd)}</span>`).join(''):'<p class="muted">Sin servicios finalizados para estos filtros.</p>';
+    }
+    async function loadHistory(){
+      historyList.innerHTML='<tr><td colspan="6">Cargando historial…</td></tr>';
+      const query=params();
+      try{
+        const [items,summary]=await Promise.all([
+          api(`/historial${query?`?${query}`:''}`),
+          api(`/historial/summary${query?`?${query}`:''}`),
+        ]);
+        renderSummary(summary);
+        historyList.innerHTML=items.length?items.map(rowHtml).join(''):'<tr><td colspan="6"><div class="empty-state"><b>No hay resultados</b><p class="muted">Prueba con otros filtros.</p></div></td></tr>';
+      }catch(error){
+        historyList.innerHTML=`<tr><td colspan="6"><div class="empty-state"><b>No fue posible cargar el historial</b><p>${escapeHtml(error.message)}</p></div></td></tr>`;
+      }
+    }
+    function clearFilters(){filterClient.value='';filterStaff.value='';filterService.value='';filterArea.value='';loadHistory()}
+    [filterClient,filterStaff,filterService,filterArea].forEach(input=>input.addEventListener('keydown',event=>{if(event.key==='Enter'){event.preventDefault();loadHistory()}}));
+    loadHistory();
+  </script>
+</body>
+</html>

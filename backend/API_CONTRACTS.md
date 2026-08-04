@@ -90,20 +90,28 @@ Todos requieren rol `admin`:
 
 - `GET /queue`: turnos completos. Cada servicio incluye `pendientes_area`, el número
   de clientes activos y presentes que todavía tienen servicios sin asignar en esa misma
-  área.
+  área. Los servicios asignados incluyen `asignado_por_nombre` cuando la acción fue
+  hecha por un usuario autenticado.
 - `GET /queue/clients`: perfiles únicos con cantidad de visitas, etiquetas recientes
   y número de turno activo cuando corresponde.
 - `GET /queue/clients/{profile_id}`: ficha permanente y visitas ordenadas de la más
   reciente a la más antigua. Cada visita incluye turno, fecha, estado, situación,
   etiquetas, observación y servicios con precio y especialista asignado.
-- `PATCH /queue/{cliente_id}/details`: body `{observacion, etiquetas}`.
+- `PATCH /queue/{cliente_id}/details`: body `{observacion, etiquetas}`. Guarda
+  `actualizado_por_nombre`.
 - `PATCH /queue/{cliente_id}/situacion`: body `{situacion}` con `presente`,
-  `ausente` o `estafa`.
+  `ausente` o `estafa`. Guarda `actualizado_por_nombre`.
 - `GET /queue/position-search?q=<texto>`: busca por turno exacto, nombre o cédula e
   informa la posición y cuántas personas hay delante.
 - `POST /queue/{cliente_id}/services/{servicio_id}/assign`.
 - `POST /queue/{cliente_id}/services/assign-many`.
-- `POST /queue/{cliente_id}/services/{servicio_id}/change-specialist`.
+- `POST /queue/{cliente_id}/services/{servicio_id}/change-specialist`: cada cambio
+  conserva `cambiado_por_nombre`, además del motivo y especialista anterior/nuevo.
+- `GET /historial`: servicios finalizados filtrables por cliente, especialista,
+  servicio y área. Requiere admin.
+- `GET /historial/summary`: totales administrativos de servicios finalizados y monto
+  en USD, con desglose por área. Requiere admin y acepta los mismos filtros de
+  `/historial`.
 - `PATCH /staff/{numero}/manual-status`: `disponible`, `ocupado`, `break` o
   `almorzando`.
 - `POST /staff` y `PATCH /staff/{numero}`.

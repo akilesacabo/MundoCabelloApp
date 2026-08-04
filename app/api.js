@@ -27,6 +27,7 @@ function applyRoleNavigation(){
   const links=role==='admin'?[
     ['admin.html','◎','Asignar clientes'],
     ['admin-team.html','◷','Estado del equipo'],
+    ['admin-history.html','◴','Historial'],
     ['admin-staff.html','♙','Editar especialistas'],
     ['admin-services.html','✦','Servicios y productos'],
     ['queue.html','◉','Cola pública']

@@ -51,6 +51,9 @@ class Cliente(Base):
     registrado_por_role: Mapped[str | None] = mapped_column(String(20), nullable=True)
     registrado_por_subject: Mapped[str | None] = mapped_column(String(64), nullable=True)
     registrado_por_nombre: Mapped[str | None] = mapped_column(String(128), nullable=True)
+    actualizado_por_role: Mapped[str | None] = mapped_column(String(20), nullable=True)
+    actualizado_por_subject: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    actualizado_por_nombre: Mapped[str | None] = mapped_column(String(128), nullable=True)
     created_at: Mapped[datetime] = mapped_column(server_default=func.now(), index=True)
 
     perfil: Mapped[ClienteProfile | None] = relationship(back_populates="turnos")
@@ -101,6 +104,9 @@ class TurnoServicio(Base):
     estado: Mapped[str] = mapped_column(
         String(16), default=ServicioEstado.PENDIENTE, index=True
     )
+    asignado_por_role: Mapped[str | None] = mapped_column(String(20), nullable=True)
+    asignado_por_subject: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    asignado_por_nombre: Mapped[str | None] = mapped_column(String(128), nullable=True)
 
     cliente: Mapped[Cliente] = relationship(back_populates="servicios")
     staff: Mapped[Staff | None] = relationship()
@@ -128,5 +134,8 @@ class ServicioCambio(Base):
         ForeignKey("staff.numero", ondelete="RESTRICT")
     )
     motivo: Mapped[str] = mapped_column(Text)
+    cambiado_por_role: Mapped[str | None] = mapped_column(String(20), nullable=True)
+    cambiado_por_subject: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    cambiado_por_nombre: Mapped[str | None] = mapped_column(String(128), nullable=True)
 
     servicio: Mapped[TurnoServicio] = relationship(back_populates="cambios")

@@ -66,6 +66,7 @@ def _to_read(c: Cliente) -> ClienteRead:
         registrado_por_role=c.registrado_por_role,
         registrado_por_subject=c.registrado_por_subject,
         registrado_por_nombre=c.registrado_por_nombre,
+        actualizado_por_nombre=c.actualizado_por_nombre,
         created_at=c.created_at,
         estado=_turno_estado(c),
         servicios=[TurnoServicioRead.model_validate(sv) for sv in c.servicios],
@@ -113,6 +114,14 @@ def _sync_tags(cliente: Cliente, desired: list[str]) -> None:
         ClienteEtiqueta(codigo=code)
         for code in sorted(desired_codes - current.keys())
     )
+
+
+def _actor_fields(user: AuthUser | None) -> dict[str, str | None]:
+    return {
+        "role": user.role if user else None,
+        "subject": user.subject if user else None,
+        "nombre": user.display_name if user else None,
+    }
 
 
 async def _load_cliente(db: AsyncSession, cliente_id: int) -> Cliente:
@@ -421,20 +430,34 @@ async def get_profile_detail(
 
 
 async def update_details(
-    db: AsyncSession, cliente_id: int, payload: TurnoDetailsUpdate
+    db: AsyncSession,
+    cliente_id: int,
+    payload: TurnoDetailsUpdate,
+    updated_by: AuthUser | None = None,
 ) -> ClienteRead:
     cliente = await _load_cliente(db, cliente_id)
     cliente.observacion = payload.observacion.strip()
     _sync_tags(cliente, [tag.value for tag in payload.etiquetas])
+    actor = _actor_fields(updated_by)
+    cliente.actualizado_por_role = actor["role"]
+    cliente.actualizado_por_subject = actor["subject"]
+    cliente.actualizado_por_nombre = actor["nombre"]
     await db.commit()
     return _to_read(await _load_cliente(db, cliente_id))
 
 
 async def update_situacion(
-    db: AsyncSession, cliente_id: int, payload: SituacionUpdate
+    db: AsyncSession,
+    cliente_id: int,
+    payload: SituacionUpdate,
+    updated_by: AuthUser | None = None,
 ) -> ClienteRead:
     cliente = await _load_cliente(db, cliente_id)
     cliente.situacion = payload.situacion
+    actor = _actor_fields(updated_by)
+    cliente.actualizado_por_role = actor["role"]
+    cliente.actualizado_por_subject = actor["subject"]
+    cliente.actualizado_por_nombre = actor["nombre"]
     if payload.situacion == SituacionTurno.ESTAFA:
         cliente.activo = False
     elif payload.situacion == SituacionTurno.PRESENTE:
@@ -525,20 +548,31 @@ async def _validate_staff_for_area(db: AsyncSession, staff_numero: int, area_key
 
 
 async def assign_service(
-    db: AsyncSession, cliente_id: int, servicio_id: int, payload: AssignRequest
+    db: AsyncSession,
+    cliente_id: int,
+    servicio_id: int,
+    payload: AssignRequest,
+    assigned_by: AuthUser | None = None,
 ) -> ClienteRead:
     c, sv = await _get_servicio(db, cliente_id, servicio_id)
     if sv.estado == ServicioEstado.FINALIZADO:
         raise BadRequest("no se puede reasignar un servicio ya finalizado")
     await _validate_staff_for_area(db, payload.staff_numero, sv.area_key)
+    actor = _actor_fields(assigned_by)
     sv.staff_numero = payload.staff_numero
     sv.estado = ServicioEstado.EN_ATENCION
+    sv.asignado_por_role = actor["role"]
+    sv.asignado_por_subject = actor["subject"]
+    sv.asignado_por_nombre = actor["nombre"]
     await db.commit()
     return _to_read(await _load_cliente(db, cliente_id))
 
 
 async def assign_many(
-    db: AsyncSession, cliente_id: int, payload: AssignManyRequest
+    db: AsyncSession,
+    cliente_id: int,
+    payload: AssignManyRequest,
+    assigned_by: AuthUser | None = None,
 ) -> ClienteRead:
     c = await _load_cliente(db, cliente_id)
     target = {sv.id: sv for sv in c.servicios if sv.id in payload.servicio_ids}
@@ -561,9 +595,13 @@ async def assign_many(
                 f"el especialista {st.alias} no cubre el área {sv.area_key!r} "
                 f"del servicio {sv.nombre!r}"
             )
+    actor = _actor_fields(assigned_by)
     for sv in target.values():
         sv.staff_numero = payload.staff_numero
         sv.estado = ServicioEstado.EN_ATENCION
+        sv.asignado_por_role = actor["role"]
+        sv.asignado_por_subject = actor["subject"]
+        sv.asignado_por_nombre = actor["nombre"]
     await db.commit()
     return _to_read(await _load_cliente(db, cliente_id))
 
@@ -633,6 +671,7 @@ async def change_specialist(
     cliente_id: int,
     servicio_id: int,
     payload: ChangeSpecialistRequest,
+    changed_by: AuthUser | None = None,
 ) -> ClienteRead:
     if payload.pin.strip() != settings.admin_pin:
         raise PermissionDenied("PIN de administrador inválido.")
@@ -644,14 +683,21 @@ async def change_specialist(
         raise BadRequest("no se puede cambiar el especialista de un servicio finalizado")
     await _validate_staff_for_area(db, payload.staff_numero, sv.area_key)
 
+    actor = _actor_fields(changed_by)
     sv.cambios.append(
         ServicioCambio(
             de_staff=sv.staff_numero,
             a_staff=payload.staff_numero,
             motivo=payload.motivo.strip(),
+            cambiado_por_role=actor["role"],
+            cambiado_por_subject=actor["subject"],
+            cambiado_por_nombre=actor["nombre"],
         )
     )
     sv.staff_numero = payload.staff_numero
     sv.estado = ServicioEstado.EN_ATENCION
+    sv.asignado_por_role = actor["role"]
+    sv.asignado_por_subject = actor["subject"]
+    sv.asignado_por_nombre = actor["nombre"]
     await db.commit()
     return _to_read(await _load_cliente(db, cliente_id))

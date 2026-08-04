@@ -1,7 +1,7 @@
 # CONTEXTO — El Mundo del Cabello (peluq-project)
 
 > Documento de handoff para retomar el proyecto en una sesión nueva.
-> Última actualización: 2026-07-24.
+> Última actualización: 2026-08-03.
 
 ---
 
@@ -472,4 +472,19 @@ Objetivo: **backend real que refleje la v2** y camino a deploy.
   `/private/tmp/peluq-before-20260729.db`.
 - ✅ Verificación de migración desde base vacía, pruebas automáticas, Ruff, sintaxis
   JavaScript y revisión responsive en tablet.
+- Estado: implementado y probado en local. **Pendiente desplegar en producción.**
+
+### Bloque 2 — control administrativo (2026-08-03)
+
+- ✅ Historial global protegido: `/api/historial` y `/api/historial/summary` requieren
+  rol administrador.
+- ✅ Auditoría base añadida para acciones administrativas: asignación de servicios,
+  asignación múltiple, cambio de especialista, edición de etiquetas/observación y
+  cambio de situación guardan el nombre/rol/identificador del operador cuando hay token.
+- ✅ Nueva vista `app/admin-history.html`: filtros por cliente, especialista, servicio
+  y área; tabla de servicios finalizados; métricas de servicios, total USD y totales por
+  área.
+- ✅ Migración `20260803_audit_actions` preparada con columnas nullable para no romper
+  bases existentes.
+- ✅ Verificación automática: compileall, Ruff, checks estáticos de frontend y 37 tests.
 - Estado: implementado y probado en local. **Pendiente desplegar en producción.**
