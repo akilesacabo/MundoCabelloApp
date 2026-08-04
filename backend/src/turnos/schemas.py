@@ -48,6 +48,7 @@ class TurnoServicioRead(BaseModel):
     precio_usd: Decimal
     staff_numero: int | None
     estado: ServicioEstado
+    pendientes_area: int = 0
     cambios: list[CambioRead] = Field(default_factory=list)
 
 

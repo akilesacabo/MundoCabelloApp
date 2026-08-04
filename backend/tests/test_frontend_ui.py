@@ -34,6 +34,12 @@ def test_admin_dashboard_prioritizes_status_and_assignment():
     assert "specialist-selected" in html
     assert 'class="specialist-search"' in html
     assert "<datalist" in html
+    assert 'id="dashboardSearch"' not in html
+    assert "Buscar cliente en asignaciones" in html
+    assert "focusClient" in html
+    assert "focused-client" in html
+    assert "pendientes_area" in html
+    assert "cliente${areaPending===1?'':'s'} pendiente" in html
 
 
 def test_public_queue_preserves_and_recognizes_team_session():

@@ -259,6 +259,19 @@ async def list_clientes(db: AsyncSession, estado: str | None = None) -> list[Cli
     )
     if estado is not None:
         all_c = [c for c in all_c if c.estado == estado]
+    area_pending_clients: dict[str, set[int]] = {}
+    for client in all_c:
+        if not client.activo or client.situacion != SituacionTurno.PRESENTE:
+            continue
+        for service in client.servicios:
+            if service.estado == ServicioEstado.PENDIENTE and service.staff_numero is None:
+                area_pending_clients.setdefault(service.area_key, set()).add(client.id)
+    area_counts = {
+        area: len(client_ids) for area, client_ids in area_pending_clients.items()
+    }
+    for client in all_c:
+        for service in client.servicios:
+            service.pendientes_area = area_counts.get(service.area_key, 0)
     return all_c
 
 

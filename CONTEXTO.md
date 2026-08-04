@@ -259,6 +259,20 @@ Objetivo: **backend real que refleje la v2** y camino a deploy.
   panel operativo; las altas y ediciones pertenecen a pantallas independientes.
 - Estado: implementado y probado en local. **Pendiente desplegar en producción.**
 
+---
+
+## 10. Estado operativo reciente (2026-08-03)
+
+- ✅ Panel principal ajustado para ser la pantalla de asignación: se eliminó el buscador
+  superior de cliente/especialista.
+- ✅ La consulta rápida ahora busca por turno, nombre o cédula con autocompletado en vivo;
+  al seleccionar una coincidencia hace scroll y resalta la tarjeta del cliente activo.
+- ✅ Cada servicio del panel muestra cuántos clientes activos y presentes tienen servicios
+  pendientes sin asignar en esa misma área (`pendientes_area` en `GET /api/queue`).
+- ✅ La regla existente de finalización se conserva: al terminar todos los servicios,
+  el turno queda inactivo y cada servicio finalizado se registra en historial.
+- Estado: implementado y probado en local. **Pendiente desplegar.**
+
 ### Prototipo visual moderno del panel (2026-07-04)
 
 - ✅ Primera etapa aprobada: rediseño exclusivo de `app/admin.html`, sin cambiar API,

@@ -79,6 +79,69 @@ async def test_checkin_creates_pending_services(api):
     for sv in body["servicios"]:
         assert sv["estado"] == "pendiente"
         assert sv["staff_numero"] is None
+        assert "pendientes_area" in sv
+
+
+async def test_queue_reports_pending_clients_by_service_area(api):
+    ac = api["ac"]
+    first = await ac.post(
+        "/api/queue/checkin",
+        json={
+            "cedula": "V-31000001",
+            "nombre": "Cliente Area Uno",
+            "telefono": "04141234567",
+            "direccion": "Calle 1",
+            "service_ids": [api["corte_id"], api["hidra_id"]],
+        },
+    )
+    assert first.status_code == 201, first.text
+    second = await ac.post(
+        "/api/queue/checkin",
+        json={
+            "cedula": "V-31000002",
+            "nombre": "Cliente Area Dos",
+            "telefono": "04141234567",
+            "direccion": "Calle 2",
+            "service_ids": [api["corte_id"]],
+        },
+    )
+    assert second.status_code == 201, second.text
+
+    queue = await ac.get("/api/queue", headers=api["admin_headers"])
+    rows = queue.json()
+    first_row = next(row for row in rows if row["id"] == first.json()["id"])
+    corte = next(
+        service
+        for service in first_row["servicios"]
+        if service["area_key"] == "peluqueria"
+    )
+    hidra = next(
+        service
+        for service in first_row["servicios"]
+        if service["area_key"] == "hidratacion"
+    )
+    assert corte["pendientes_area"] == 2
+    assert hidra["pendientes_area"] == 1
+
+    await ac.post(
+        f"/api/queue/{first_row['id']}/services/{corte['id']}/assign",
+        json={"staff_numero": 1},
+        headers=api["admin_headers"],
+    )
+    queue = await ac.get("/api/queue", headers=api["admin_headers"])
+    rows = queue.json()
+    first_row = next(row for row in rows if row["id"] == first.json()["id"])
+    second_row = next(row for row in rows if row["id"] == second.json()["id"])
+    assigned_corte = next(
+        service for service in first_row["servicios"] if service["id"] == corte["id"]
+    )
+    second_corte = next(
+        service
+        for service in second_row["servicios"]
+        if service["area_key"] == "peluqueria"
+    )
+    assert assigned_corte["pendientes_area"] == 1
+    assert second_corte["pendientes_area"] == 1
 
 
 async def _checkin(ac, ids):

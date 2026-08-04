@@ -53,6 +53,9 @@ estado `pendiente`.
 ## Base de clientes y edición de visita
 
 ```bash
+curl -s http://localhost:8000/api/queue \
+  -H "Authorization: Bearer $TOKEN"
+
 curl -s http://localhost:8000/api/queue/clients \
   -H "Authorization: Bearer $TOKEN"
 
@@ -65,9 +68,11 @@ curl -s -X PATCH http://localhost:8000/api/queue/<cliente-id>/details \
   -d '{"observacion":"Usar producto suave","etiquetas":["F","AC"]}'
 ```
 
-Resultados esperados: `200`. La ficha devuelve las visitas desde la más reciente, con
-servicios y especialista asignado. Ambos endpoints `/queue/clients` sin token responden
-`403`; un `<profile-id>` inexistente responde `404`.
+Resultados esperados: `200`. `/queue` devuelve cada servicio con `pendientes_area`,
+calculado con clientes activos y presentes que tienen servicios sin asignar en esa área.
+La ficha devuelve las visitas desde la más reciente, con servicios y especialista
+asignado. Ambos endpoints `/queue/clients` sin token responden `403`; un `<profile-id>`
+inexistente responde `404`.
 
 ## Situación y cola pública
 

@@ -86,7 +86,9 @@ Solo incluye turnos `presente`.
 
 Todos requieren rol `admin`:
 
-- `GET /queue`: turnos completos.
+- `GET /queue`: turnos completos. Cada servicio incluye `pendientes_area`, el número
+  de clientes activos y presentes que todavía tienen servicios sin asignar en esa misma
+  área.
 - `GET /queue/clients`: perfiles únicos con cantidad de visitas, etiquetas recientes
   y número de turno activo cuando corresponde.
 - `GET /queue/clients/{profile_id}`: ficha permanente y visitas ordenadas de la más
@@ -139,7 +141,8 @@ Ejemplo abreviado de la ficha:
       "precio_usd": "15.00",
       "staff_numero": 1,
       "especialista": "Ana",
-      "estado": "en_atencion"
+      "estado": "en_atencion",
+      "pendientes_area": 3
     }]
   }]
 }
