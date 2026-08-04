@@ -24,6 +24,8 @@ from src.turnos.models import (
     TurnoServicio,
 )
 from src.turnos.schemas import (
+    AreaQueueItemRead,
+    AreaQueueRead,
     AssignManyRequest,
     AssignRequest,
     ChangeSpecialistRequest,
@@ -473,17 +475,68 @@ async def update_situacion(
 
 async def public_queue(db: AsyncSession) -> PublicQueueRead:
     clientes = await list_clientes(db)
-    visibles = [c for c in clientes if c.situacion == SituacionTurno.PRESENTE]
+    visibles = [
+        c for c in clientes if c.activo and c.situacion == SituacionTurno.PRESENTE
+    ]
     atendiendo = [c.turno for c in visibles if c.estado == TurnoEstado.EN_ATENCION]
     en_reposo = [c.turno for c in visibles if c.estado == TurnoEstado.REPOSO]
     en_espera = [c.turno for c in visibles if c.estado == TurnoEstado.EN_ESPERA]
     ultimo = max((c.created_at for c in visibles), default=None)
+    area_queues = _area_queues(visibles)
     return PublicQueueRead(
         atendiendo=atendiendo,
         en_reposo=en_reposo,
         en_espera=en_espera,
         ultimo_cambio=ultimo,
+        por_area=area_queues,
     )
+
+
+def _area_queues(clientes: list[ClienteRead]) -> list[AreaQueueRead]:
+    area_buckets: dict[str, dict[str, list[AreaQueueItemRead]]] = {}
+    waiting_seen: dict[str, int] = {}
+    for client in clientes:
+        for service in client.servicios:
+            if service.estado == ServicioEstado.FINALIZADO:
+                continue
+            bucket = area_buckets.setdefault(
+                service.area_key,
+                {"atendiendo": [], "en_reposo": [], "en_espera": []},
+            )
+            waiting_index: int | None = None
+            people_ahead = 0
+            if service.estado == ServicioEstado.PENDIENTE and service.staff_numero is None:
+                waiting_index = waiting_seen.get(service.area_key, 0) + 1
+                waiting_seen[service.area_key] = waiting_index
+                people_ahead = waiting_index - 1
+                target = "en_espera"
+            elif service.estado == ServicioEstado.REPOSO:
+                target = "en_reposo"
+            elif service.estado == ServicioEstado.EN_ATENCION:
+                target = "atendiendo"
+            else:
+                target = "en_espera"
+            bucket[target].append(
+                AreaQueueItemRead(
+                    cliente_id=client.id,
+                    servicio_id=service.id,
+                    turno=client.turno,
+                    cliente_nombre=client.nombre,
+                    servicio_nombre=service.nombre,
+                    estado=service.estado,
+                    posicion=waiting_index,
+                    personas_delante=people_ahead,
+                )
+            )
+    return [
+        AreaQueueRead(
+            area_key=area_key,
+            atendiendo=buckets["atendiendo"],
+            en_reposo=buckets["en_reposo"],
+            en_espera=buckets["en_espera"],
+        )
+        for area_key, buckets in sorted(area_buckets.items())
+    ]
 
 
 async def queue_positions(db: AsyncSession, query: str) -> list[dict]:
@@ -495,6 +548,7 @@ async def queue_positions(db: AsyncSession, query: str) -> list[dict]:
     ]
     waiting = [client for client in clientes if client.estado == TurnoEstado.EN_ESPERA]
     positions = {client.id: index + 1 for index, client in enumerate(waiting)}
+    area_positions = _service_area_positions(clientes)
     term = query.strip().casefold()
     digits = "".join(char for char in term if char.isdigit())
     matches = [
@@ -513,9 +567,38 @@ async def queue_positions(db: AsyncSession, query: str) -> list[dict]:
             "prioridad_int": "INT" in client.etiquetas,
             "posicion": positions.get(client.id),
             "personas_delante": max(0, positions.get(client.id, 1) - 1),
+            "areas": [
+                area_positions[service.id]
+                for service in client.servicios
+                if service.id in area_positions
+            ],
         }
         for client in matches
     ]
+
+
+def _service_area_positions(clientes: list[ClienteRead]) -> dict[int, dict]:
+    positions: dict[int, dict] = {}
+    waiting_seen: dict[str, int] = {}
+    for client in clientes:
+        for service in client.servicios:
+            if service.estado == ServicioEstado.FINALIZADO:
+                continue
+            position: int | None = None
+            people_ahead = 0
+            if service.estado == ServicioEstado.PENDIENTE and service.staff_numero is None:
+                position = waiting_seen.get(service.area_key, 0) + 1
+                waiting_seen[service.area_key] = position
+                people_ahead = position - 1
+            positions[service.id] = {
+                "area_key": service.area_key,
+                "servicio_id": service.id,
+                "servicio_nombre": service.nombre,
+                "estado": service.estado,
+                "posicion": position,
+                "personas_delante": people_ahead,
+            }
+    return positions
 
 
 async def assigned_to_staff(db: AsyncSession, staff_numero: int) -> list[ClienteRead]:

@@ -87,7 +87,8 @@ curl -s http://localhost:8000/api/queue/public/status
 ```
 
 Resultado esperado: ambos `200`; el turno ausente no aparece en `atendiendo` ni
-`en_espera`. Cambiarlo a `presente` lo reincorpora si todavía está activo.
+`en_espera`. Cambiarlo a `presente` lo reincorpora si todavía está activo. La respuesta
+incluye `por_area`, donde cada servicio tiene su posición propia dentro del área.
 
 ## Estado del especialista
 
@@ -133,7 +134,9 @@ curl -s 'http://localhost:8000/api/queue/position-search?q=20' \
 ```
 
 La respuesta incluye `posicion`, `personas_delante`, `estado` y `prioridad_int`. La
-misma consulta acepta parte del nombre o de la cédula.
+misma consulta acepta parte del nombre o de la cédula. Además incluye `areas`, con la
+posición separada por servicio/área; si un servicio ya está en atención, su `posicion`
+será `null`.
 
 ## Historial administrativo
 

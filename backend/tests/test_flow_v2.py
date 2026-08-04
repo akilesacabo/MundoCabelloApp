@@ -594,6 +594,8 @@ async def test_roles_public_queue_and_operational_situation(api):
     )
     public = await ac.get("/api/queue/public/status")
     assert cli["turno"] in public.json()["atendiendo"]
+    by_area = {area["area_key"]: area for area in public.json()["por_area"]}
+    assert by_area["peluqueria"]["atendiendo"][0]["turno"] == cli["turno"]
 
     await ac.patch(
         f"/api/queue/{cli['id']}/situacion",
@@ -602,6 +604,63 @@ async def test_roles_public_queue_and_operational_situation(api):
     )
     public = await ac.get("/api/queue/public/status")
     assert cli["turno"] not in public.json()["atendiendo"]
+
+
+async def test_public_queue_and_position_search_are_split_by_service_area(api):
+    ac = api["ac"]
+    first = await ac.post(
+        "/api/queue/checkin",
+        json={
+            "cedula": "V-41000001",
+            "nombre": "Cliente Multi Area",
+            "telefono": "04141234567",
+            "direccion": "Calle 1",
+            "service_ids": [api["corte_id"], api["hidra_id"]],
+        },
+    )
+    second = await ac.post(
+        "/api/queue/checkin",
+        json={
+            "cedula": "V-41000002",
+            "nombre": "Cliente Peluqueria",
+            "telefono": "04141234567",
+            "direccion": "Calle 2",
+            "service_ids": [api["corte_id"]],
+        },
+    )
+    first_body = first.json()
+    second_body = second.json()
+    first_corte = next(
+        service
+        for service in first_body["servicios"]
+        if service["area_key"] == "peluqueria"
+    )
+    await ac.post(
+        f"/api/queue/{first_body['id']}/services/{first_corte['id']}/assign",
+        json={"staff_numero": 1},
+        headers=api["admin_headers"],
+    )
+
+    public = await ac.get("/api/queue/public/status")
+    assert public.status_code == 200
+    by_area = {area["area_key"]: area for area in public.json()["por_area"]}
+    assert by_area["peluqueria"]["atendiendo"][0]["turno"] == first_body["turno"]
+    assert by_area["peluqueria"]["en_espera"][0]["turno"] == second_body["turno"]
+    assert by_area["peluqueria"]["en_espera"][0]["posicion"] == 1
+    assert by_area["hidratacion"]["en_espera"][0]["turno"] == first_body["turno"]
+    assert by_area["hidratacion"]["en_espera"][0]["personas_delante"] == 0
+
+    position = await ac.get(
+        "/api/queue/position-search",
+        params={"q": str(first_body["turno"])},
+        headers=api["admin_headers"],
+    )
+    assert position.status_code == 200
+    areas = {area["area_key"]: area for area in position.json()[0]["areas"]}
+    assert areas["peluqueria"]["estado"] == "en_atencion"
+    assert areas["peluqueria"]["posicion"] is None
+    assert areas["hidratacion"]["posicion"] == 1
+    assert areas["hidratacion"]["personas_delante"] == 0
 
 
 async def test_specialist_only_sees_and_finishes_own_work(api):

@@ -488,3 +488,19 @@ Objetivo: **backend real que refleje la v2** y camino a deploy.
   bases existentes.
 - ✅ Verificación automática: compileall, Ruff, checks estáticos de frontend y 37 tests.
 - Estado: implementado y probado en local. **Pendiente desplegar en producción.**
+
+### Bloque 3 — cola real por servicio/área (2026-08-03)
+
+- ✅ `/api/queue/public/status` mantiene la cola general por número, pero ahora agrega
+  `por_area`: para cada área separa servicios `atendiendo`, `en_reposo` y `en_espera`.
+- ✅ Cada servicio en espera tiene `posicion` y `personas_delante` dentro de su propia
+  área. Esto cubre el caso real donde una clienta puede estar atendida en Peluquería y
+  todavía esperando Hidratación/Cejas.
+- ✅ `/api/queue/position-search` agrega `areas`, con el estado y posición de cada
+  servicio de la clienta buscada.
+- ✅ `app/queue.html` muestra una sección “Espera por área” para que la cola pública no
+  dependa solo del número global.
+- ✅ La búsqueda administrativa muestra el resumen por área en cada resultado.
+- ✅ Verificación automática: compileall, Ruff, checks estáticos de frontend,
+  `git diff --check` y 38 tests.
+- Estado: implementado y probado en local. **Pendiente desplegar en producción.**

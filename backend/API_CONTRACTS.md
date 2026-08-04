@@ -79,10 +79,28 @@ no existe.
 Público. Devuelve:
 
 ```json
-{"atendiendo":[13,14],"en_reposo":[18],"en_espera":[15,16],"ultimo_cambio":"2026-07-29T10:00:00"}
+{
+  "atendiendo": [13, 14],
+  "en_reposo": [18],
+  "en_espera": [15, 16],
+  "ultimo_cambio": "2026-07-29T10:00:00",
+  "por_area": [{
+    "area_key": "cejas",
+    "atendiendo": [{"turno": 13, "servicio_nombre": "DISEÑO DE CEJAS"}],
+    "en_reposo": [],
+    "en_espera": [{
+      "turno": 16,
+      "servicio_nombre": "DEPILACION BRASILERA",
+      "posicion": 1,
+      "personas_delante": 0
+    }]
+  }]
+}
 ```
 
-Solo incluye turnos `presente`.
+Solo incluye turnos activos y `presente`. Las listas superiores mantienen la lectura
+general por número; `por_area` muestra la cola real por servicio/área, porque una misma
+clienta puede estar en atención en un área y esperando en otra.
 
 ## Administración
 
@@ -102,7 +120,8 @@ Todos requieren rol `admin`:
 - `PATCH /queue/{cliente_id}/situacion`: body `{situacion}` con `presente`,
   `ausente` o `estafa`. Guarda `actualizado_por_nombre`.
 - `GET /queue/position-search?q=<texto>`: busca por turno exacto, nombre o cédula e
-  informa la posición y cuántas personas hay delante.
+  informa la posición general y, en `areas`, la posición separada por cada servicio
+  pendiente/activo de esa clienta.
 - `POST /queue/{cliente_id}/services/{servicio_id}/assign`.
 - `POST /queue/{cliente_id}/services/assign-many`.
 - `POST /queue/{cliente_id}/services/{servicio_id}/change-specialist`: cada cambio

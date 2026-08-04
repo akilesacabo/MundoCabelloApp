@@ -125,6 +125,9 @@ def test_public_queue_explains_parallel_attention():
     assert 'class="queue-topbar"' in html
     assert 'id="resting"' in html
     assert "queue.en_reposo" in html
+    assert 'id="areaQueues"' in html
+    assert "queue.por_area" in html
+    assert "Espera por área" in html
 
 
 def test_operational_feedback_ui_is_present():
@@ -135,6 +138,7 @@ def test_operational_feedback_ui_is_present():
     clients = (APP_DIR / "admin-clients.html").read_text()
 
     assert "/queue/position-search?q=" in admin
+    assert "areaPositionLabel" in admin
     assert "priority-client" in admin
     assert "'rest'" in specialist
     assert "'resume'" in specialist

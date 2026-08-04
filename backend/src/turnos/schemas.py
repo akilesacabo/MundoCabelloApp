@@ -151,6 +151,25 @@ class PublicQueueRead(BaseModel):
     en_reposo: list[int]
     en_espera: list[int]
     ultimo_cambio: datetime | None
+    por_area: list["AreaQueueRead"] = Field(default_factory=list)
+
+
+class AreaQueueItemRead(BaseModel):
+    cliente_id: int
+    servicio_id: int
+    turno: int
+    cliente_nombre: str
+    servicio_nombre: str
+    estado: ServicioEstado
+    posicion: int | None = None
+    personas_delante: int = 0
+
+
+class AreaQueueRead(BaseModel):
+    area_key: str
+    atendiendo: list[AreaQueueItemRead] = Field(default_factory=list)
+    en_reposo: list[AreaQueueItemRead] = Field(default_factory=list)
+    en_espera: list[AreaQueueItemRead] = Field(default_factory=list)
 
 
 class QueuePositionRead(BaseModel):
@@ -159,5 +178,15 @@ class QueuePositionRead(BaseModel):
     nombre: str
     estado: TurnoEstado
     prioridad_int: bool
+    posicion: int | None
+    personas_delante: int
+    areas: list["QueuePositionAreaRead"] = Field(default_factory=list)
+
+
+class QueuePositionAreaRead(BaseModel):
+    area_key: str
+    servicio_id: int
+    servicio_nombre: str
+    estado: ServicioEstado
     posicion: int | None
     personas_delante: int
