@@ -29,8 +29,9 @@ curl -s -X POST http://localhost:8000/api/queue/checkin \
 ```
 
 Resultado esperado: búsqueda `200`; check-in `201`. La búsqueda devuelve
-`active_turno_id` y `active_turno` cuando ya existe una visita activa. Repetir el mismo
-check-in sin indicar el identificador debe responder `409`.
+`active_turno_id` y `active_turno` cuando ya existe una visita activa, y
+`alerta_estafa=true` cuando el cliente tiene historial marcado como estafa. Repetir el
+mismo check-in sin indicar el identificador debe responder `409`.
 
 Para agregar servicios al turno activo seleccionado:
 

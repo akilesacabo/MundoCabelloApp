@@ -147,14 +147,17 @@
       selectedProfile=profile;
       cedula.value=profile.cedula;nombre.value=profile.nombre;telefono.value=profile.telefono;direccion.value=profile.direccion;
       clientMatches.hidden=true;
-      clientMessage.textContent=`Cliente existente: ${profile.nombre}. Datos recuperados correctamente.`;
-      activeTurnNotice.hidden=!profile.active_turno_id;
-      activeTurnNotice.textContent=profile.active_turno_id?`Este cliente ya tiene el turno activo #${profile.active_turno}. Los servicios nuevos se agregarán a esa visita.`:'';
+      clientMessage.innerHTML=profile.alerta_estafa?`<span class="fraud-alert">Atención: este cliente tiene una visita marcada como estafa. Verifica con administración antes de continuar.</span>`:`Cliente existente: ${escapeHtml(profile.nombre)}. Datos recuperados correctamente.`;
+      const notices=[];
+      if(profile.alerta_estafa)notices.push('Atención: este cliente tiene una visita marcada como estafa. Verifica con administración antes de continuar.');
+      if(profile.active_turno_id)notices.push(`Este cliente ya tiene el turno activo #${profile.active_turno}. Los servicios nuevos se agregarán a esa visita.`);
+      activeTurnNotice.hidden=!notices.length;
+      activeTurnNotice.textContent=notices.join(' ');
       goToStep(2);
     }
 
     function renderMatches(matches){
-      clientMatches.innerHTML=matches.length?matches.map((profile,index)=>`<button type="button" data-index="${index}"><b>${escapeHtml(profile.nombre)}</b><span>${escapeHtml(profile.cedula)} · ${escapeHtml(profile.telefono)}</span></button>`).join(''):'<div class="no-match">Sin coincidencias. Completa los datos para registrar un cliente nuevo.</div>';
+      clientMatches.innerHTML=matches.length?matches.map((profile,index)=>`<button type="button" class="${profile.alerta_estafa?'fraud-match':''}" data-index="${index}"><b>${escapeHtml(profile.nombre)}${profile.alerta_estafa?' · ALERTA ESTAFA':''}</b><span>${escapeHtml(profile.cedula)} · ${escapeHtml(profile.telefono)}</span></button>`).join(''):'<div class="no-match">Sin coincidencias. Completa los datos para registrar un cliente nuevo.</div>';
       clientMatches.hidden=false;
       clientMatches.querySelectorAll('button').forEach(button=>button.onclick=()=>selectProfile(matches[+button.dataset.index]));
     }

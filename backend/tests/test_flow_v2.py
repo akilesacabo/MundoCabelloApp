@@ -371,6 +371,15 @@ async def test_progressive_profile_search_client_database_and_duplicate_guard(ap
     assert duplicate.status_code == 409
     assert "turno activo" in duplicate.json()["detail"]
 
+    await ac.patch(
+        f"/api/queue/{created.json()['id']}/situacion",
+        json={"situacion": "estafa"},
+        headers=api["admin_headers"],
+    )
+    flagged = await ac.get("/api/queue/client-search", params={"q": "2548"})
+    assert flagged.status_code == 200
+    assert flagged.json()[0]["alerta_estafa"] is True
+
 
 async def test_admin_can_update_visit_tags_and_observation(api):
     client = await _checkin(api["ac"], api)

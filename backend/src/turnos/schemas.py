@@ -102,6 +102,7 @@ class ClienteProfileRead(BaseModel):
     direccion: str
     active_turno_id: int | None = None
     active_turno: int | None = None
+    alerta_estafa: bool = False
 
 
 class ClienteProfileSummary(ClienteProfileRead):

@@ -38,7 +38,9 @@ Requiere token. Devuelve identidad, rol y nombre visible.
 
 Público para la estación de recepción. Requiere entre 4 y 30 caracteres y devuelve
 como máximo ocho coincidencias por cédula. Cada coincidencia incluye
-`active_turno_id` y `active_turno` cuando el cliente ya tiene una visita activa.
+`active_turno_id` y `active_turno` cuando el cliente ya tiene una visita activa, y
+`alerta_estafa=true` cuando alguna visita histórica del perfil fue marcada como
+`estafa`.
 
 ### `POST /queue/checkin`
 

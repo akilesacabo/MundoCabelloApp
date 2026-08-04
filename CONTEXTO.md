@@ -273,6 +273,18 @@ Objetivo: **backend real que refleje la v2** y camino a deploy.
   el turno queda inactivo y cada servicio finalizado se registra en historial.
 - Estado: implementado y probado en local. **Pendiente desplegar.**
 
+### Bloque 1 MVP operativo
+
+- ✅ Búsqueda/autocomplete de asignaciones unificada en la consulta rápida.
+- ✅ Alerta de estafa previa en búsqueda de cliente y check-in.
+- ✅ Observación visible directamente en la tarjeta activa del cliente.
+- ✅ Colores claros por situación operativa: presente, ausente y estafa.
+- ✅ Botón directo para agregar servicios a un turno activo desde asignaciones.
+- ✅ KPI de especialistas almorzando en el panel principal.
+- ✅ Número de especialista autogenerado en creación de perfiles.
+- ⏭ Bloque 2 pendiente: auditoría/usuarios individuales/historial administrativo.
+- ⏭ Bloque 3 pendiente: cola real por servicio/área con posiciones separadas.
+
 ### Prototipo visual moderno del panel (2026-07-04)
 
 - ✅ Primera etapa aprobada: rediseño exclusivo de `app/admin.html`, sin cambiar API,

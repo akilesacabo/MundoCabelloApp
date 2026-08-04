@@ -97,6 +97,9 @@ def _profile_to_read(profile: ClienteProfile) -> ClienteProfileRead:
         direccion=profile.direccion,
         active_turno_id=active.id if active else None,
         active_turno=active.turno if active else None,
+        alerta_estafa=any(
+            visit.situacion == SituacionTurno.ESTAFA for visit in profile.turnos
+        ),
     )
 
 

@@ -40,6 +40,14 @@ def test_admin_dashboard_prioritizes_status_and_assignment():
     assert "focused-client" in html
     assert "pendientes_area" in html
     assert "cliente${areaPending===1?'':'s'} pendiente" in html
+    assert 'id="addServicesModal"' in html
+    assert "openAddServices" in html
+    assert "saveAddedServices" in html
+    assert "active_turno_id:client.id" in html
+    assert 'id="metricLunch"' in html
+    assert "Almorzando" in html
+    assert "client-observation" in html
+    assert "situation-${client.situacion}" in html
 
 
 def test_public_queue_preserves_and_recognizes_team_session():
@@ -72,6 +80,8 @@ def test_checkin_is_three_steps_with_live_client_search_and_submit_lock():
     assert 'data-step="2"' in html
     assert 'data-step="3"' in html
     assert "/queue/client-search?q=" in html
+    assert "alerta_estafa" in html
+    assert "fraud-alert" in html
     assert "if(submitting)return" in html
     assert 'name="etiquetas"' in html
     assert "normalize(service.nombre).includes(term)" in html
@@ -133,6 +143,9 @@ def test_operational_feedback_ui_is_present():
     assert 'name="en_prueba"' in staff
     assert "trial-badge" in staff
     assert "registrado_por_nombre" in clients
+    assert 'id="staffNumber"' in staff
+    assert "setNextStaffNumber" in staff
+    assert "readonly" in staff
 
 
 def test_staff_areas_use_visual_multi_selection():
