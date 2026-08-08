@@ -42,6 +42,10 @@ class PromotionCreate(BaseModel):
     servicios: list["PromotionServiceInput"] = Field(min_length=1)
 
 
+class PromotionUpdate(PromotionCreate):
+    pass
+
+
 class PromotionServiceInput(BaseModel):
     service_id: int = Field(gt=0)
     precio_usd: Decimal = Field(ge=0)

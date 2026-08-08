@@ -106,6 +106,18 @@ async def test_promotion_uses_its_component_prices_and_expands_at_checkin(api):
     assert listed.status_code == 200
     assert listed.json()[0]["nombre"] == "PROMO CORTE E HIDRATACIÓN"
 
+    updated = await ac.patch(
+        f"/api/services/promotions/{promotion['id']}",
+        headers=api["admin_headers"],
+        json={
+            "nombre": "Promo actualizada",
+            "servicios": [{"service_id": api["corte_id"], "precio_usd": 8}],
+        },
+    )
+    assert updated.status_code == 200, updated.text
+    assert updated.json()["nombre"] == "PROMO ACTUALIZADA"
+    assert updated.json()["precio_usd"] == "8"
+
     checkin = await ac.post(
         "/api/queue/checkin",
         json={
@@ -119,9 +131,25 @@ async def test_promotion_uses_its_component_prices_and_expands_at_checkin(api):
     assert checkin.status_code == 201, checkin.text
     services = checkin.json()["servicios"]
     assert [(item["area_key"], item["precio_usd"]) for item in services] == [
-        ("peluqueria", "9.50"),
-        ("hidratacion", "17.25"),
+        ("peluqueria", "8.00"),
     ]
+
+    archived = await ac.delete(
+        f"/api/services/promotions/{promotion['id']}", headers=api["admin_headers"]
+    )
+    assert archived.status_code == 204
+    assert (await ac.get("/api/services/promotions")).json() == []
+    unavailable = await ac.post(
+        "/api/queue/checkin",
+        json={
+            "cedula": "V-14321124",
+            "nombre": "Cliente Promo Archivada",
+            "telefono": "04141234567",
+            "direccion": "Calle Promo 2",
+            "promotion_ids": [promotion["id"]],
+        },
+    )
+    assert unavailable.status_code == 404
 
 
 async def test_queue_reports_pending_clients_by_service_area(api):

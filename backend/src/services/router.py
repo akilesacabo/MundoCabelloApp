@@ -8,6 +8,7 @@ from src.services.schemas import (
     PromotionCreate,
     PromotionRead,
     PromotionServiceRead,
+    PromotionUpdate,
     ServiceCreate,
     ServiceRead,
     ServicesGrouped,
@@ -15,6 +16,23 @@ from src.services.schemas import (
 )
 
 router = APIRouter(prefix="/services", tags=["services"])
+
+
+def _promotion_read(promotion) -> PromotionRead:
+    return PromotionRead(
+        id=promotion.id,
+        nombre=promotion.nombre,
+        precio_usd=promotion.precio_usd,
+        servicios=[
+            PromotionServiceRead(
+                service_id=item.service_catalog_id,
+                nombre=item.servicio.nombre,
+                area_key=item.servicio.area_key,
+                precio_usd=item.precio_usd,
+            )
+            for item in promotion.servicios
+        ],
+    )
 
 
 @router.get("/areas", response_model=list[AreaRead])
@@ -37,20 +55,7 @@ async def list_services_grouped(db: DbSession) -> list[ServicesGrouped]:
 @router.get("/promotions", response_model=list[PromotionRead])
 async def list_promotions(db: DbSession) -> list[PromotionRead]:
     return [
-        PromotionRead(
-            id=promotion.id,
-            nombre=promotion.nombre,
-            precio_usd=promotion.precio_usd,
-            servicios=[
-                PromotionServiceRead(
-                    service_id=item.service_catalog_id,
-                    nombre=item.servicio.nombre,
-                    area_key=item.servicio.area_key,
-                    precio_usd=item.precio_usd,
-                )
-                for item in promotion.servicios
-            ],
-        )
+        _promotion_read(promotion)
         for promotion in await services_service.list_promotions(db)
     ]
 
@@ -67,20 +72,23 @@ async def create_promotion(
     data: PromotionCreate, db: DbSession, admin: AdminUser
 ) -> PromotionRead:
     promotion = await services_service.create_promotion(db, data)
-    return PromotionRead(
-        id=promotion.id,
-        nombre=promotion.nombre,
-        precio_usd=promotion.precio_usd,
-        servicios=[
-            PromotionServiceRead(
-                service_id=item.service_catalog_id,
-                nombre=item.servicio.nombre,
-                area_key=item.servicio.area_key,
-                precio_usd=item.precio_usd,
-            )
-            for item in promotion.servicios
-        ],
+    return _promotion_read(promotion)
+
+
+@router.patch("/promotions/{promotion_id}", response_model=PromotionRead)
+async def update_promotion(
+    promotion_id: int, data: PromotionUpdate, db: DbSession, admin: AdminUser
+) -> PromotionRead:
+    return _promotion_read(
+        await services_service.update_promotion(db, promotion_id, data)
     )
+
+
+@router.delete("/promotions/{promotion_id}", status_code=204)
+async def archive_promotion(
+    promotion_id: int, db: DbSession, admin: AdminUser
+) -> None:
+    await services_service.archive_promotion(db, promotion_id)
 
 
 @router.patch("/{service_id}", response_model=ServiceRead)

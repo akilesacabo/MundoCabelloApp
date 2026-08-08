@@ -6,7 +6,12 @@ from sqlalchemy.orm import selectinload
 
 from src.exceptions import BadRequest, NotFound
 from src.services.models import Area, Promocion, PromocionServicio, ServiceCatalog
-from src.services.schemas import PromotionCreate, ServiceCreate, ServiceUpdate
+from src.services.schemas import (
+    PromotionCreate,
+    PromotionUpdate,
+    ServiceCreate,
+    ServiceUpdate,
+)
 
 
 async def list_areas(db: AsyncSession) -> list[Area]:
@@ -49,6 +54,7 @@ async def get_many_or_404(db: AsyncSession, ids: list[int]) -> list[ServiceCatal
 async def list_promotions(db: AsyncSession) -> list[Promocion]:
     result = await db.execute(
         select(Promocion)
+        .where(Promocion.activo.is_(True))
         .options(selectinload(Promocion.servicios).selectinload(PromocionServicio.servicio))
         .order_by(Promocion.nombre)
     )
@@ -62,7 +68,7 @@ async def get_promotion_components_or_404(
         return []
     result = await db.execute(
         select(Promocion)
-        .where(Promocion.id.in_(ids))
+        .where(Promocion.id.in_(ids), Promocion.activo.is_(True))
         .options(selectinload(Promocion.servicios).selectinload(PromocionServicio.servicio))
     )
     promotions = list(result.scalars().unique().all())
@@ -114,6 +120,45 @@ async def create_promotion(db: AsyncSession, data: PromotionCreate) -> Promocion
         .options(selectinload(Promocion.servicios).selectinload(PromocionServicio.servicio))
     )
     return result.scalar_one()
+
+
+async def _promotion_or_404(db: AsyncSession, promotion_id: int) -> Promocion:
+    result = await db.execute(
+        select(Promocion)
+        .where(Promocion.id == promotion_id, Promocion.activo.is_(True))
+        .options(selectinload(Promocion.servicios).selectinload(PromocionServicio.servicio))
+    )
+    promotion = result.scalar_one_or_none()
+    if promotion is None:
+        raise NotFound(f"promoción {promotion_id} no existe o está archivada")
+    return promotion
+
+
+async def update_promotion(
+    db: AsyncSession, promotion_id: int, data: PromotionUpdate
+) -> Promocion:
+    promotion = await _promotion_or_404(db, promotion_id)
+    service_ids = [item.service_id for item in data.servicios]
+    if len(set(service_ids)) != len(service_ids):
+        raise BadRequest("no se puede repetir un servicio dentro de la promoción")
+    await get_many_or_404(db, service_ids)
+    promotion.nombre = data.nombre.strip().upper()
+    promotion.precio_usd = sum((item.precio_usd for item in data.servicios), start=0)
+    promotion.servicios[:] = [
+        PromocionServicio(
+            service_catalog_id=item.service_id,
+            precio_usd=item.precio_usd,
+        )
+        for item in data.servicios
+    ]
+    await db.commit()
+    return await _promotion_or_404(db, promotion_id)
+
+
+async def archive_promotion(db: AsyncSession, promotion_id: int) -> None:
+    promotion = await _promotion_or_404(db, promotion_id)
+    promotion.activo = False
+    await db.commit()
 
 
 async def update_service(

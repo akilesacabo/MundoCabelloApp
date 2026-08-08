@@ -3,7 +3,7 @@ from __future__ import annotations
 from datetime import datetime
 from decimal import Decimal
 
-from sqlalchemy import ForeignKey, Numeric, String, func
+from sqlalchemy import Boolean, ForeignKey, Numeric, String, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from src.models import Base
@@ -43,6 +43,7 @@ class Promocion(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     nombre: Mapped[str] = mapped_column(String(128), unique=True, index=True)
     precio_usd: Mapped[Decimal] = mapped_column(Numeric(10, 2))
+    activo: Mapped[bool] = mapped_column(Boolean, default=True, index=True)
     created_at: Mapped[datetime] = mapped_column(server_default=func.now())
 
     servicios: Mapped[list[PromocionServicio]] = relationship(
