@@ -329,6 +329,7 @@ body.modern-page { min-height:100vh;background:radial-gradient(circle at 92% 2%,
 .checkin-review>span,.checkin-review>small { color:#817981 }
 .active-turn-notice { margin:12px 0;padding:11px 13px;border-left:4px solid #dc6fa8;border-radius:10px;color:#703453;background:#fff0f7;font-size:.78rem }
 .checkin-success { display:grid;justify-items:center;gap:11px;text-align:center;padding:42px 28px }
+.checkin-success[hidden] { display:none!important }
 .success-mark { display:grid;place-items:center;width:68px;height:68px;border-radius:22px;color:#fff;background:linear-gradient(135deg,#b64a82,#dc6fa8);box-shadow:0 14px 34px #dc6fa83b;font-size:2rem;font-weight:800 }
 .checkin-success h2 { margin:4px 0 0 }.checkin-success p { max-width:560px;margin:0 }
 .success-actions { display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin-top:10px }

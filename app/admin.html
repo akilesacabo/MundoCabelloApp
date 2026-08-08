@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
   <meta charset="utf-8"><meta name="viewport" content="width=device-width">
-  <title>Panel operativo · Administración</title><link rel="stylesheet" href="styles.css?v=20260808">
+  <title>Panel operativo · Administración</title><link rel="stylesheet" href="styles.css?v=20260809">
 </head>
 <body class="admin-dashboard-body top-nav-page">
   <aside class="dashboard-sidebar">
@@ -37,7 +37,7 @@
   <div id="detailsModal" class="modal-backdrop" hidden><section class="edit-modal" role="dialog" aria-modal="true" aria-labelledby="detailsTitle"><div class="modal-heading"><div><span class="section-kicker">DATOS DE LA VISITA</span><h2 id="detailsTitle">Etiquetas y observación</h2></div><button class="close-button" type="button" onclick="closeDetails()" aria-label="Cerrar">×</button></div><form id="detailsForm"><input id="detailsClientId" type="hidden"><div id="detailsTags" class="tag-picker"></div><label>Observación<textarea id="detailsObservation" maxlength="1000" rows="4"></textarea></label><div class="modal-actions"><button type="button" class="secondary" onclick="closeDetails()">Cancelar</button><button type="submit" class="pink-button">Guardar cambios</button></div></form></section></div>
   <div id="addServicesModal" class="modal-backdrop" hidden><section class="edit-modal" role="dialog" aria-modal="true" aria-labelledby="addServicesTitle"><div class="modal-heading"><div><span class="section-kicker">SERVICIOS DEL TURNO</span><h2 id="addServicesTitle">Agregar servicios</h2><p id="addServicesClient" class="muted"></p></div><button class="close-button" type="button" onclick="closeAddServices()" aria-label="Cerrar">×</button></div><input id="addServiceSearch" type="search" placeholder="Buscar servicio"><div id="addServiceGroups" class="service-groups compact-service-groups"></div><p id="addServicesMessage" class="field-message" aria-live="polite"></p><div class="modal-actions"><button type="button" class="secondary" onclick="closeAddServices()">Cancelar</button><button type="button" class="pink-button" onclick="saveAddedServices()">Agregar al turno</button></div></section></div>
   <div id="editServiceModal" class="modal-backdrop" hidden><section class="edit-modal" role="dialog" aria-modal="true" aria-labelledby="editServiceTitle"><div class="modal-heading"><div><span class="section-kicker">EDITAR SERVICIO</span><h2 id="editServiceTitle">Reemplazar servicio</h2><p id="editServiceClient" class="muted"></p></div><button class="close-button" type="button" onclick="closeEditService()" aria-label="Cerrar">×</button></div><input id="editServiceSearch" type="search" placeholder="Buscar servicio"><div id="editServiceGroups" class="service-groups compact-service-groups"></div><p id="editServiceMessage" class="field-message" aria-live="polite"></p><div class="modal-actions"><button type="button" class="secondary" onclick="closeEditService()">Cancelar</button><button type="button" class="pink-button" onclick="saveEditedService()">Guardar servicio</button></div></section></div>
-  <script src="api.js?v=20260807"></script>
+  <script src="api.js?v=20260808"></script>
   <script>
     const statusLabels={disponible:'Disponible',ocupado:'Ocupado',break:'En pausa',almorzando:'Almorzando'};
     const situationLabels={presente:'Presente',ausente:'Ausente',estafa:'Estafa'};

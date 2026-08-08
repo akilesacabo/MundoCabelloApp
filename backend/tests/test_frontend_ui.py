@@ -86,6 +86,8 @@ def test_protected_pages_redirect_missing_session_to_login():
     assert "function requirePageRole()" in api_js
     assert "loginRequired()" in api_js
     assert "r.status===401" in api_js
+    assert "function apiErrorMessage(detail)" in api_js
+    assert "string_too_short" in api_js
 
 
 def test_checkin_is_three_steps_with_live_client_search_and_submit_lock():
@@ -104,6 +106,7 @@ def test_checkin_is_three_steps_with_live_client_search_and_submit_lock():
     assert "goToStep(2)" in html
     assert "Registrar otra persona" in html
     assert 'id="checkinSuccess"' in html
+    assert ".checkin-success[hidden]" in (APP_DIR / "styles.css").read_text()
 
 
 def test_admin_has_separate_assignment_team_and_client_database_screens():

@@ -9,7 +9,18 @@ const API = (() => {
 const token=()=>localStorage.getItem('peluq_token');
 function clearSession(){localStorage.removeItem('peluq_token');localStorage.removeItem('peluq_role')}
 function loginRequired(){clearSession();location.replace('login.html')}
-async function api(path,options={}){const headers={'Content-Type':'application/json',...(options.headers||{})};if(token())headers.Authorization=`Bearer ${token()}`;const r=await fetch(API+path,{...options,headers});if(r.status===401){loginRequired();throw new Error('Sesión vencida. Redirigiendo al inicio de sesión.')}if(!r.ok){let e=await r.json().catch(()=>({detail:r.statusText}));throw new Error(typeof e.detail==='string'?e.detail:JSON.stringify(e.detail))}return r.status===204?null:r.json()}
+function apiErrorMessage(detail){
+  if(typeof detail==='string')return detail;
+  if(Array.isArray(detail))return detail.map(issue=>{
+    const field={cedula:'La cédula',nombre:'El nombre',telefono:'El teléfono',direccion:'La dirección'}[issue.loc?.at(-1)]||'Este campo';
+    if(issue.type==='string_too_short')return `${field} debe tener al menos ${issue.ctx?.min_length} caracteres.`;
+    if(issue.type==='missing')return `${field} es obligatorio.`;
+    if(issue.type==='string_pattern_mismatch')return `${field} tiene un formato inválido.`;
+    return `${field}: ${issue.msg}`;
+  }).join(' ');
+  return 'No fue posible completar la solicitud.';
+}
+async function api(path,options={}){const headers={'Content-Type':'application/json',...(options.headers||{})};if(token())headers.Authorization=`Bearer ${token()}`;const r=await fetch(API+path,{...options,headers});if(r.status===401){loginRequired();throw new Error('Sesión vencida. Redirigiendo al inicio de sesión.')}if(!r.ok){let e=await r.json().catch(()=>({detail:r.statusText}));throw new Error(apiErrorMessage(e.detail))}return r.status===204?null:r.json()}
 function sessionRole(){
   const stored=localStorage.getItem('peluq_role');
   if(stored)return stored;
