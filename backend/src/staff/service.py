@@ -5,7 +5,7 @@ tiene prioridad y mantiene el estado efectivo OCUPADO.
 """
 from __future__ import annotations
 
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -21,7 +21,7 @@ from src.staff.schemas import (
     StaffUpdate,
 )
 from src.turnos.constants import ServicioEstado
-from src.turnos.models import Cliente, TurnoServicio
+from src.turnos.models import Cliente, ClientePreseleccion, TurnoServicio
 
 
 async def _active_by_staff(db: AsyncSession) -> dict[int, list[StaffActivo]]:
@@ -51,7 +51,9 @@ async def _active_by_staff(db: AsyncSession) -> dict[int, list[StaffActivo]]:
     return active
 
 
-def _to_read(s: Staff, active: dict[int, list[StaffActivo]]) -> StaffRead:
+def _to_read(
+    s: Staff, active: dict[int, list[StaffActivo]], preselection_counts: dict[int, int]
+) -> StaffRead:
     activos = active.get(s.numero, [])
     atendiendo = any(item.estado == ServicioEstado.EN_ATENCION for item in activos)
     status = EffectiveStatus.OCUPADO if atendiendo else EffectiveStatus(s.manual_status)
@@ -66,7 +68,18 @@ def _to_read(s: Staff, active: dict[int, list[StaffActivo]]) -> StaffRead:
         en_prueba=s.en_prueba,
         status=status,
         activos=activos,
+        preseleccion_count=preselection_counts.get(s.numero, 0),
     )
+
+
+async def _preselection_counts(db: AsyncSession) -> dict[int, int]:
+    result = await db.execute(
+        select(ClientePreseleccion.staff_numero, func.count(ClientePreseleccion.id))
+        .join(Cliente, Cliente.id == ClientePreseleccion.cliente_id)
+        .where(Cliente.activo.is_(True))
+        .group_by(ClientePreseleccion.staff_numero)
+    )
+    return {numero: count for numero, count in result.all()}
 
 
 async def get_or_404(db: AsyncSession, numero: int) -> Staff:
@@ -91,7 +104,8 @@ async def list_staff(
         all_staff = [s for s in all_staff if any(a.key == area for a in s.areas)]
 
     active = await _active_by_staff(db)
-    reads = [_to_read(s, active) for s in all_staff]
+    preselection_counts = await _preselection_counts(db)
+    reads = [_to_read(s, active, preselection_counts) for s in all_staff]
     if status is not None:
         reads = [r for r in reads if r.status == status]
     return reads
@@ -105,7 +119,7 @@ async def set_manual_status(
     await db.commit()
     await db.refresh(st)
     active = await _active_by_staff(db)
-    return _to_read(st, active)
+    return _to_read(st, active, await _preselection_counts(db))
 
 
 async def toggle_en_prueba(db: AsyncSession, numero: int) -> StaffRead:
@@ -114,13 +128,13 @@ async def toggle_en_prueba(db: AsyncSession, numero: int) -> StaffRead:
     await db.commit()
     await db.refresh(st)
     active = await _active_by_staff(db)
-    return _to_read(st, active)
+    return _to_read(st, active, await _preselection_counts(db))
 
 
 async def get_read_or_404(db: AsyncSession, numero: int) -> StaffRead:
     st = await get_or_404(db, numero)
     active = await _active_by_staff(db)
-    return _to_read(st, active)
+    return _to_read(st, active, await _preselection_counts(db))
 
 
 async def eligible_for(db: AsyncSession, area: str) -> list[StaffRead]:

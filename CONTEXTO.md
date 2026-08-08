@@ -1,7 +1,7 @@
 # CONTEXTO — El Mundo del Cabello (peluq-project)
 
 > Documento de handoff para retomar el proyecto en una sesión nueva.
-> Última actualización: 2026-08-07.
+> Última actualización: 2026-08-08.
 
 > Actualización operativa 2026-08-07: se inició la entrega por pantallas. La pantalla
 > **Check-in** incorpora preferencias de hasta tres estilistas y “Otro”, sugerencia
@@ -14,6 +14,10 @@
 > Ajuste posterior: una especialista ocupada no requiere confirmación al recibir otro
 > servicio de la misma cliente; el check-in resalta visualmente sus preselecciones y
 > también invalida la caché de estilos.
+> Pantalla **Estado del equipo**: Head Spa ya es un área separada; sus responsables son
+> Dailin (#47), Franyeli (#48), Solmar (#49) y Evelin (#50). El equipo muestra el
+> conteo de preselecciones activas, permite filtrar por área y usa buscador de ancho completo.
+> Migración aplicada localmente: `20260808_head_spa_team`.
 
 ---
 

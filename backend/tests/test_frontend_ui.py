@@ -117,6 +117,9 @@ def test_admin_has_separate_assignment_team_and_client_database_screens():
 
     assert "assignment-only" in assignment
     assert "/manual-status" in team
+    assert 'id="areaFilter"' in team
+    assert "preseleccion_count" in team
+    assert "Head Spa" in team
     assert "/queue/clients" in clients
     assert "/queue/clients/${profileId}" in clients
     assert 'id="clientModal"' in clients

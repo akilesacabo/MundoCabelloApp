@@ -858,6 +858,11 @@ async def test_assignment_screen_controls_preferences_services_and_solo_unas(api
     assert body["preseleccion_staff_numeros"] == [1, 2]
     assert body["acepta_otro_estilista"] is True
 
+    staff = await ac.get("/api/staff")
+    preference_counts = {item["numero"]: item["preseleccion_count"] for item in staff.json()}
+    assert preference_counts[1] == 1
+    assert preference_counts[2] == 1
+
     preferences = await ac.patch(
         f"/api/queue/{body['id']}/staff-preferences",
         json={"staff_numeros": [1, 2], "acepta_otro_estilista": True},

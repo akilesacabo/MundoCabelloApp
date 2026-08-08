@@ -153,6 +153,9 @@ Todos requieren rol `admin`:
   `/historial`.
 - `PATCH /staff/{numero}/manual-status`: `disponible`, `ocupado`, `break` o
   `almorzando`.
+- `GET /staff`: cada especialista incluye `preseleccion_count`, el número de clientas
+  con una visita activa que la preseleccionaron. También expone las áreas, por ejemplo
+  `head_spa`, y su carga activa para permitir varias atenciones en paralelo.
 - `POST /staff` y `PATCH /staff/{numero}`.
 - `POST /services` y `PATCH /services/{id}`.
 

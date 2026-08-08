@@ -89,11 +89,14 @@ async def upsert_services(db: AsyncSession, data: dict) -> int:
         (s.nombre, s.area_key): s
         for s in (await db.execute(select(ServiceCatalog))).scalars().all()
     }
+    existing_by_name = {
+        service.nombre: service for service in existing.values()
+    }
     added = 0
     for sv in data["servicios"]:
         key = (sv["nombre"], sv["area"])
         precio = Decimal(str(sv["precio_usd"]))
-        cur = existing.get(key)
+        cur = existing.get(key) or existing_by_name.get(sv["nombre"])
         if cur is None:
             db.add(
                 ServiceCatalog(
@@ -102,6 +105,7 @@ async def upsert_services(db: AsyncSession, data: dict) -> int:
             )
             added += 1
         else:
+            cur.area_key = sv["area"]
             cur.precio_usd = precio
     await db.commit()
     return added

@@ -338,6 +338,7 @@ body.modern-page { min-height:100vh;background:radial-gradient(circle at 92% 2%,
 .tag-actions .tag { margin:0 }
 .status-select { width:auto!important;min-width:112px;min-height:44px;padding:7px 28px 7px 9px!important;border-radius:99px!important;font-size:.68rem;font-weight:700 }
 .team-status-list { display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px }
+.team-filter-bar .search-field { flex:1 1 560px;max-width:none }.preselection-count { display:block;margin-top:5px;color:#93486e;font-size:.67rem;font-weight:750 }
 .team-status-card { padding:16px }
 .team-status-card .staff-status-head { display:flex;align-items:center;gap:11px }
 .team-status-card .staff-status-head .staff-copy { flex:1 }

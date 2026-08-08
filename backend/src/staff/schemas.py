@@ -27,6 +27,7 @@ class StaffRead(BaseModel):
     # Campos derivados (los llena el service layer):
     status: EffectiveStatus
     activos: list[StaffActivo] = Field(default_factory=list)
+    preseleccion_count: int = 0
 
 
 class ManualStatusUpdate(BaseModel):

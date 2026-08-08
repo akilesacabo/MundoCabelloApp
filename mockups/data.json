@@ -458,7 +458,8 @@
       "cedula": "V-32.191.271",
       "initials": "DG",
       "areas": [
-        "peluqueria"
+        "peluqueria",
+        "head_spa"
       ]
     },
     {
@@ -469,17 +470,19 @@
       "initials": "FM",
       "areas": [
         "hidratacion",
-        "peluqueria"
+        "peluqueria",
+        "head_spa"
       ]
     },
     {
       "numero": 49,
       "alias": "Solmar",
-      "nombre": "Solmar",
-      "cedula": "",
-      "initials": "S",
+      "nombre": "Solmar Betania Gavidia Orellana",
+      "cedula": "V-23.640.695",
+      "initials": "SB",
       "areas": [
-        "peluqueria"
+        "peluqueria",
+        "head_spa"
       ]
     },
     {
@@ -489,7 +492,8 @@
       "cedula": "V-32.061.674",
       "initials": "EY",
       "areas": [
-        "peluqueria"
+        "peluqueria",
+        "head_spa"
       ]
     },
     {
@@ -1488,17 +1492,17 @@
     {
       "nombre": "HEAD SPA KUNDAL",
       "precio_usd": 25,
-      "area": "hidratacion"
+      "area": "head_spa"
     },
     {
       "nombre": "HEAD SPA TOCTUS",
       "precio_usd": 30,
-      "area": "hidratacion"
+      "area": "head_spa"
     },
     {
       "nombre": "HEAD SPA KOREAN",
       "precio_usd": 35,
-      "area": "hidratacion"
+      "area": "head_spa"
     },
     {
       "nombre": "QUIROPEDIA",
@@ -1576,6 +1580,11 @@
       "key": "hidratacion",
       "name": "Hidratación",
       "color": "#a3defe"
+    },
+    {
+      "key": "head_spa",
+      "name": "Head Spa",
+      "color": "#b9a5e5"
     },
     {
       "key": "manicure",

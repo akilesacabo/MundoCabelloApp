@@ -6,6 +6,7 @@ from enum import StrEnum
 class AreaKey(StrEnum):
     PELUQUERIA = "peluqueria"
     HIDRATACION = "hidratacion"
+    HEAD_SPA = "head_spa"
     MANICURE = "manicure"
     CEJAS = "cejas"
     MAQUILLAJE = "maquillaje"
