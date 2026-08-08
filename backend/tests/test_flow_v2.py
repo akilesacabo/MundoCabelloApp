@@ -221,6 +221,26 @@ async def test_assign_and_finish_flow(api):
     assert r.json()["status"] == "disponible"
 
 
+async def test_assigning_same_client_does_not_require_busy_confirmation(api):
+    ac = api["ac"]
+    client = await _checkin(ac, api)
+    first, second = client["servicios"]
+
+    first_assignment = await ac.post(
+        f"/api/queue/{client['id']}/services/{first['id']}/assign",
+        json={"staff_numero": 1},
+        headers=api["admin_headers"],
+    )
+    assert first_assignment.status_code == 200
+
+    second_assignment = await ac.post(
+        f"/api/queue/{client['id']}/services/{second['id']}/assign",
+        json={"staff_numero": 1},
+        headers=api["admin_headers"],
+    )
+    assert second_assignment.status_code == 200
+
+
 async def test_change_specialist_requires_admin_role_but_not_pin(api):
     ac = api["ac"]
     cli = await _checkin(ac, api)

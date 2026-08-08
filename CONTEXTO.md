@@ -11,6 +11,9 @@
 > En la misma entrega se añadió la redirección al login para pantallas protegidas sin
 > sesión y la invalidación de caché de `api.js` para que la protección llegue a los
 > equipos que ya habían abierto el sistema.
+> Ajuste posterior: una especialista ocupada no requiere confirmación al recibir otro
+> servicio de la misma cliente; el check-in resalta visualmente sus preselecciones y
+> también invalida la caché de estilos.
 
 ---
 

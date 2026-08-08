@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
   <meta charset="utf-8"><meta name="viewport" content="width=device-width">
-  <title>Panel operativo · Administración</title><link rel="stylesheet" href="styles.css?v=20260729">
+  <title>Panel operativo · Administración</title><link rel="stylesheet" href="styles.css?v=20260808">
 </head>
 <body class="admin-dashboard-body top-nav-page">
   <aside class="dashboard-sidebar">
@@ -60,7 +60,8 @@
       const input=document.getElementById(`staff-${serviceId}`);const feedback=document.getElementById(`feedback-${serviceId}`);
       if(!input.dataset.staffNumber){feedback.textContent='Selecciona un especialista disponible de la lista.';return}
       const person=staffByNumber(+input.dataset.staffNumber);let confirmar_ocupado=false;
-      if(person?.status==='ocupado'){const carga=person.activos?.length?` Está atendiendo: ${person.activos.map(item=>`#${item.turno} ${item.cliente}`).join(', ')}.`:'';if(!confirm(`${person.alias} está ocupada.${carga} ¿Deseas asignarle este servicio de todas formas?`)){feedback.textContent='Asignación cancelada.';return}confirmar_ocupado=true}
+      const atendiendoEsteCliente=person?.activos?.some(item=>item.estado==='en_atencion'&&item.cliente_id===clientId);const atendiendoOtroCliente=person?.activos?.some(item=>item.estado==='en_atencion'&&item.cliente_id!==clientId);const requiereConfirmacion=person?.status==='ocupado'&&(atendiendoOtroCliente||!atendiendoEsteCliente);
+      if(requiereConfirmacion){const carga=person.activos?.length?` Está atendiendo: ${person.activos.map(item=>`#${item.turno} ${item.cliente}`).join(', ')}.`:'';if(!confirm(`${person.alias} está ocupada.${carga} ¿Deseas asignarle este servicio de todas formas?`)){feedback.textContent='Asignación cancelada.';return}confirmar_ocupado=true}
       feedback.textContent='Asignando…';
       try{await api(`/queue/${clientId}/services/${serviceId}/assign`,{method:'POST',body:JSON.stringify({staff_numero:+input.dataset.staffNumber,confirmar_ocupado})});await load()}catch(error){feedback.textContent=error.message}
     }

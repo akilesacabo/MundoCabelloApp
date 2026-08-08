@@ -688,6 +688,7 @@ async def _validate_staff_for_area(
     area_key: str,
     *,
     confirmar_ocupado: bool = False,
+    cliente_id: int | None = None,
 ) -> Staff:
     st = await staff_service.get_or_404(db, staff_numero)
     effective = await staff_service.get_read_or_404(db, staff_numero)
@@ -699,7 +700,18 @@ async def _validate_staff_for_area(
         raise BadRequest(
             f"el especialista {st.alias} no está disponible para nuevas asignaciones"
         )
-    if effective.status == EffectiveStatus.OCUPADO and not confirmar_ocupado:
+    atendiendo_este_cliente = any(
+        item.estado == ServicioEstado.EN_ATENCION and item.cliente_id == cliente_id
+        for item in effective.activos
+    )
+    atendiendo_otro_cliente = any(
+        item.estado == ServicioEstado.EN_ATENCION and item.cliente_id != cliente_id
+        for item in effective.activos
+    )
+    requiere_confirmacion = effective.status == EffectiveStatus.OCUPADO and (
+        atendiendo_otro_cliente or not atendiendo_este_cliente
+    )
+    if requiere_confirmacion and not confirmar_ocupado:
         carga = ", ".join(f"#{item.turno} · {item.cliente}" for item in effective.activos)
         detalle = f"el especialista {st.alias} está ocupado"
         if carga:
@@ -723,6 +735,7 @@ async def assign_service(
         payload.staff_numero,
         sv.area_key,
         confirmar_ocupado=payload.confirmar_ocupado,
+        cliente_id=cliente_id,
     )
     actor = _actor_fields(assigned_by)
     sv.staff_numero = payload.staff_numero

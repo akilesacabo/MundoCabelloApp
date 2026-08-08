@@ -128,7 +128,8 @@ Todos requieren rol `admin`:
 - `POST /queue/{cliente_id}/services/assign-many`.
 - `POST /queue/{cliente_id}/services/{servicio_id}/assign` acepta opcionalmente
   `{ "confirmar_ocupado": true }`. Si la especialista está ocupada, sin esa
-  confirmación responde `409`; `break` y `almorzando` siempre permanecen bloqueados.
+  confirmación responde `409`. No se solicita confirmación si la especialista ya atiende
+  otro servicio de la misma cliente; `break` y `almorzando` siempre permanecen bloqueados.
 - `POST /queue/{cliente_id}/services/{servicio_id}/finish`: finaliza un servicio en
   atención y lo registra en historial.
 - `PATCH /queue/{cliente_id}/services/{servicio_id}` con

@@ -76,6 +76,7 @@ def test_checkin_uses_searchable_checkbox_picker_instead_of_native_multiselect()
     assert 'id="preferenceSearch"' in html
     assert 'id="preferenceStaffList"' in html
     assert "staff_numeros_preseleccion:preferenceSelection" in html
+    assert "staff-preferences-picker" in html
     assert "multiple" not in html
 
 
