@@ -230,12 +230,40 @@ async def _apply_staff_preferences(
     cliente.acepta_otro_estilista = acepta_otro_estilista
 
 
+async def _services_for_checkin(
+    db: AsyncSession, payload: CheckInRequest
+) -> list[TurnoServicio]:
+    catalog = await services_service.get_many_or_404(db, payload.service_ids)
+    selected = [
+        TurnoServicio(
+            area_key=service.area_key,
+            nombre=service.nombre,
+            precio_usd=service.precio_usd,
+            estado=ServicioEstado.PENDIENTE,
+        )
+        for service in catalog
+    ]
+    for promotion in await services_service.get_promotion_components_or_404(
+        db, payload.promotion_ids
+    ):
+        selected.extend(
+            TurnoServicio(
+                area_key=item.servicio.area_key,
+                nombre=item.servicio.nombre,
+                precio_usd=item.precio_usd,
+                estado=ServicioEstado.PENDIENTE,
+            )
+            for item in promotion.servicios
+        )
+    return selected
+
+
 async def check_in(
     db: AsyncSession, payload: CheckInRequest, registered_by: AuthUser | None = None
 ) -> ClienteRead:
     cedula = normalize_cedula(payload.cedula)
     active = await _active_for_cedula(db, cedula)
-    catalog = await services_service.get_many_or_404(db, payload.service_ids)
+    services = await _services_for_checkin(db, payload)
     if active is not None:
         if payload.active_turno_id != active.id:
             raise Conflict(
@@ -243,15 +271,7 @@ async def check_in(
                 "Selecciónalo en la búsqueda para agregar los servicios a esa visita."
             )
         active = await _load_cliente(db, active.id)
-        active.servicios.extend(
-            TurnoServicio(
-                area_key=service.area_key,
-                nombre=service.nombre,
-                precio_usd=service.precio_usd,
-                estado=ServicioEstado.PENDIENTE,
-            )
-            for service in catalog
-        )
+        active.servicios.extend(services)
         if payload.observacion.strip():
             active.observacion = payload.observacion.strip()
         merged_tags = {tag.codigo for tag in active.etiquetas}
@@ -292,15 +312,7 @@ async def check_in(
             for numero in payload.staff_numeros_preseleccion
         ],
         acepta_otro_estilista=payload.acepta_otro_estilista,
-        servicios=[
-            TurnoServicio(
-                area_key=s.area_key,
-                nombre=s.nombre,
-                precio_usd=s.precio_usd,
-                estado=ServicioEstado.PENDIENTE,
-            )
-            for s in catalog
-        ],
+        servicios=services,
     )
     db.add(cliente)
     # Validamos aquí las preferencias de un turno nuevo antes de guardar.

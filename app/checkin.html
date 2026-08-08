@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width">
   <title>Nuevo check-in · Mundo del Cabello</title>
-  <link rel="stylesheet" href="styles.css?v=20260811">
+  <link rel="stylesheet" href="styles.css?v=20260812">
 </head>
 <body class="modern-page top-nav-page">
   <div class="app-shell">
@@ -101,8 +101,9 @@
   <script src="api.js?v=20260808"></script>
   <script>
     const TAGS={INT:'Interno',F:'Cabello fuerte',CORTO:'Cabello corto',LAVADO:'Cabello limpio',AC:'Asesoría de color',TC:'Trabajo de color',XL:'Cabello largo',CM:'Cabello maltratado',DC:'Diseño de corte'};
-    let serviceCatalog=[],staffDirectory=[],currentStep=1,lookupTimer,submitting=false,selectedProfile=null,preferenceSelection=[];
+    let serviceCatalog=[],promotions=[],staffDirectory=[],currentStep=1,lookupTimer,submitting=false,selectedProfile=null,preferenceSelection=[];
     const selectedIds=new Set();
+    const selectedPromotionIds=new Set();
     const normalize=value=>String(value).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
     const escapeHtml=value=>String(value).replace(/[&<>'"]/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[char]));
 
@@ -110,7 +111,7 @@
 
     function goToStep(step){
       if(step===2&&!validateClient())return;
-      if(step===3&&!selectedIds.size){serviceError.classList.remove('hidden');serviceSearch.focus();return}
+      if(step===3&&!selectedIds.size&&!selectedPromotionIds.size){serviceError.classList.remove('hidden');serviceSearch.focus();return}
       currentStep=step;
       document.querySelectorAll('.wizard-step').forEach(panel=>{const active=+panel.dataset.step===step;panel.hidden=!active;panel.classList.toggle('active',active)});
       document.querySelectorAll('[data-step-indicator]').forEach(item=>{const value=+item.dataset.stepIndicator;item.classList.toggle('active',value===step);item.classList.toggle('complete',value<step)});
@@ -125,15 +126,18 @@
 
     function renderReview(){
       const selected=serviceCatalog.flatMap(group=>group.servicios).filter(service=>selectedIds.has(service.id));
+      const selectedPromotions=promotions.filter(promotion=>selectedPromotionIds.has(promotion.id));
       const tags=[...document.querySelectorAll('[name="etiquetas"]:checked')].map(input=>input.value);
       const selectedStaff=staffDirectory.filter(person=>preferenceSelection.includes(person.numero)).map(person=>person.alias);
       const preferences=selectedStaff.length?`Preferencias: ${selectedStaff.join(', ')}${acceptOther.checked?' · Acepta otra estilista':''}`:acceptOther.checked?'Acepta otra estilista':'Sin preferencias de estilista';
-      checkinSummary.innerHTML=`<b>Resumen del turno</b><span>${escapeHtml(nombre.value)} · ${selected.length} servicio${selected.length===1?'':'s'}</span><div>${selected.map(service=>`<span class="tag">${escapeHtml(service.nombre)}</span>`).join('')}</div><small>${tags.length?`Etiquetas: ${tags.join(', ')}`:'Sin etiquetas'} · ${escapeHtml(preferences)}</small>`;
+      const totalItems=selected.length+selectedPromotions.length;
+      checkinSummary.innerHTML=`<b>Resumen del turno</b><span>${escapeHtml(nombre.value)} · ${totalItems} selección${totalItems===1?'':'es'}</span><div>${selected.map(service=>`<span class="tag">${escapeHtml(service.nombre)}</span>`).join('')}${selectedPromotions.map(promotion=>`<span class="tag">Promo: ${escapeHtml(promotion.nombre)}</span>`).join('')}</div><small>${tags.length?`Etiquetas: ${tags.join(', ')}`:'Sin etiquetas'} · ${escapeHtml(preferences)}</small>`;
     }
 
     async function loadServices(){
-      const groups=await api('/services');
+      const [groups,promotionRows]=await Promise.all([api('/services'),api('/services/promotions')]);
       serviceCatalog=groups.map(group=>({area_key:group.area.key,servicios:group.servicios}));
+      promotions=promotionRows;
       renderServices();
     }
 
@@ -156,17 +160,22 @@
     function renderServices(){
       const term=normalize(serviceSearch.value);
       const groups=serviceCatalog.map(group=>({...group,servicios:group.servicios.filter(service=>normalize(service.nombre).includes(term))})).filter(group=>group.servicios.length);
-      serviceGroups.innerHTML=groups.length?groups.map(group=>`<section class="service-group"><h3>${escapeHtml(group.area_key)}</h3>${group.servicios.map(service=>`<label class="service-option"><input type="checkbox" value="${service.id}" ${selectedIds.has(service.id)?'checked':''}><span><span>${escapeHtml(service.nombre)}</span><b>$${service.precio_usd}</b></span></label>`).join('')}</section>`).join(''):'<p class="muted">No se encontraron servicios.</p>';
-      serviceGroups.querySelectorAll('input[type="checkbox"]').forEach(input=>input.onchange=()=>{const id=+input.value;input.checked?selectedIds.add(id):selectedIds.delete(id);updateSelection()});
+      const matchingPromotions=promotions.filter(promotion=>normalize(`${promotion.nombre} ${promotion.servicios.map(service=>service.nombre).join(' ')}`).includes(term));
+      const promotionsMarkup=matchingPromotions.length?`<section class="service-group promotion-group"><h3>Promociones</h3>${matchingPromotions.map(promotion=>`<label class="service-option"><input type="checkbox" data-promotion="true" value="${promotion.id}" ${selectedPromotionIds.has(promotion.id)?'checked':''}><span><span>${escapeHtml(promotion.nombre)} <small>Incluye: ${escapeHtml(promotion.servicios.map(service=>service.nombre).join(' · '))}</small></span><b>$${promotion.precio_usd}</b></span></label>`).join('')}</section>`:'';
+      const servicesMarkup=groups.map(group=>`<section class="service-group"><h3>${escapeHtml(group.area_key)}</h3>${group.servicios.map(service=>`<label class="service-option"><input type="checkbox" value="${service.id}" ${selectedIds.has(service.id)?'checked':''}><span><span>${escapeHtml(service.nombre)}</span><b>$${service.precio_usd}</b></span></label>`).join('')}</section>`).join('');
+      serviceGroups.innerHTML=promotionsMarkup||servicesMarkup?`${promotionsMarkup}${servicesMarkup}`:'<p class="muted">No se encontraron servicios o promociones.</p>';
+      serviceGroups.querySelectorAll('input[type="checkbox"]').forEach(input=>input.onchange=()=>{const id=+input.value;const set=input.dataset.promotion?selectedPromotionIds:selectedIds;input.checked?set.add(id):set.delete(id);updateSelection()});
       updateSelection();
     }
 
     function updateSelection(){
       const selected=serviceCatalog.flatMap(group=>group.servicios).filter(service=>selectedIds.has(service.id));
-      selectionCount.textContent=selected.length?`${selected.length} servicio${selected.length===1?'':'s'} seleccionado${selected.length===1?'':'s'}`:'Ningún servicio seleccionado';
-      clearServices.disabled=!selected.length;
-      selectedServices.innerHTML=selected.map(service=>`<span class="tag">${escapeHtml(service.nombre)}</span>`).join('');
-      serviceError.classList.toggle('hidden',selected.length>0);
+      const selectedPromotions=promotions.filter(promotion=>selectedPromotionIds.has(promotion.id));
+      const total=selected.length+selectedPromotions.length;
+      selectionCount.textContent=total?`${total} selección${total===1?'':'es'} realizada${total===1?'':'s'}`:'Ningún servicio o promoción seleccionado';
+      clearServices.disabled=!total;
+      selectedServices.innerHTML=`${selected.map(service=>`<span class="tag">${escapeHtml(service.nombre)}</span>`).join('')}${selectedPromotions.map(promotion=>`<span class="tag">Promo: ${escapeHtml(promotion.nombre)}</span>`).join('')}`;
+      serviceError.classList.toggle('hidden',total>0);
     }
 
     function selectProfile(profile){
@@ -197,10 +206,10 @@
     document.addEventListener('click',event=>{if(!event.target.closest('.autocomplete-field'))clientMatches.hidden=true});
     serviceSearch.oninput=renderServices;
     serviceSearch.onkeydown=event=>{if(event.key==='Enter'){event.preventDefault();renderServices();serviceGroups.querySelector('input')?.focus()}};
-    clearServices.onclick=()=>{selectedIds.clear();renderServices()};
+    clearServices.onclick=()=>{selectedIds.clear();selectedPromotionIds.clear();renderServices()};
 
     function resetCheckin(){
-      form.reset();selectedIds.clear();selectedProfile=null;preferenceSelection=[];activeTurnNotice.hidden=true;activeTurnNotice.textContent='';message.textContent='';clientMessage.textContent='';preferencesMessage.textContent='';renderServices();renderPreferenceStaff();
+      form.reset();selectedIds.clear();selectedPromotionIds.clear();selectedProfile=null;preferenceSelection=[];activeTurnNotice.hidden=true;activeTurnNotice.textContent='';message.textContent='';clientMessage.textContent='';preferencesMessage.textContent='';renderServices();renderPreferenceStaff();
       checkinSuccess.hidden=true;form.hidden=false;wizardProgress.hidden=false;goToStep(1);cedula.focus();
     }
 
@@ -209,7 +218,7 @@
       if(submitting)return;
       if(currentStep!==3){goToStep(currentStep+1);return}
       const data=new FormData(form);
-      const payload={cedula:data.get('cedula'),nombre:data.get('nombre'),telefono:data.get('telefono'),direccion:data.get('direccion'),observacion:data.get('observacion'),etiquetas:data.getAll('etiquetas'),service_ids:[...selectedIds],staff_numeros_preseleccion:preferenceSelection,acepta_otro_estilista:acceptOther.checked,active_turno_id:selectedProfile?.active_turno_id||null};
+      const payload={cedula:data.get('cedula'),nombre:data.get('nombre'),telefono:data.get('telefono'),direccion:data.get('direccion'),observacion:data.get('observacion'),etiquetas:data.getAll('etiquetas'),service_ids:[...selectedIds],promotion_ids:[...selectedPromotionIds],staff_numeros_preseleccion:preferenceSelection,acepta_otro_estilista:acceptOther.checked,active_turno_id:selectedProfile?.active_turno_id||null};
       submitting=true;submitButton.disabled=true;submitButton.textContent='Creando turno…';message.textContent='';
       try{
         const client=await api('/queue/checkin',{method:'POST',body:JSON.stringify(payload)});

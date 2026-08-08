@@ -1,7 +1,7 @@
 from datetime import datetime
 from decimal import Decimal
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from src.turnos.constants import EtiquetaCodigo, ServicioEstado, SituacionTurno, TurnoEstado
 
@@ -20,7 +20,8 @@ class CheckInRequest(BaseModel):
     direccion: str = Field(min_length=2, max_length=255)
     observacion: str = Field(default="", max_length=1000)
     etiquetas: list[EtiquetaCodigo] = Field(default_factory=list, max_length=9)
-    service_ids: list[int] = Field(min_length=1)
+    service_ids: list[int] = Field(default_factory=list)
+    promotion_ids: list[int] = Field(default_factory=list)
     staff_numeros_preseleccion: list[int] = Field(default_factory=list, max_length=3)
     acepta_otro_estilista: bool = False
     active_turno_id: int | None = Field(
@@ -31,6 +32,12 @@ class CheckInRequest(BaseModel):
             "los servicios se agregan a esa visita."
         ),
     )
+
+    @model_validator(mode="after")
+    def requires_a_service_or_promotion(self) -> "CheckInRequest":
+        if not self.service_ids and not self.promotion_ids:
+            raise ValueError("debe indicar al menos un servicio o promoción")
+        return self
 
 
 class CambioRead(BaseModel):

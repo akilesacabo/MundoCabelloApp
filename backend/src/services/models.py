@@ -33,3 +33,38 @@ class ServiceCatalog(Base):
     created_at: Mapped[datetime] = mapped_column(server_default=func.now())
 
     area: Mapped[Area] = relationship(back_populates="services")
+
+
+class Promocion(Base):
+    """Oferta comercial compuesta por servicios que se asignan por separado."""
+
+    __tablename__ = "promocion"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    nombre: Mapped[str] = mapped_column(String(128), unique=True, index=True)
+    precio_usd: Mapped[Decimal] = mapped_column(Numeric(10, 2))
+    created_at: Mapped[datetime] = mapped_column(server_default=func.now())
+
+    servicios: Mapped[list[PromocionServicio]] = relationship(
+        back_populates="promocion",
+        cascade="all, delete-orphan",
+        order_by="PromocionServicio.id",
+    )
+
+
+class PromocionServicio(Base):
+    """Servicio incluido y su precio especial dentro de una promoción."""
+
+    __tablename__ = "promocion_servicio"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    promocion_id: Mapped[int] = mapped_column(
+        ForeignKey("promocion.id", ondelete="CASCADE"), index=True
+    )
+    service_catalog_id: Mapped[int] = mapped_column(
+        ForeignKey("service_catalog.id", ondelete="RESTRICT"), index=True
+    )
+    precio_usd: Mapped[Decimal] = mapped_column(Numeric(10, 2))
+
+    promocion: Mapped[Promocion] = relationship(back_populates="servicios")
+    servicio: Mapped[ServiceCatalog] = relationship()

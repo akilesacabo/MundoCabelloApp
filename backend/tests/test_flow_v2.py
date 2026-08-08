@@ -84,6 +84,46 @@ async def test_checkin_creates_pending_services(api):
         assert "pendientes_area" in sv
 
 
+async def test_promotion_uses_its_component_prices_and_expands_at_checkin(api):
+    ac = api["ac"]
+    created = await ac.post(
+        "/api/services/promotions",
+        headers=api["admin_headers"],
+        json={
+            "nombre": "Promo corte e hidratación",
+            "servicios": [
+                {"service_id": api["corte_id"], "precio_usd": 9.5},
+                {"service_id": api["hidra_id"], "precio_usd": 17.25},
+            ],
+        },
+    )
+    assert created.status_code == 201, created.text
+    promotion = created.json()
+    assert promotion["precio_usd"] == "26.75"
+    assert [item["precio_usd"] for item in promotion["servicios"]] == ["9.5", "17.25"]
+
+    listed = await ac.get("/api/services/promotions")
+    assert listed.status_code == 200
+    assert listed.json()[0]["nombre"] == "PROMO CORTE E HIDRATACIÓN"
+
+    checkin = await ac.post(
+        "/api/queue/checkin",
+        json={
+            "cedula": "V-14321123",
+            "nombre": "Cliente Promoción",
+            "telefono": "04141234567",
+            "direccion": "Calle Promo 1",
+            "promotion_ids": [promotion["id"]],
+        },
+    )
+    assert checkin.status_code == 201, checkin.text
+    services = checkin.json()["servicios"]
+    assert [(item["area_key"], item["precio_usd"]) for item in services] == [
+        ("peluqueria", "9.50"),
+        ("hidratacion", "17.25"),
+    ]
+
+
 async def test_queue_reports_pending_clients_by_service_area(api):
     ac = api["ac"]
     first = await ac.post(

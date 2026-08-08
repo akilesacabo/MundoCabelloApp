@@ -4,9 +4,9 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from src.exceptions import NotFound
-from src.services.models import Area, ServiceCatalog
-from src.services.schemas import ServiceCreate, ServiceUpdate
+from src.exceptions import BadRequest, NotFound
+from src.services.models import Area, Promocion, PromocionServicio, ServiceCatalog
+from src.services.schemas import PromotionCreate, ServiceCreate, ServiceUpdate
 
 
 async def list_areas(db: AsyncSession) -> list[Area]:
@@ -37,13 +37,41 @@ async def get_or_404(db: AsyncSession, service_id: int) -> ServiceCatalog:
 
 async def get_many_or_404(db: AsyncSession, ids: list[int]) -> list[ServiceCatalog]:
     if not ids:
-        raise NotFound("debe indicar al menos un servicio")
+        return []
     result = await db.execute(select(ServiceCatalog).where(ServiceCatalog.id.in_(ids)))
     found = list(result.scalars().all())
     missing = set(ids) - {s.id for s in found}
     if missing:
         raise NotFound(f"servicios no encontrados: {sorted(missing)}")
     return found
+
+
+async def list_promotions(db: AsyncSession) -> list[Promocion]:
+    result = await db.execute(
+        select(Promocion)
+        .options(selectinload(Promocion.servicios).selectinload(PromocionServicio.servicio))
+        .order_by(Promocion.nombre)
+    )
+    return list(result.scalars().unique().all())
+
+
+async def get_promotion_components_or_404(
+    db: AsyncSession, ids: list[int]
+) -> list[Promocion]:
+    if not ids:
+        return []
+    result = await db.execute(
+        select(Promocion)
+        .where(Promocion.id.in_(ids))
+        .options(selectinload(Promocion.servicios).selectinload(PromocionServicio.servicio))
+    )
+    promotions = list(result.scalars().unique().all())
+    missing = set(ids) - {promotion.id for promotion in promotions}
+    if missing:
+        raise NotFound(f"promociones no encontradas: {sorted(missing)}")
+    if any(not promotion.servicios for promotion in promotions):
+        raise BadRequest("una promoción debe contener al menos un servicio")
+    return promotions
 
 
 async def create_service(db: AsyncSession, data: ServiceCreate) -> ServiceCatalog:
@@ -58,6 +86,34 @@ async def create_service(db: AsyncSession, data: ServiceCreate) -> ServiceCatalo
     await db.commit()
     await db.refresh(service)
     return service
+
+
+async def create_promotion(db: AsyncSession, data: PromotionCreate) -> Promocion:
+    service_ids = [item.service_id for item in data.servicios]
+    if len(set(service_ids)) != len(service_ids):
+        raise BadRequest("no se puede repetir un servicio dentro de la promoción")
+    services = await get_many_or_404(db, service_ids)
+    by_id = {service.id: service for service in services}
+    promotion = Promocion(
+        nombre=data.nombre.strip().upper(),
+        precio_usd=sum((item.precio_usd for item in data.servicios), start=0),
+        servicios=[
+            PromocionServicio(
+                service_catalog_id=item.service_id,
+                precio_usd=item.precio_usd,
+            )
+            for item in data.servicios
+            if item.service_id in by_id
+        ],
+    )
+    db.add(promotion)
+    await db.commit()
+    result = await db.execute(
+        select(Promocion)
+        .where(Promocion.id == promotion.id)
+        .options(selectinload(Promocion.servicios).selectinload(PromocionServicio.servicio))
+    )
+    return result.scalar_one()
 
 
 async def update_service(

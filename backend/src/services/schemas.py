@@ -35,3 +35,29 @@ class ServiceUpdate(BaseModel):
     nombre: str | None = Field(default=None, min_length=2, max_length=128)
     area_key: str | None = Field(default=None, min_length=2, max_length=32)
     precio_usd: Decimal | None = Field(default=None, ge=0)
+
+
+class PromotionCreate(BaseModel):
+    nombre: str = Field(min_length=2, max_length=128)
+    servicios: list["PromotionServiceInput"] = Field(min_length=1)
+
+
+class PromotionServiceInput(BaseModel):
+    service_id: int = Field(gt=0)
+    precio_usd: Decimal = Field(ge=0)
+
+
+class PromotionServiceRead(BaseModel):
+    service_id: int
+    nombre: str
+    area_key: str
+    precio_usd: Decimal
+
+
+class PromotionRead(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    nombre: str
+    precio_usd: Decimal
+    servicios: list[PromotionServiceRead]
