@@ -1,0 +1,16 @@
+.git
+.venv
+backend/.venv
+__pycache__
+*.pyc
+.pytest_cache
+.mypy_cache
+.DS_Store
+
+.env
+backend/.env
+*.db
+*.sqlite
+*.sqlite3
+
+auditorias/

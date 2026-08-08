@@ -2,7 +2,7 @@
 
 | Variable | Uso |
 |---|---|
-| `DATABASE_URL` | Conexión SQLAlchemy async |
+| `DATABASE_URL` | Conexión a la base de datos. Acepta `postgresql://`, `postgres://` o `postgresql+asyncpg://`; el backend normaliza Postgres a `asyncpg` automáticamente. |
 | `ADMIN_USERNAME` | Usuario administrador |
 | `ADMIN_PASSWORD` | Contraseña administrador; obligatoria y distinta al default en producción |
 | `AUTH_SECRET` | Firma de tokens; secreto aleatorio de al menos 32 caracteres en producción |
