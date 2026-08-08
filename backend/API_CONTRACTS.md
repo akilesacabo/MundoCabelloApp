@@ -57,6 +57,8 @@ realizó el registro:
   "service_ids": [1, 8],
   "etiquetas": ["XL", "CM"],
   "observacion": "Usar producto suave",
+  "staff_numeros_preseleccion": [1, 2],
+  "acepta_otro_estilista": true,
   "active_turno_id": null
 }
 ```
@@ -134,6 +136,10 @@ Todos requieren rol `admin`:
   cambia de área y había especialista asignada, libera esa asignación.
 - `DELETE /queue/{cliente_id}/services/{servicio_id}`: anula el servicio sin borrarlo
   físicamente; conserva quién lo modificó. Servicios finalizados no se editan ni anulan.
+- `POST /queue/checkin` admite opcionalmente
+  `{ "staff_numeros_preseleccion": [1,2,3], "acepta_otro_estilista": true }` para
+  guardar durante el registro de llegada hasta tres estilistas preferidas y la opción
+  de aceptar otra. Estas preferencias se muestran primero al asignar los servicios.
 - `PATCH /queue/{cliente_id}/staff-preferences` con
   `{ "staff_numeros": [1,2,3], "acepta_otro_estilista": true }`: guarda hasta tres
   preferencias por turno. El rol administrador autoriza estas acciones; no requieren PIN.

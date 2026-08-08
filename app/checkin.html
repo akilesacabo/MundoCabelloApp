@@ -24,7 +24,7 @@
         <ol id="wizardProgress" class="wizard-progress" aria-label="Progreso del check-in">
           <li class="active" data-step-indicator="1"><b>1</b><span>Cliente</span></li>
           <li data-step-indicator="2"><b>2</b><span>Servicios</span></li>
-          <li data-step-indicator="3"><b>3</b><span>Etiquetas y observación</span></li>
+          <li data-step-indicator="3"><b>3</b><span>Detalles y preferencias</span></li>
         </ol>
 
         <form id="form" class="wizard-card card">
@@ -65,11 +65,19 @@
 
           <section class="wizard-step" data-step="3" hidden>
             <span class="section-kicker">PASO 3 DE 3</span>
-            <h2>Etiquetas y observación</h2>
-            <p class="muted">Agrega únicamente la información que sea útil para atender esta visita.</p>
+            <h2>Detalles y preferencias</h2>
+            <p class="muted">Agrega la información de la visita y, si aplica, las estilistas que la cliente prefiere.</p>
             <fieldset>
               <legend>Etiquetas del servicio</legend>
               <div id="tagPicker" class="tag-picker"></div>
+            </fieldset>
+            <fieldset class="staff-preferences-picker">
+              <legend>Estilistas preseleccionadas <small>(máximo 3)</small></legend>
+              <p class="muted">Se guardan con este check-in y se priorizan al asignar los servicios.</p>
+              <input id="preferenceSearch" type="search" placeholder="Buscar estilista" autocomplete="off">
+              <div id="preferenceStaffList" class="preference-staff-list"></div>
+              <label class="preference-other"><input id="acceptOther" type="checkbox"> Acepta ser atendida por otra estilista</label>
+              <p id="preferencesMessage" class="field-message" aria-live="polite"></p>
             </fieldset>
             <label>Observación<textarea id="observacion" name="observacion" maxlength="1000" rows="4" placeholder="Indicaciones adicionales para el equipo"></textarea></label>
             <div id="checkinSummary" class="checkin-review"></div>
@@ -90,10 +98,10 @@
       </main>
     </div>
   </div>
-  <script src="api.js?v=20260729"></script>
+  <script src="api.js?v=20260807"></script>
   <script>
     const TAGS={INT:'Interno',F:'Cabello fuerte',CORTO:'Cabello corto',LAVADO:'Cabello limpio',AC:'Asesoría de color',TC:'Trabajo de color',XL:'Cabello largo',CM:'Cabello maltratado',DC:'Diseño de corte'};
-    let serviceCatalog=[],currentStep=1,lookupTimer,submitting=false,selectedProfile=null;
+    let serviceCatalog=[],staffDirectory=[],currentStep=1,lookupTimer,submitting=false,selectedProfile=null,preferenceSelection=[];
     const selectedIds=new Set();
     const normalize=value=>String(value).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
     const escapeHtml=value=>String(value).replace(/[&<>'"]/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[char]));
@@ -118,13 +126,30 @@
     function renderReview(){
       const selected=serviceCatalog.flatMap(group=>group.servicios).filter(service=>selectedIds.has(service.id));
       const tags=[...document.querySelectorAll('[name="etiquetas"]:checked')].map(input=>input.value);
-      checkinSummary.innerHTML=`<b>Resumen del turno</b><span>${escapeHtml(nombre.value)} · ${selected.length} servicio${selected.length===1?'':'s'}</span><div>${selected.map(service=>`<span class="tag">${escapeHtml(service.nombre)}</span>`).join('')}</div><small>${tags.length?`Etiquetas: ${tags.join(', ')}`:'Sin etiquetas'}</small>`;
+      const selectedStaff=staffDirectory.filter(person=>preferenceSelection.includes(person.numero)).map(person=>person.alias);
+      const preferences=selectedStaff.length?`Preferencias: ${selectedStaff.join(', ')}${acceptOther.checked?' · Acepta otra estilista':''}`:acceptOther.checked?'Acepta otra estilista':'Sin preferencias de estilista';
+      checkinSummary.innerHTML=`<b>Resumen del turno</b><span>${escapeHtml(nombre.value)} · ${selected.length} servicio${selected.length===1?'':'s'}</span><div>${selected.map(service=>`<span class="tag">${escapeHtml(service.nombre)}</span>`).join('')}</div><small>${tags.length?`Etiquetas: ${tags.join(', ')}`:'Sin etiquetas'} · ${escapeHtml(preferences)}</small>`;
     }
 
     async function loadServices(){
       const groups=await api('/services');
       serviceCatalog=groups.map(group=>({area_key:group.area.key,servicios:group.servicios}));
       renderServices();
+    }
+
+    function renderPreferenceStaff(){
+      const term=normalize(preferenceSearch.value);
+      const selected=new Set(preferenceSelection);
+      const rows=staffDirectory.filter(person=>normalize(`${person.alias} ${person.nombre}`).includes(term));
+      preferenceStaffList.innerHTML=rows.map(person=>`<label class="preference-staff"><input type="checkbox" value="${person.numero}" ${selected.has(person.numero)?'checked':''}><span><b>#${person.numero} · ${escapeHtml(person.alias)}</b><small>${escapeHtml(person.areas.join(' · '))}</small></span></label>`).join('')||'<p class="muted">No se encontraron estilistas.</p>';
+      preferenceStaffList.querySelectorAll('input').forEach(input=>input.onchange=()=>{
+        const numero=+input.value;
+        if(input.checked){
+          if(preferenceSelection.length===3){input.checked=false;preferencesMessage.textContent='Solo puedes seleccionar hasta tres estilistas.';return}
+          preferenceSelection.push(numero);
+        }else preferenceSelection=preferenceSelection.filter(value=>value!==numero);
+        preferencesMessage.textContent='';
+      });
     }
 
     function renderServices(){
@@ -174,7 +199,7 @@
     clearServices.onclick=()=>{selectedIds.clear();renderServices()};
 
     function resetCheckin(){
-      form.reset();selectedIds.clear();selectedProfile=null;activeTurnNotice.hidden=true;activeTurnNotice.textContent='';message.textContent='';clientMessage.textContent='';renderServices();
+      form.reset();selectedIds.clear();selectedProfile=null;preferenceSelection=[];activeTurnNotice.hidden=true;activeTurnNotice.textContent='';message.textContent='';clientMessage.textContent='';preferencesMessage.textContent='';renderServices();renderPreferenceStaff();
       checkinSuccess.hidden=true;form.hidden=false;wizardProgress.hidden=false;goToStep(1);cedula.focus();
     }
 
@@ -183,7 +208,7 @@
       if(submitting)return;
       if(currentStep!==3){goToStep(currentStep+1);return}
       const data=new FormData(form);
-      const payload={cedula:data.get('cedula'),nombre:data.get('nombre'),telefono:data.get('telefono'),direccion:data.get('direccion'),observacion:data.get('observacion'),etiquetas:data.getAll('etiquetas'),service_ids:[...selectedIds],active_turno_id:selectedProfile?.active_turno_id||null};
+      const payload={cedula:data.get('cedula'),nombre:data.get('nombre'),telefono:data.get('telefono'),direccion:data.get('direccion'),observacion:data.get('observacion'),etiquetas:data.getAll('etiquetas'),service_ids:[...selectedIds],staff_numeros_preseleccion:preferenceSelection,acepta_otro_estilista:acceptOther.checked,active_turno_id:selectedProfile?.active_turno_id||null};
       submitting=true;submitButton.disabled=true;submitButton.textContent='Creando turno…';message.textContent='';
       try{
         const client=await api('/queue/checkin',{method:'POST',body:JSON.stringify(payload)});
@@ -196,7 +221,8 @@
       finally{submitting=false;submitButton.disabled=false;submitButton.textContent='Guardar y crear turno'}
     };
 
-    loadServices().catch(error=>{serviceGroups.textContent=error.message});
+    preferenceSearch.oninput=renderPreferenceStaff;
+    Promise.all([loadServices(),api('/staff').then(staff=>{staffDirectory=staff;renderPreferenceStaff()})]).catch(error=>{serviceGroups.textContent=error.message});
   </script>
 </body>
 </html>

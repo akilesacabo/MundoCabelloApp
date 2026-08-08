@@ -24,7 +24,9 @@ curl -s -X POST http://localhost:8000/api/queue/checkin \
     "direccion":"Los Palos Grandes",
     "service_ids":[<service-id>],
     "etiquetas":["XL","CM"],
-    "observacion":"Usar producto suave"
+    "observacion":"Usar producto suave",
+    "staff_numeros_preseleccion":[<staff-numero-1>,<staff-numero-2>],
+    "acepta_otro_estilista":true
   }'
 ```
 

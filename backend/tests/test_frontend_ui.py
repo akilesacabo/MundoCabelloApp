@@ -48,7 +48,7 @@ def test_admin_dashboard_prioritizes_status_and_assignment():
     assert "Almorzando" in html
     assert "client-observation" in html
     assert "situation-${client.situacion}" in html
-    assert "openPreferences" in html
+    assert "openPreferences" not in html
     assert "finishService" in html
     assert "SOLO UÑAS" in html
 
@@ -73,7 +73,18 @@ def test_checkin_uses_searchable_checkbox_picker_instead_of_native_multiselect()
     assert 'id="clearServices"' in html
     assert "selectedIds" in html
     assert "group.area.key" in html
+    assert 'id="preferenceSearch"' in html
+    assert 'id="preferenceStaffList"' in html
+    assert "staff_numeros_preseleccion:preferenceSelection" in html
     assert "multiple" not in html
+
+
+def test_protected_pages_redirect_missing_session_to_login():
+    api_js = (APP_DIR / "api.js").read_text()
+
+    assert "function requirePageRole()" in api_js
+    assert "loginRequired()" in api_js
+    assert "r.status===401" in api_js
 
 
 def test_checkin_is_three_steps_with_live_client_search_and_submit_lock():

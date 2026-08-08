@@ -21,6 +21,8 @@ class CheckInRequest(BaseModel):
     observacion: str = Field(default="", max_length=1000)
     etiquetas: list[EtiquetaCodigo] = Field(default_factory=list, max_length=9)
     service_ids: list[int] = Field(min_length=1)
+    staff_numeros_preseleccion: list[int] = Field(default_factory=list, max_length=3)
+    acepta_otro_estilista: bool = False
     active_turno_id: int | None = Field(
         default=None,
         gt=0,

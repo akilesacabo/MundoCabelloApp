@@ -827,12 +827,16 @@ async def test_assignment_screen_controls_preferences_services_and_solo_unas(api
             "telefono": "04141234567",
             "direccion": "Calle Uno",
             "service_ids": [api["unas_id"]],
+            "staff_numeros_preseleccion": [1, 2],
+            "acepta_otro_estilista": True,
         },
         headers=api["admin_headers"],
     )
     assert client.status_code == 201
     body = client.json()
     assert "SOLO UÑAS" in body["etiquetas"]
+    assert body["preseleccion_staff_numeros"] == [1, 2]
+    assert body["acepta_otro_estilista"] is True
 
     preferences = await ac.patch(
         f"/api/queue/{body['id']}/staff-preferences",

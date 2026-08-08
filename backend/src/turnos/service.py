@@ -206,6 +206,30 @@ async def _upsert_profile(
     return profile
 
 
+async def _apply_staff_preferences(
+    db: AsyncSession,
+    cliente: Cliente,
+    staff_numeros: list[int],
+    acepta_otro_estilista: bool,
+) -> None:
+    """Valida y persiste las preselecciones de una visita."""
+    numbers = list(dict.fromkeys(staff_numeros))
+    if len(numbers) != len(staff_numeros):
+        raise BadRequest("no se puede repetir un especialista en las preferencias")
+    if numbers:
+        result = await db.execute(select(Staff.numero).where(Staff.numero.in_(numbers)))
+        if {row[0] for row in result.all()} != set(numbers):
+            raise NotFound("uno o más especialistas no existen")
+    cliente.preselecciones.clear()
+    # Fuerza las eliminaciones antes de insertar los mismos números nuevamente.
+    # La tabla prohíbe repetir (cliente_id, staff_numero).
+    await db.flush()
+    cliente.preselecciones.extend(
+        ClientePreseleccion(staff_numero=numero) for numero in numbers
+    )
+    cliente.acepta_otro_estilista = acepta_otro_estilista
+
+
 async def check_in(
     db: AsyncSession, payload: CheckInRequest, registered_by: AuthUser | None = None
 ) -> ClienteRead:
@@ -234,6 +258,13 @@ async def check_in(
         merged_tags.update(tag.value for tag in payload.etiquetas)
         _sync_tags(active, sorted(merged_tags))
         _sync_solo_unas(active)
+        if payload.staff_numeros_preseleccion or payload.acepta_otro_estilista:
+            await _apply_staff_preferences(
+                db,
+                active,
+                payload.staff_numeros_preseleccion,
+                payload.acepta_otro_estilista,
+            )
         await _upsert_profile(db, payload, cedula)
         await db.commit()
         return _to_read(await _load_cliente(db, active.id))
@@ -256,6 +287,11 @@ async def check_in(
             registered_by.display_name if registered_by else "Autoservicio"
         ),
         etiquetas=[ClienteEtiqueta(codigo=tag.value) for tag in payload.etiquetas],
+        preselecciones=[
+            ClientePreseleccion(staff_numero=numero)
+            for numero in payload.staff_numeros_preseleccion
+        ],
+        acepta_otro_estilista=payload.acepta_otro_estilista,
         servicios=[
             TurnoServicio(
                 area_key=s.area_key,
@@ -267,6 +303,14 @@ async def check_in(
         ],
     )
     db.add(cliente)
+    # Validamos aquí las preferencias de un turno nuevo antes de guardar.
+    numbers = list(dict.fromkeys(payload.staff_numeros_preseleccion))
+    if len(numbers) != len(payload.staff_numeros_preseleccion):
+        raise BadRequest("no se puede repetir un especialista en las preferencias")
+    if numbers:
+        result = await db.execute(select(Staff.numero).where(Staff.numero.in_(numbers)))
+        if {row[0] for row in result.all()} != set(numbers):
+            raise NotFound("uno o más especialistas no existen")
     _sync_solo_unas(cliente)
     await db.commit()
     return _to_read(await _load_cliente(db, cliente.id))
@@ -882,17 +926,9 @@ async def update_staff_preferences(
     updated_by: AuthUser | None = None,
 ) -> ClienteRead:
     cliente = await _load_cliente(db, cliente_id)
-    numbers = list(dict.fromkeys(payload.staff_numeros))
-    if len(numbers) != len(payload.staff_numeros):
-        raise BadRequest("no se puede repetir un especialista en las preferencias")
-    if numbers:
-        result = await db.execute(select(Staff.numero).where(Staff.numero.in_(numbers)))
-        if {row[0] for row in result.all()} != set(numbers):
-            raise NotFound("uno o más especialistas no existen")
-    cliente.preselecciones[:] = [
-        ClientePreseleccion(staff_numero=numero) for numero in numbers
-    ]
-    cliente.acepta_otro_estilista = payload.acepta_otro_estilista
+    await _apply_staff_preferences(
+        db, cliente, payload.staff_numeros, payload.acepta_otro_estilista
+    )
     actor = _actor_fields(updated_by)
     cliente.actualizado_por_role = actor["role"]
     cliente.actualizado_por_subject = actor["subject"]
