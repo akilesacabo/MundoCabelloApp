@@ -135,8 +135,10 @@ Todos requieren rol `admin`:
 - `PATCH /queue/{cliente_id}/services/{servicio_id}` con
   `{ "catalog_service_id": <id> }`: reemplaza el servicio por uno del catálogo. Si
   cambia de área y había especialista asignada, libera esa asignación.
-- `DELETE /queue/{cliente_id}/services/{servicio_id}`: anula el servicio sin borrarlo
-  físicamente; conserva quién lo modificó. Servicios finalizados no se editan ni anulan.
+- `DELETE /queue/{cliente_id}/services/{servicio_id}`: si el servicio está pendiente y
+  nunca tuvo especialista, lo elimina físicamente sin dejar anulación ni historial. Si ya
+  fue asignado, lo anula y conserva quién lo modificó. Servicios finalizados no se editan
+  ni anulan.
 - `POST /queue/checkin` admite opcionalmente
   `{ "staff_numeros_preseleccion": [1,2,3], "acepta_otro_estilista": true }` para
   guardar durante el registro de llegada hasta tres estilistas preferidas y la opción

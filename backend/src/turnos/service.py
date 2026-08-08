@@ -916,6 +916,15 @@ async def cancel_service(
     cliente, service = await _get_servicio(db, cliente_id, servicio_id)
     if service.estado in {ServicioEstado.FINALIZADO, ServicioEstado.CANCELADO}:
         raise BadRequest("no se puede eliminar un servicio finalizado o eliminado")
+    if service.estado == ServicioEstado.PENDIENTE and service.staff_numero is None:
+        # Un servicio que nunca se asignó es un error de captura, no una anulación
+        # operativa: se elimina por completo y no deja cambio ni historial.
+        cliente.servicios.remove(service)
+        _sync_solo_unas(cliente)
+        if not cliente.servicios:
+            cliente.activo = False
+        await db.commit()
+        return _to_read(await _load_cliente(db, cliente_id))
     service.estado = ServicioEstado.CANCELADO
     actor = _actor_fields(updated_by)
     service.modificado_por_role = actor["role"]

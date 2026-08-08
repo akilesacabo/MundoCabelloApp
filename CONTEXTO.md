@@ -520,3 +520,14 @@ Objetivo: **backend real que refleje la v2** y camino a deploy.
 - ✅ Verificación automática: compileall, Ruff, checks estáticos de frontend,
   `git diff --check` y 38 tests.
 - Estado: implementado y probado en local. **Pendiente desplegar en producción.**
+
+### Ajustes de operación — eliminación y búsqueda del equipo (2026-08-08)
+
+- ✅ Al eliminar desde **Asignar clientes**, un servicio pendiente sin especialista se
+  elimina definitivamente, sin confirmación, anulación ni registro operativo. Los
+  servicios que ya fueron asignados conservan la confirmación y la trazabilidad.
+- ✅ El buscador de **Estado del equipo** no muestra sugerencias del navegador y filtra
+  por inicio de nombre: `SO` muestra, por ejemplo, Sonia/Solmar, sin resultados que solo
+  contengan esas letras en otra posición.
+- Estado: implementado y probado en local. **Requiere reiniciar el backend antes de
+  probar.**

@@ -5,7 +5,9 @@ import json
 
 import pytest
 
+from src.database import async_session
 from src.seed import DATA_PATH, _unique_staff_rows
+from src.turnos.models import TurnoServicio
 
 pytestmark = pytest.mark.asyncio
 
@@ -889,3 +891,5 @@ async def test_assignment_screen_controls_preferences_services_and_solo_unas(api
     assert deleted.status_code == 200
     assert deleted.json()["servicios"] == []
     assert deleted.json()["activo"] is False
+    async with async_session() as db:
+        assert await db.get(TurnoServicio, service["id"]) is None
