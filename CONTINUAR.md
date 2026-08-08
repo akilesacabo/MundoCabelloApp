@@ -10,6 +10,10 @@
 - ✅ Nueva regresión: edición de una promoción que conserva un servicio y agrega otro.
 - ✅ Verificado con pruebas automatizadas: al editar una promoción, sus servicios ya incluidos se
   ordenan antes que los demás resultados del catálogo.
+- ✅ Verificado con pruebas automatizadas: al editar una promoción se eliminan primero las asociaciones
+  anteriores antes de guardar la lista nueva, evitando la restricción única de la base.
+- ✅ Verificado con pruebas automatizadas: los nombres repetidos de promociones responden con un error
+  legible en lugar de un error 500.
 
 ## Deuda técnica observada
 

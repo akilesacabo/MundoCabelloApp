@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from sqlalchemy import select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -94,14 +95,36 @@ async def create_service(db: AsyncSession, data: ServiceCreate) -> ServiceCatalo
     return service
 
 
+async def _validate_promotion_name(
+    db: AsyncSession, nombre: str, *, exclude_id: int | None = None
+) -> None:
+    query = select(Promocion.id).where(Promocion.nombre == nombre)
+    if exclude_id is not None:
+        query = query.where(Promocion.id != exclude_id)
+    if await db.scalar(query) is not None:
+        raise BadRequest("ya existe una promoción con ese nombre")
+
+
+async def _commit_promotion(db: AsyncSession) -> None:
+    try:
+        await db.commit()
+    except IntegrityError as exc:
+        await db.rollback()
+        if "promocion.nombre" in str(exc.orig).lower():
+            raise BadRequest("ya existe una promoción con ese nombre") from exc
+        raise
+
+
 async def create_promotion(db: AsyncSession, data: PromotionCreate) -> Promocion:
     service_ids = [item.service_id for item in data.servicios]
     if len(set(service_ids)) != len(service_ids):
         raise BadRequest("no se puede repetir un servicio dentro de la promoción")
     services = await get_many_or_404(db, service_ids)
     by_id = {service.id: service for service in services}
+    nombre = data.nombre.strip().upper()
+    await _validate_promotion_name(db, nombre)
     promotion = Promocion(
-        nombre=data.nombre.strip().upper(),
+        nombre=nombre,
         precio_usd=sum((item.precio_usd for item in data.servicios), start=0),
         servicios=[
             PromocionServicio(
@@ -113,7 +136,7 @@ async def create_promotion(db: AsyncSession, data: PromotionCreate) -> Promocion
         ],
     )
     db.add(promotion)
-    await db.commit()
+    await _commit_promotion(db)
     result = await db.execute(
         select(Promocion)
         .where(Promocion.id == promotion.id)
@@ -142,16 +165,23 @@ async def update_promotion(
     if len(set(service_ids)) != len(service_ids):
         raise BadRequest("no se puede repetir un servicio dentro de la promoción")
     await get_many_or_404(db, service_ids)
-    promotion.nombre = data.nombre.strip().upper()
+    nombre = data.nombre.strip().upper()
+    await _validate_promotion_name(db, nombre, exclude_id=promotion_id)
+    promotion.nombre = nombre
     promotion.precio_usd = sum((item.precio_usd for item in data.servicios), start=0)
-    promotion.servicios[:] = [
+    # La tabla tiene una restricción única por promoción y servicio. Forzamos
+    # primero el DELETE de las asociaciones previas para que SQLAlchemy no
+    # intente insertar duplicados antes de eliminarlas.
+    promotion.servicios.clear()
+    await db.flush()
+    promotion.servicios = [
         PromocionServicio(
             service_catalog_id=item.service_id,
             precio_usd=item.precio_usd,
         )
         for item in data.servicios
     ]
-    await db.commit()
+    await _commit_promotion(db)
     return await _promotion_or_404(db, promotion_id)
 
 

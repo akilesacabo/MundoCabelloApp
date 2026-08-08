@@ -102,6 +102,17 @@ async def test_promotion_uses_its_component_prices_and_expands_at_checkin(api):
     assert promotion["precio_usd"] == "26.75"
     assert [item["precio_usd"] for item in promotion["servicios"]] == ["9.5", "17.25"]
 
+    duplicate = await ac.post(
+        "/api/services/promotions",
+        headers=api["admin_headers"],
+        json={
+            "nombre": "promo corte e hidratación",
+            "servicios": [{"service_id": api["corte_id"], "precio_usd": 10}],
+        },
+    )
+    assert duplicate.status_code == 400
+    assert duplicate.json()["detail"] == "ya existe una promoción con ese nombre"
+
     listed = await ac.get("/api/services/promotions")
     assert listed.status_code == 200
     assert listed.json()[0]["nombre"] == "PROMO CORTE E HIDRATACIÓN"

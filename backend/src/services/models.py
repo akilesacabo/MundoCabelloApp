@@ -3,7 +3,7 @@ from __future__ import annotations
 from datetime import datetime
 from decimal import Decimal
 
-from sqlalchemy import Boolean, ForeignKey, Numeric, String, func
+from sqlalchemy import Boolean, ForeignKey, Numeric, String, UniqueConstraint, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from src.models import Base
@@ -57,6 +57,7 @@ class PromocionServicio(Base):
     """Servicio incluido y su precio especial dentro de una promoción."""
 
     __tablename__ = "promocion_servicio"
+    __table_args__ = (UniqueConstraint("promocion_id", "service_catalog_id"),)
 
     id: Mapped[int] = mapped_column(primary_key=True)
     promocion_id: Mapped[int] = mapped_column(
