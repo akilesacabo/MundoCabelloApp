@@ -118,6 +118,26 @@ async def test_promotion_uses_its_component_prices_and_expands_at_checkin(api):
     assert updated.json()["nombre"] == "PROMO ACTUALIZADA"
     assert updated.json()["precio_usd"] == "8"
 
+    # Regresión: la edición desde el modal debe poder conservar un componente
+    # existente y agregar uno nuevo en la misma promoción.
+    extended = await ac.patch(
+        f"/api/services/promotions/{promotion['id']}",
+        headers=api["admin_headers"],
+        json={
+            "nombre": "Promo actualizada",
+            "servicios": [
+                {"service_id": api["corte_id"], "precio_usd": 8},
+                {"service_id": api["unas_id"], "precio_usd": 6.5},
+            ],
+        },
+    )
+    assert extended.status_code == 200, extended.text
+    assert extended.json()["precio_usd"] == "14.5"
+    assert [item["service_id"] for item in extended.json()["servicios"]] == [
+        api["corte_id"],
+        api["unas_id"],
+    ]
+
     checkin = await ac.post(
         "/api/queue/checkin",
         json={
@@ -132,6 +152,7 @@ async def test_promotion_uses_its_component_prices_and_expands_at_checkin(api):
     services = checkin.json()["servicios"]
     assert [(item["area_key"], item["precio_usd"]) for item in services] == [
         ("peluqueria", "8.00"),
+        ("manicure", "6.50"),
     ]
 
     archived = await ac.delete(
