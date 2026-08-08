@@ -8,6 +8,8 @@
 - ✅ Verificado con pruebas automatizadas: el buscador de promociones prioriza las coincidencias del
   nombre del servicio sobre las coincidencias que existan únicamente en el área.
 - ✅ Nueva regresión: edición de una promoción que conserva un servicio y agrega otro.
+- ✅ Verificado con pruebas automatizadas: al editar una promoción, sus servicios ya incluidos se
+  ordenan antes que los demás resultados del catálogo.
 
 ## Deuda técnica observada
 

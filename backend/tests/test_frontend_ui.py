@@ -18,8 +18,10 @@ def test_management_screens_use_search_and_pagination_for_large_catalogs():
     assert 'id="serviceModal"' in service_html
     assert "prompt(" not in staff_html
     assert "prompt(" not in service_html
-    assert "function promotionSearchResults(term)" in service_html
+    assert "function promotionSearchResults(term,preferredServices=new Set())" in service_html
     assert "leftName.startsWith(normalizedTerm)" in service_html
+    assert "preferredServices.has(left.id)" in service_html
+    assert "promotionSearchResults(editPromotionSearch.value,editingPromotionServices)" in service_html
     assert "button.textContent='Guardando…'" in service_html
     assert "finally{promotionSubmitting=false" in service_html
     assert "finally{promotionEditSubmitting=false" in service_html
