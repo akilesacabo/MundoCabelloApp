@@ -546,3 +546,13 @@ Objetivo: **backend real que refleje la v2** y camino a deploy.
 
 - ✅ Las tarjetas del estado del equipo permiten que el nombre y las áreas de una
   especialista se dividan en dos líneas en vez de truncarse con puntos suspensivos.
+
+### Demanda de preselecciones por área (2026-08-08)
+
+- ✅ El conteo de preselecciones dejó de ser histórico por turno: ahora mide demanda
+  pendiente por área compatible. Una clienta deja de contar para las preferidas de
+  Peluquería únicamente cuando todos sus servicios de Peluquería tienen especialista;
+  las preferencias de otras áreas continúan contando.
+- ✅ Estado del equipo muestra el total de clientas pendientes y el desglose por área.
+- ✅ No se elimina ninguna preferencia al asignar: el cálculo dinámico mantiene la
+  trazabilidad y reacciona si se agrega, libera o elimina un servicio.

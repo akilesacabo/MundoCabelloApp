@@ -5,14 +5,14 @@ tiene prioridad y mantiene el estado efectivo OCUPADO.
 """
 from __future__ import annotations
 
-from sqlalchemy import func, select
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from src.exceptions import Conflict, NotFound
 from src.services.models import Area
 from src.staff.constants import EffectiveStatus, ManualStatus
-from src.staff.models import Staff
+from src.staff.models import Staff, staff_area
 from src.staff.schemas import (
     ManualStatusUpdate,
     StaffActivo,
@@ -52,7 +52,10 @@ async def _active_by_staff(db: AsyncSession) -> dict[int, list[StaffActivo]]:
 
 
 def _to_read(
-    s: Staff, active: dict[int, list[StaffActivo]], preselection_counts: dict[int, int]
+    s: Staff,
+    active: dict[int, list[StaffActivo]],
+    preselection_counts: dict[int, int],
+    preselection_by_area: dict[int, dict[str, int]],
 ) -> StaffRead:
     activos = active.get(s.numero, [])
     atendiendo = any(item.estado == ServicioEstado.EN_ATENCION for item in activos)
@@ -69,17 +72,63 @@ def _to_read(
         status=status,
         activos=activos,
         preseleccion_count=preselection_counts.get(s.numero, 0),
+        preseleccion_por_area=preselection_by_area.get(s.numero, {}),
     )
 
 
-async def _preselection_counts(db: AsyncSession) -> dict[int, int]:
+async def _preselection_counts(
+    db: AsyncSession,
+) -> tuple[dict[int, int], dict[int, dict[str, int]]]:
+    """Cuenta preferencias aún necesarias, por cliente y por área compatible.
+
+    Una clienta deja de contar para las especialistas de un área cuando todos sus
+    servicios de esa área ya tienen especialista. La preferencia original se conserva.
+    """
+    pending_services = (
+        select(
+            TurnoServicio.cliente_id.label("cliente_id"),
+            TurnoServicio.area_key.label("area_key"),
+        )
+        .join(Cliente, Cliente.id == TurnoServicio.cliente_id)
+        .where(
+            Cliente.activo.is_(True),
+            TurnoServicio.estado == ServicioEstado.PENDIENTE,
+            TurnoServicio.staff_numero.is_(None),
+        )
+        .distinct()
+        .subquery()
+    )
     result = await db.execute(
-        select(ClientePreseleccion.staff_numero, func.count(ClientePreseleccion.id))
-        .join(Cliente, Cliente.id == ClientePreseleccion.cliente_id)
-        .where(Cliente.activo.is_(True))
-        .group_by(ClientePreseleccion.staff_numero)
+        select(
+            ClientePreseleccion.staff_numero,
+            ClientePreseleccion.cliente_id,
+            pending_services.c.area_key,
+        )
+        .join(
+            pending_services,
+            pending_services.c.cliente_id == ClientePreseleccion.cliente_id,
+        )
+        .join(
+            staff_area,
+            (staff_area.c.staff_numero == ClientePreseleccion.staff_numero)
+            & (staff_area.c.area_key == pending_services.c.area_key),
+        )
+        .distinct()
     )
-    return {numero: count for numero, count in result.all()}
+    client_ids: dict[int, set[int]] = {}
+    area_client_ids: dict[int, dict[str, set[int]]] = {}
+    for staff_numero, cliente_id, area_key in result.all():
+        client_ids.setdefault(staff_numero, set()).add(cliente_id)
+        area_client_ids.setdefault(staff_numero, {}).setdefault(area_key, set()).add(
+            cliente_id
+        )
+    return (
+        {staff_numero: len(ids) for staff_numero, ids in client_ids.items()},
+        {
+            staff_numero: {area_key: len(ids) for area_key, ids in areas.items()}
+            for staff_numero, areas in area_client_ids.items()
+        },
+    )
 
 
 async def get_or_404(db: AsyncSession, numero: int) -> Staff:
@@ -104,8 +153,11 @@ async def list_staff(
         all_staff = [s for s in all_staff if any(a.key == area for a in s.areas)]
 
     active = await _active_by_staff(db)
-    preselection_counts = await _preselection_counts(db)
-    reads = [_to_read(s, active, preselection_counts) for s in all_staff]
+    preselection_counts, preselection_by_area = await _preselection_counts(db)
+    reads = [
+        _to_read(s, active, preselection_counts, preselection_by_area)
+        for s in all_staff
+    ]
     if status is not None:
         reads = [r for r in reads if r.status == status]
     return reads
@@ -119,7 +171,8 @@ async def set_manual_status(
     await db.commit()
     await db.refresh(st)
     active = await _active_by_staff(db)
-    return _to_read(st, active, await _preselection_counts(db))
+    counts, by_area = await _preselection_counts(db)
+    return _to_read(st, active, counts, by_area)
 
 
 async def toggle_en_prueba(db: AsyncSession, numero: int) -> StaffRead:
@@ -128,13 +181,15 @@ async def toggle_en_prueba(db: AsyncSession, numero: int) -> StaffRead:
     await db.commit()
     await db.refresh(st)
     active = await _active_by_staff(db)
-    return _to_read(st, active, await _preselection_counts(db))
+    counts, by_area = await _preselection_counts(db)
+    return _to_read(st, active, counts, by_area)
 
 
 async def get_read_or_404(db: AsyncSession, numero: int) -> StaffRead:
     st = await get_or_404(db, numero)
     active = await _active_by_staff(db)
-    return _to_read(st, active, await _preselection_counts(db))
+    counts, by_area = await _preselection_counts(db)
+    return _to_read(st, active, counts, by_area)
 
 
 async def eligible_for(db: AsyncSession, area: str) -> list[StaffRead]:

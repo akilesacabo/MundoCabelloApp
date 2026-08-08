@@ -28,6 +28,7 @@ class StaffRead(BaseModel):
     status: EffectiveStatus
     activos: list[StaffActivo] = Field(default_factory=list)
     preseleccion_count: int = 0
+    preseleccion_por_area: dict[str, int] = Field(default_factory=dict)
 
 
 class ManualStatusUpdate(BaseModel):

@@ -900,7 +900,7 @@ async def test_assignment_screen_controls_preferences_services_and_solo_unas(api
     staff = await ac.get("/api/staff")
     preference_counts = {item["numero"]: item["preseleccion_count"] for item in staff.json()}
     assert preference_counts[1] == 1
-    assert preference_counts[2] == 1
+    assert preference_counts[2] == 0
 
     preferences = await ac.patch(
         f"/api/queue/{body['id']}/staff-preferences",
@@ -930,3 +930,51 @@ async def test_assignment_screen_controls_preferences_services_and_solo_unas(api
     assert deleted.json()["activo"] is False
     async with async_session() as db:
         assert await db.get(TurnoServicio, service["id"]) is None
+
+
+async def test_preselection_count_is_resolved_by_pending_service_area(api):
+    ac = api["ac"]
+    client = await ac.post(
+        "/api/queue/checkin",
+        json={
+            "cedula": "V-19.765.432",
+            "nombre": "Cliente Por Áreas",
+            "telefono": "04141234567",
+            "direccion": "Calle Dos",
+            "service_ids": [api["corte_id"], api["hidra_id"]],
+            "staff_numeros_preseleccion": [1, 2, 3],
+        },
+        headers=api["admin_headers"],
+    )
+    assert client.status_code == 201, client.text
+    services = {item["area_key"]: item for item in client.json()["servicios"]}
+
+    initial_staff = (await ac.get("/api/staff")).json()
+    initial = {item["numero"]: item for item in initial_staff}
+    assert initial[1]["preseleccion_count"] == 1
+    assert initial[1]["preseleccion_por_area"] == {"peluqueria": 1, "hidratacion": 1}
+    assert initial[2]["preseleccion_por_area"] == {"hidratacion": 1}
+    assert initial[3]["preseleccion_por_area"] == {"peluqueria": 1}
+
+    assigned_hair = await ac.post(
+        f"/api/queue/{client.json()['id']}/services/{services['peluqueria']['id']}/assign",
+        json={"staff_numero": 1},
+        headers=api["admin_headers"],
+    )
+    assert assigned_hair.status_code == 200, assigned_hair.text
+    after_hair = {item["numero"]: item for item in (await ac.get("/api/staff")).json()}
+    assert after_hair[1]["preseleccion_count"] == 1
+    assert after_hair[1]["preseleccion_por_area"] == {"hidratacion": 1}
+    assert after_hair[2]["preseleccion_count"] == 1
+    assert after_hair[3]["preseleccion_count"] == 0
+
+    assigned_hydration = await ac.post(
+        f"/api/queue/{client.json()['id']}/services/{services['hidratacion']['id']}/assign",
+        json={"staff_numero": 2},
+        headers=api["admin_headers"],
+    )
+    assert assigned_hydration.status_code == 200, assigned_hydration.text
+    final = {item["numero"]: item for item in (await ac.get("/api/staff")).json()}
+    assert final[1]["preseleccion_count"] == 0
+    assert final[2]["preseleccion_count"] == 0
+    assert final[3]["preseleccion_count"] == 0

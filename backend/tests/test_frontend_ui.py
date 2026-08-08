@@ -123,6 +123,8 @@ def test_admin_has_separate_assignment_team_and_client_database_screens():
     assert "/manual-status" in team
     assert 'id="areaFilter"' in team
     assert "preseleccion_count" in team
+    assert "preseleccion_por_area" in team
+    assert "Preferida por" in team
     assert "Head Spa" in team
     assert 'autocomplete="off"' in team
     assert "startsWith(term)" in team
