@@ -32,7 +32,7 @@ def upgrade() -> None:
     op.execute(
         "UPDATE turno_servicio SET area_key = 'head_spa' "
         f"WHERE nombre IN ({HEAD_SPA_SERVICES}) "
-        "AND cliente_id IN (SELECT id FROM cliente WHERE activo = 1)"
+        "AND cliente_id IN (SELECT id FROM cliente WHERE activo = true)"
     )
     op.execute(
         "INSERT INTO staff_area (staff_numero, area_key) "
