@@ -1,5 +1,4 @@
-"""Lógica de turnos: check-in, asignación por servicio, finalización, cambio
-de especialista con PIN. Espeja `mockups/v2/store.js`.
+"""Lógica de turnos: check-in, asignación por servicio y operación de visitas.
 """
 from __future__ import annotations
 
@@ -8,17 +7,17 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from src.auth.schemas import AuthUser
-from src.config import settings
-from src.exceptions import BadRequest, Conflict, NotFound, PermissionDenied
+from src.exceptions import BadRequest, Conflict, NotFound
 from src.historial.models import Historial
 from src.services import service as services_service
 from src.staff import service as staff_service
 from src.staff.constants import EffectiveStatus, ManualStatus
 from src.staff.models import Staff
-from src.turnos.constants import ServicioEstado, SituacionTurno, TurnoEstado
+from src.turnos.constants import EtiquetaCodigo, ServicioEstado, SituacionTurno, TurnoEstado
 from src.turnos.models import (
     Cliente,
     ClienteEtiqueta,
+    ClientePreseleccion,
     ClienteProfile,
     ServicioCambio,
     TurnoServicio,
@@ -37,14 +36,17 @@ from src.turnos.schemas import (
     ClienteProfileSummary,
     ClienteRead,
     PublicQueueRead,
+    ServiceReplaceRequest,
     SituacionUpdate,
+    StaffPreferencesUpdate,
     TurnoDetailsUpdate,
     TurnoServicioRead,
 )
 
 
 def _turno_estado(c: Cliente) -> TurnoEstado:
-    if c.servicios and all(sv.estado == ServicioEstado.FINALIZADO for sv in c.servicios):
+    terminal = {ServicioEstado.FINALIZADO, ServicioEstado.CANCELADO}
+    if c.servicios and all(sv.estado in terminal for sv in c.servicios):
         return TurnoEstado.FINALIZADO
     if any(sv.estado == ServicioEstado.EN_ATENCION for sv in c.servicios):
         return TurnoEstado.EN_ATENCION
@@ -69,9 +71,15 @@ def _to_read(c: Cliente) -> ClienteRead:
         registrado_por_subject=c.registrado_por_subject,
         registrado_por_nombre=c.registrado_por_nombre,
         actualizado_por_nombre=c.actualizado_por_nombre,
+        preseleccion_staff_numeros=[item.staff_numero for item in c.preselecciones],
+        acepta_otro_estilista=c.acepta_otro_estilista,
         created_at=c.created_at,
         estado=_turno_estado(c),
-        servicios=[TurnoServicioRead.model_validate(sv) for sv in c.servicios],
+        servicios=[
+            TurnoServicioRead.model_validate(sv)
+            for sv in c.servicios
+            if sv.estado != ServicioEstado.CANCELADO
+        ],
     )
 
 
@@ -118,6 +126,15 @@ def _sync_tags(cliente: Cliente, desired: list[str]) -> None:
     )
 
 
+def _sync_solo_unas(cliente: Cliente) -> None:
+    """Mantiene la etiqueta automática solo mientras la visita sea exclusivamente manicure."""
+    visibles = [sv for sv in cliente.servicios if sv.estado != ServicioEstado.CANCELADO]
+    desired = {tag.codigo for tag in cliente.etiquetas if tag.codigo != EtiquetaCodigo.SOLO_UNAS}
+    if visibles and all(sv.area_key == "manicure" for sv in visibles):
+        desired.add(EtiquetaCodigo.SOLO_UNAS)
+    _sync_tags(cliente, sorted(desired))
+
+
 def _actor_fields(user: AuthUser | None) -> dict[str, str | None]:
     return {
         "role": user.role if user else None,
@@ -132,6 +149,7 @@ async def _load_cliente(db: AsyncSession, cliente_id: int) -> Cliente:
         .options(
             selectinload(Cliente.servicios).selectinload(TurnoServicio.cambios),
             selectinload(Cliente.etiquetas),
+            selectinload(Cliente.preselecciones),
         )
         .where(Cliente.id == cliente_id)
     )
@@ -215,6 +233,7 @@ async def check_in(
         merged_tags = {tag.codigo for tag in active.etiquetas}
         merged_tags.update(tag.value for tag in payload.etiquetas)
         _sync_tags(active, sorted(merged_tags))
+        _sync_solo_unas(active)
         await _upsert_profile(db, payload, cedula)
         await db.commit()
         return _to_read(await _load_cliente(db, active.id))
@@ -248,6 +267,7 @@ async def check_in(
         ],
     )
     db.add(cliente)
+    _sync_solo_unas(cliente)
     await db.commit()
     return _to_read(await _load_cliente(db, cliente.id))
 
@@ -258,6 +278,7 @@ async def list_clientes(db: AsyncSession, estado: str | None = None) -> list[Cli
         .options(
             selectinload(Cliente.servicios).selectinload(TurnoServicio.cambios),
             selectinload(Cliente.etiquetas),
+            selectinload(Cliente.preselecciones),
         )
         .order_by(Cliente.created_at)
     )
@@ -440,6 +461,7 @@ async def update_details(
     cliente = await _load_cliente(db, cliente_id)
     cliente.observacion = payload.observacion.strip()
     _sync_tags(cliente, [tag.value for tag in payload.etiquetas])
+    _sync_solo_unas(cliente)
     actor = _actor_fields(updated_by)
     cliente.actualizado_por_role = actor["role"]
     cliente.actualizado_por_subject = actor["subject"]
@@ -616,17 +638,29 @@ async def assigned_to_staff(db: AsyncSession, staff_numero: int) -> list[Cliente
     return assigned
 
 
-async def _validate_staff_for_area(db: AsyncSession, staff_numero: int, area_key: str) -> Staff:
+async def _validate_staff_for_area(
+    db: AsyncSession,
+    staff_numero: int,
+    area_key: str,
+    *,
+    confirmar_ocupado: bool = False,
+) -> Staff:
     st = await staff_service.get_or_404(db, staff_numero)
     effective = await staff_service.get_read_or_404(db, staff_numero)
-    if effective.status != EffectiveStatus.DISPONIBLE:
-        raise BadRequest(
-            f"el especialista {st.alias} no está disponible para nuevas asignaciones"
-        )
     if not any(a.key == area_key for a in st.areas):
         raise BadRequest(
             f"el especialista {st.alias} no cubre el área {area_key!r}"
         )
+    if effective.status in {EffectiveStatus.BREAK, EffectiveStatus.ALMORZANDO}:
+        raise BadRequest(
+            f"el especialista {st.alias} no está disponible para nuevas asignaciones"
+        )
+    if effective.status == EffectiveStatus.OCUPADO and not confirmar_ocupado:
+        carga = ", ".join(f"#{item.turno} · {item.cliente}" for item in effective.activos)
+        detalle = f"el especialista {st.alias} está ocupado"
+        if carga:
+            detalle += f" ({carga})"
+        raise Conflict(detalle + ". Confirma la asignación para continuar.")
     return st
 
 
@@ -638,9 +672,14 @@ async def assign_service(
     assigned_by: AuthUser | None = None,
 ) -> ClienteRead:
     c, sv = await _get_servicio(db, cliente_id, servicio_id)
-    if sv.estado == ServicioEstado.FINALIZADO:
+    if sv.estado in {ServicioEstado.FINALIZADO, ServicioEstado.CANCELADO}:
         raise BadRequest("no se puede reasignar un servicio ya finalizado")
-    await _validate_staff_for_area(db, payload.staff_numero, sv.area_key)
+    await _validate_staff_for_area(
+        db,
+        payload.staff_numero,
+        sv.area_key,
+        confirmar_ocupado=payload.confirmar_ocupado,
+    )
     actor = _actor_fields(assigned_by)
     sv.staff_numero = payload.staff_numero
     sv.estado = ServicioEstado.EN_ATENCION
@@ -714,7 +753,10 @@ async def finish_service(
             staff_nombre=staff.alias,
         )
     )
-    if all(item.estado == ServicioEstado.FINALIZADO for item in c.servicios):
+    if all(
+        item.estado in {ServicioEstado.FINALIZADO, ServicioEstado.CANCELADO}
+        for item in c.servicios
+    ):
         c.activo = False
     await db.commit()
     return _to_read(await _load_cliente(db, cliente_id))
@@ -756,13 +798,8 @@ async def change_specialist(
     payload: ChangeSpecialistRequest,
     changed_by: AuthUser | None = None,
 ) -> ClienteRead:
-    if payload.pin.strip() != settings.admin_pin:
-        raise PermissionDenied("PIN de administrador inválido.")
-    if not payload.motivo.strip():
-        raise BadRequest("El motivo del cambio es obligatorio.")
-
     c, sv = await _get_servicio(db, cliente_id, servicio_id)
-    if sv.estado == ServicioEstado.FINALIZADO:
+    if sv.estado in {ServicioEstado.FINALIZADO, ServicioEstado.CANCELADO}:
         raise BadRequest("no se puede cambiar el especialista de un servicio finalizado")
     await _validate_staff_for_area(db, payload.staff_numero, sv.area_key)
 
@@ -771,7 +808,7 @@ async def change_specialist(
         ServicioCambio(
             de_staff=sv.staff_numero,
             a_staff=payload.staff_numero,
-            motivo=payload.motivo.strip(),
+            motivo="Cambio administrativo",
             cambiado_por_role=actor["role"],
             cambiado_por_subject=actor["subject"],
             cambiado_por_nombre=actor["nombre"],
@@ -782,5 +819,83 @@ async def change_specialist(
     sv.asignado_por_role = actor["role"]
     sv.asignado_por_subject = actor["subject"]
     sv.asignado_por_nombre = actor["nombre"]
+    await db.commit()
+    return _to_read(await _load_cliente(db, cliente_id))
+
+
+async def replace_service(
+    db: AsyncSession,
+    cliente_id: int,
+    servicio_id: int,
+    payload: ServiceReplaceRequest,
+    updated_by: AuthUser | None = None,
+) -> ClienteRead:
+    cliente, service = await _get_servicio(db, cliente_id, servicio_id)
+    if service.estado in {ServicioEstado.FINALIZADO, ServicioEstado.CANCELADO}:
+        raise BadRequest("no se puede editar un servicio finalizado o eliminado")
+    replacement = (await services_service.get_many_or_404(db, [payload.catalog_service_id]))[0]
+    if service.staff_numero is not None and service.area_key != replacement.area_key:
+        service.staff_numero = None
+        service.estado = ServicioEstado.PENDIENTE
+    service.area_key = replacement.area_key
+    service.nombre = replacement.nombre
+    service.precio_usd = replacement.precio_usd
+    actor = _actor_fields(updated_by)
+    service.modificado_por_role = actor["role"]
+    service.modificado_por_subject = actor["subject"]
+    service.modificado_por_nombre = actor["nombre"]
+    service.modificado_at = func.now()
+    _sync_solo_unas(cliente)
+    await db.commit()
+    return _to_read(await _load_cliente(db, cliente_id))
+
+
+async def cancel_service(
+    db: AsyncSession,
+    cliente_id: int,
+    servicio_id: int,
+    updated_by: AuthUser | None = None,
+) -> ClienteRead:
+    cliente, service = await _get_servicio(db, cliente_id, servicio_id)
+    if service.estado in {ServicioEstado.FINALIZADO, ServicioEstado.CANCELADO}:
+        raise BadRequest("no se puede eliminar un servicio finalizado o eliminado")
+    service.estado = ServicioEstado.CANCELADO
+    actor = _actor_fields(updated_by)
+    service.modificado_por_role = actor["role"]
+    service.modificado_por_subject = actor["subject"]
+    service.modificado_por_nombre = actor["nombre"]
+    service.modificado_at = func.now()
+    _sync_solo_unas(cliente)
+    if all(
+        item.estado in {ServicioEstado.FINALIZADO, ServicioEstado.CANCELADO}
+        for item in cliente.servicios
+    ):
+        cliente.activo = False
+    await db.commit()
+    return _to_read(await _load_cliente(db, cliente_id))
+
+
+async def update_staff_preferences(
+    db: AsyncSession,
+    cliente_id: int,
+    payload: StaffPreferencesUpdate,
+    updated_by: AuthUser | None = None,
+) -> ClienteRead:
+    cliente = await _load_cliente(db, cliente_id)
+    numbers = list(dict.fromkeys(payload.staff_numeros))
+    if len(numbers) != len(payload.staff_numeros):
+        raise BadRequest("no se puede repetir un especialista en las preferencias")
+    if numbers:
+        result = await db.execute(select(Staff.numero).where(Staff.numero.in_(numbers)))
+        if {row[0] for row in result.all()} != set(numbers):
+            raise NotFound("uno o más especialistas no existen")
+    cliente.preselecciones[:] = [
+        ClientePreseleccion(staff_numero=numero) for numero in numbers
+    ]
+    cliente.acepta_otro_estilista = payload.acepta_otro_estilista
+    actor = _actor_fields(updated_by)
+    cliente.actualizado_por_role = actor["role"]
+    cliente.actualizado_por_subject = actor["subject"]
+    cliente.actualizado_por_nombre = actor["nombre"]
     await db.commit()
     return _to_read(await _load_cliente(db, cliente_id))

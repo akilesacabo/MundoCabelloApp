@@ -51,6 +51,7 @@ class TurnoServicioRead(BaseModel):
     estado: ServicioEstado
     pendientes_area: int = 0
     asignado_por_nombre: str | None = None
+    modificado_por_nombre: str | None = None
     cambios: list[CambioRead] = Field(default_factory=list)
 
 
@@ -71,6 +72,8 @@ class ClienteRead(BaseModel):
     registrado_por_subject: str | None
     registrado_por_nombre: str | None
     actualizado_por_nombre: str | None
+    preseleccion_staff_numeros: list[int] = Field(default_factory=list)
+    acepta_otro_estilista: bool = False
     created_at: datetime
     estado: TurnoEstado
     servicios: list[TurnoServicioRead]
@@ -78,6 +81,7 @@ class ClienteRead(BaseModel):
 
 class AssignRequest(BaseModel):
     staff_numero: int = Field(gt=0)
+    confirmar_ocupado: bool = False
 
 
 class AssignManyRequest(BaseModel):
@@ -86,11 +90,18 @@ class AssignManyRequest(BaseModel):
 
 
 class ChangeSpecialistRequest(BaseModel):
-    """Cambio de especialista a mitad de turno. Requiere PIN + motivo."""
+    """Cambio de especialista autorizado por el rol administrador."""
 
     staff_numero: int = Field(gt=0)
-    pin: str = Field(min_length=1)
-    motivo: str = Field(min_length=1, max_length=500)
+
+
+class ServiceReplaceRequest(BaseModel):
+    catalog_service_id: int = Field(gt=0)
+
+
+class StaffPreferencesUpdate(BaseModel):
+    staff_numeros: list[int] = Field(default_factory=list, max_length=3)
+    acepta_otro_estilista: bool = False
 
 
 class SituacionUpdate(BaseModel):

@@ -17,7 +17,9 @@ from src.turnos.schemas import (
     ClienteRead,
     PublicQueueRead,
     QueuePositionRead,
+    ServiceReplaceRequest,
     SituacionUpdate,
+    StaffPreferencesUpdate,
     TurnoDetailsUpdate,
 )
 
@@ -108,6 +110,40 @@ async def assign_service(
 ) -> ClienteRead:
     return await turnos_service.assign_service(
         db, cliente_id, servicio_id, payload, assigned_by=admin
+    )
+
+
+@router.patch("/{cliente_id}/services/{servicio_id}", response_model=ClienteRead)
+async def replace_service(
+    cliente_id: int,
+    servicio_id: int,
+    payload: ServiceReplaceRequest,
+    db: DbSession,
+    admin: AdminUser,
+) -> ClienteRead:
+    return await turnos_service.replace_service(
+        db, cliente_id, servicio_id, payload, updated_by=admin
+    )
+
+
+@router.delete("/{cliente_id}/services/{servicio_id}", response_model=ClienteRead)
+async def cancel_service(
+    cliente_id: int, servicio_id: int, db: DbSession, admin: AdminUser
+) -> ClienteRead:
+    return await turnos_service.cancel_service(
+        db, cliente_id, servicio_id, updated_by=admin
+    )
+
+
+@router.patch("/{cliente_id}/staff-preferences", response_model=ClienteRead)
+async def update_staff_preferences(
+    cliente_id: int,
+    payload: StaffPreferencesUpdate,
+    db: DbSession,
+    admin: AdminUser,
+) -> ClienteRead:
+    return await turnos_service.update_staff_preferences(
+        db, cliente_id, payload, updated_by=admin
     )
 
 

@@ -20,10 +20,6 @@ class Settings(BaseSettings):
         "http://127.0.0.1:5174",
     ]
 
-    # PIN de administrador para reasignar un servicio a mitad de turno.
-    # Default `1234` para dev; sobrescribir con env var en prod.
-    admin_pin: str = "1234"
-
     # Autenticación MVP. Todos estos valores deben sobrescribirse en producción.
     admin_username: str = "admin"
     admin_password: str = "admin-demo"

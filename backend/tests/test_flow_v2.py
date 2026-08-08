@@ -1,4 +1,4 @@
-"""Flujo v2: check-in → asignación por servicio → cambio con PIN → finalizar → historial."""
+"""Flujo v2: check-in → asignación por servicio → finalizar → historial."""
 from __future__ import annotations
 
 import json
@@ -221,7 +221,7 @@ async def test_assign_and_finish_flow(api):
     assert r.json()["status"] == "disponible"
 
 
-async def test_change_specialist_requires_pin(api):
+async def test_change_specialist_requires_admin_role_but_not_pin(api):
     ac = api["ac"]
     cli = await _checkin(ac, api)
     corte_sv = next(s for s in cli["servicios"] if s["area_key"] == "peluqueria")
@@ -231,21 +231,12 @@ async def test_change_specialist_requires_pin(api):
         headers=api["admin_headers"],
     )
 
-    # PIN inválido → 403
+    # Sin token → 403.
     r = await ac.post(
         f"/api/queue/{cli['id']}/services/{corte_sv['id']}/change-specialist",
-        json={"staff_numero": 3, "pin": "0000", "motivo": "prefiere otra"},
-        headers=api["admin_headers"],
+        json={"staff_numero": 3},
     )
     assert r.status_code == 403
-
-    # PIN correcto pero motivo vacío → validación 422 (pydantic)
-    r = await ac.post(
-        f"/api/queue/{cli['id']}/services/{corte_sv['id']}/change-specialist",
-        json={"staff_numero": 3, "pin": "1234", "motivo": ""},
-        headers=api["admin_headers"],
-    )
-    assert r.status_code == 422
 
     await ac.patch(
         "/api/staff/3/manual-status",
@@ -253,10 +244,10 @@ async def test_change_specialist_requires_pin(api):
         headers=api["admin_headers"],
     )
 
-    # PIN correcto + motivo → cambio y log
+    # El rol admin puede cambiar sin PIN adicional y conserva auditoría.
     r = await ac.post(
         f"/api/queue/{cli['id']}/services/{corte_sv['id']}/change-specialist",
-        json={"staff_numero": 3, "pin": "1234", "motivo": "cliente prefiere a Cami"},
+        json={"staff_numero": 3},
         headers=api["admin_headers"],
     )
     assert r.status_code == 200, r.text
@@ -266,7 +257,7 @@ async def test_change_specialist_requires_pin(api):
     assert len(sv["cambios"]) == 1
     assert sv["cambios"][0]["de_staff"] == 1
     assert sv["cambios"][0]["a_staff"] == 3
-    assert sv["cambios"][0]["motivo"] == "cliente prefiere a Cami"
+    assert sv["cambios"][0]["motivo"] == "Cambio administrativo"
     assert sv["cambios"][0]["cambiado_por_nombre"] == "Administración"
 
 
@@ -354,8 +345,16 @@ async def test_manual_busy_status_is_selectable_and_excluded_from_eligible(api):
         json={"staff_numero": 1},
         headers=api["admin_headers"],
     )
-    assert rejected.status_code == 400
-    assert "no está disponible" in rejected.json()["detail"]
+    assert rejected.status_code == 409
+    assert "Confirma la asignación" in rejected.json()["detail"]
+
+    confirmed = await ac.post(
+        f"/api/queue/{client['id']}/services/{service['id']}/assign",
+        json={"staff_numero": 1, "confirmar_ocupado": True},
+        headers=api["admin_headers"],
+    )
+    assert confirmed.status_code == 200
+    assert confirmed.json()["servicios"][0]["staff_numero"] == 1
 
 
 async def test_progressive_profile_search_client_database_and_duplicate_guard(api):
@@ -816,3 +815,48 @@ async def test_int_priority_name_order_position_and_registrar(api):
         "Beta Pérez",
         "Zeta Pérez",
     ]
+
+
+async def test_assignment_screen_controls_preferences_services_and_solo_unas(api):
+    ac = api["ac"]
+    client = await ac.post(
+        "/api/queue/checkin",
+        json={
+            "cedula": "V-18.765.432",
+            "nombre": "Marta Cliente",
+            "telefono": "04141234567",
+            "direccion": "Calle Uno",
+            "service_ids": [api["unas_id"]],
+        },
+        headers=api["admin_headers"],
+    )
+    assert client.status_code == 201
+    body = client.json()
+    assert "SOLO UÑAS" in body["etiquetas"]
+
+    preferences = await ac.patch(
+        f"/api/queue/{body['id']}/staff-preferences",
+        json={"staff_numeros": [1, 2], "acepta_otro_estilista": True},
+        headers=api["admin_headers"],
+    )
+    assert preferences.status_code == 200
+    assert preferences.json()["preseleccion_staff_numeros"] == [1, 2]
+    assert preferences.json()["acepta_otro_estilista"] is True
+
+    service = body["servicios"][0]
+    replaced = await ac.patch(
+        f"/api/queue/{body['id']}/services/{service['id']}",
+        json={"catalog_service_id": api["corte_id"]},
+        headers=api["admin_headers"],
+    )
+    assert replaced.status_code == 200
+    assert replaced.json()["servicios"][0]["nombre"] == "CORTE DAMA"
+    assert "SOLO UÑAS" not in replaced.json()["etiquetas"]
+
+    deleted = await ac.delete(
+        f"/api/queue/{body['id']}/services/{service['id']}",
+        headers=api["admin_headers"],
+    )
+    assert deleted.status_code == 200
+    assert deleted.json()["servicios"] == []
+    assert deleted.json()["activo"] is False

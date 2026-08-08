@@ -27,12 +27,12 @@ def test_admin_dashboard_prioritizes_status_and_assignment():
     assert "Clientes activos" in html
     assert "assignment-only" in html
     assert "Progreso de asignación" in html
-    assert "/staff/eligible?area=" in html
+    assert "assignmentOptions(client,service)" in html
     assert "/services/${serviceId}/assign" in html
     assert "applyRoleNavigation()" in (APP_DIR / "api.js").read_text()
     assert 'oninput="highlightSpecialist(this)"' in html
     assert "specialist-selected" in html
-    assert 'class="specialist-search"' in html
+    assert 'class="specialist-search ${selected?' in html
     assert "<datalist" in html
     assert 'id="dashboardSearch"' not in html
     assert "Buscar cliente en asignaciones" in html
@@ -48,6 +48,9 @@ def test_admin_dashboard_prioritizes_status_and_assignment():
     assert "Almorzando" in html
     assert "client-observation" in html
     assert "situation-${client.situacion}" in html
+    assert "openPreferences" in html
+    assert "finishService" in html
+    assert "SOLO UÑAS" in html
 
 
 def test_public_queue_preserves_and_recognizes_team_session():

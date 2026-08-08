@@ -54,6 +54,7 @@ class Cliente(Base):
     actualizado_por_role: Mapped[str | None] = mapped_column(String(20), nullable=True)
     actualizado_por_subject: Mapped[str | None] = mapped_column(String(64), nullable=True)
     actualizado_por_nombre: Mapped[str | None] = mapped_column(String(128), nullable=True)
+    acepta_otro_estilista: Mapped[bool] = mapped_column(Boolean, default=False)
     created_at: Mapped[datetime] = mapped_column(server_default=func.now(), index=True)
 
     perfil: Mapped[ClienteProfile | None] = relationship(back_populates="turnos")
@@ -66,6 +67,9 @@ class Cliente(Base):
         back_populates="cliente",
         cascade="all, delete-orphan",
         order_by="ClienteEtiqueta.codigo",
+    )
+    preselecciones: Mapped[list[ClientePreseleccion]] = relationship(
+        back_populates="cliente", cascade="all, delete-orphan", order_by="ClientePreseleccion.id"
     )
 
 
@@ -82,6 +86,24 @@ class ClienteEtiqueta(Base):
     codigo: Mapped[str] = mapped_column(String(16), index=True)
 
     cliente: Mapped[Cliente] = relationship(back_populates="etiquetas")
+
+
+class ClientePreseleccion(Base):
+    """Preferencias de especialista de una visita; máximo tres se valida en API."""
+
+    __tablename__ = "cliente_preseleccion"
+    __table_args__ = (UniqueConstraint("cliente_id", "staff_numero"),)
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    cliente_id: Mapped[int] = mapped_column(
+        ForeignKey("cliente.id", ondelete="CASCADE"), index=True
+    )
+    staff_numero: Mapped[int] = mapped_column(
+        ForeignKey("staff.numero", ondelete="RESTRICT"), index=True
+    )
+
+    cliente: Mapped[Cliente] = relationship(back_populates="preselecciones")
+    staff: Mapped[Staff] = relationship()
 
 
 class TurnoServicio(Base):
@@ -107,6 +129,10 @@ class TurnoServicio(Base):
     asignado_por_role: Mapped[str | None] = mapped_column(String(20), nullable=True)
     asignado_por_subject: Mapped[str | None] = mapped_column(String(64), nullable=True)
     asignado_por_nombre: Mapped[str | None] = mapped_column(String(128), nullable=True)
+    modificado_por_role: Mapped[str | None] = mapped_column(String(20), nullable=True)
+    modificado_por_subject: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    modificado_por_nombre: Mapped[str | None] = mapped_column(String(128), nullable=True)
+    modificado_at: Mapped[datetime | None] = mapped_column(nullable=True)
 
     cliente: Mapped[Cliente] = relationship(back_populates="servicios")
     staff: Mapped[Staff | None] = relationship()
@@ -118,7 +144,7 @@ class TurnoServicio(Base):
 
 
 class ServicioCambio(Base):
-    """Log de reasignaciones de un servicio (autorizado con PIN admin)."""
+    """Log de reasignaciones de un servicio autorizadas por rol administrador."""
 
     __tablename__ = "servicio_cambio"
 

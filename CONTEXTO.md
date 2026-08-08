@@ -3,6 +3,12 @@
 > Documento de handoff para retomar el proyecto en una sesión nueva.
 > Última actualización: 2026-08-03.
 
+> Actualización operativa 2026-08-07: se inició la entrega por pantallas. La pantalla
+> **Asignar clientes** incorpora preferencias de hasta tres estilistas y “Otro”, sugerencia
+> por área, confirmación al asignar a una especialista ocupada, finalizar por servicio,
+> edición/reemplazo y anulación auditable sin PIN adicional, y etiqueta automática `SOLO UÑAS`.
+> Migración requerida: `20260807_assignment_controls`. Pruebas locales: 39 pasaron.
+
 ---
 
 ## 1. Qué es el proyecto

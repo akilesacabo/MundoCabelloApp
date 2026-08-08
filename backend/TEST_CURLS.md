@@ -126,6 +126,36 @@ curl -s -X POST \
 Resultado esperado: el primer llamado deja el servicio en `reposo` y el especialista
 vuelve a ser elegible; el segundo devuelve el servicio a `en_atencion`.
 
+## Controles de la pantalla de asignación
+
+```bash
+# Asignar a una especialista ocupada: primero devuelve 409, luego confirmar.
+curl -s -X POST http://localhost:8000/api/queue/<cliente-id>/services/<servicio-id>/assign \
+  -H "Authorization: Bearer $TOKEN" -H 'Content-Type: application/json' \
+  -d '{"staff_numero":<staff-ocupada>}'
+
+curl -s -X POST http://localhost:8000/api/queue/<cliente-id>/services/<servicio-id>/assign \
+  -H "Authorization: Bearer $TOKEN" -H 'Content-Type: application/json' \
+  -d '{"staff_numero":<staff-ocupada>,"confirmar_ocupado":true}'
+
+# Preferencias, reemplazo y anulación auditable; todo requiere token admin, no PIN.
+curl -s -X PATCH http://localhost:8000/api/queue/<cliente-id>/staff-preferences \
+  -H "Authorization: Bearer $TOKEN" -H 'Content-Type: application/json' \
+  -d '{"staff_numeros":[1,2,3],"acepta_otro_estilista":true}'
+
+curl -s -X PATCH http://localhost:8000/api/queue/<cliente-id>/services/<servicio-id> \
+  -H "Authorization: Bearer $TOKEN" -H 'Content-Type: application/json' \
+  -d '{"catalog_service_id":<nuevo-servicio-id>}'
+
+curl -s -X DELETE http://localhost:8000/api/queue/<cliente-id>/services/<servicio-id> \
+  -H "Authorization: Bearer $TOKEN"
+```
+
+Resultado esperado: se aceptan hasta tres especialistas; al anular, el servicio deja de
+aparecer en asignaciones pero se conserva su registro. Un turno con solo manicure recibe
+automáticamente la etiqueta `SOLO UÑAS`; esta se quita al agregar o editar un servicio de
+otra área.
+
 ## Consultar cuántas personas faltan
 
 ```bash

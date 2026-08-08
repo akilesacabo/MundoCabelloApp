@@ -441,3 +441,6 @@ body.modern-page { min-height:100vh;background:radial-gradient(circle at 92% 2%,
   .metric-grid { grid-template-columns:1fr 1fr }
   .client-card-actions { justify-content:flex-start }
 }
+
+.admin-dashboard-body .client-turn { font-size:.78rem!important;letter-spacing:.14em!important }
+.service-row-actions { display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-top:7px }.service-row-actions button { padding:6px 8px!important;font-size:.64rem!important }.finish-button { background:#2f795d!important }.service-finished { display:inline-flex;padding:5px 8px;border-radius:99px;color:#397457;background:#e5f3eb;font-size:.64rem;font-weight:700 }.preference-staff-list { display:grid;gap:7px;max-height:280px;overflow:auto;margin:12px 0;padding-right:3px }.preference-staff { display:flex;align-items:center;gap:9px;padding:9px 10px;border:1px solid #eadfe5;border-radius:10px;background:#fff }.preference-staff input,.preference-other input { width:auto!important }.preference-staff span { display:grid;gap:2px }.preference-staff b { font-size:.73rem }.preference-staff small { color:#858b87;font-size:.62rem;text-transform:capitalize }.preference-other { display:flex;align-items:center;gap:8px;margin:10px 0;color:#60575c;font-size:.76rem }

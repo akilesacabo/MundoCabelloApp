@@ -124,8 +124,21 @@ Todos requieren rol `admin`:
   pendiente/activo de esa clienta.
 - `POST /queue/{cliente_id}/services/{servicio_id}/assign`.
 - `POST /queue/{cliente_id}/services/assign-many`.
-- `POST /queue/{cliente_id}/services/{servicio_id}/change-specialist`: cada cambio
-  conserva `cambiado_por_nombre`, además del motivo y especialista anterior/nuevo.
+- `POST /queue/{cliente_id}/services/{servicio_id}/assign` acepta opcionalmente
+  `{ "confirmar_ocupado": true }`. Si la especialista está ocupada, sin esa
+  confirmación responde `409`; `break` y `almorzando` siempre permanecen bloqueados.
+- `POST /queue/{cliente_id}/services/{servicio_id}/finish`: finaliza un servicio en
+  atención y lo registra en historial.
+- `PATCH /queue/{cliente_id}/services/{servicio_id}` con
+  `{ "catalog_service_id": <id> }`: reemplaza el servicio por uno del catálogo. Si
+  cambia de área y había especialista asignada, libera esa asignación.
+- `DELETE /queue/{cliente_id}/services/{servicio_id}`: anula el servicio sin borrarlo
+  físicamente; conserva quién lo modificó. Servicios finalizados no se editan ni anulan.
+- `PATCH /queue/{cliente_id}/staff-preferences` con
+  `{ "staff_numeros": [1,2,3], "acepta_otro_estilista": true }`: guarda hasta tres
+  preferencias por turno. El rol administrador autoriza estas acciones; no requieren PIN.
+- `POST /queue/{cliente_id}/services/{servicio_id}/change-specialist`: conserva
+  especialista anterior/nuevo y `cambiado_por_nombre`; requiere rol admin, no PIN.
 - `GET /historial`: servicios finalizados filtrables por cliente, especialista,
   servicio y área. Requiere admin.
 - `GET /historial/summary`: totales administrativos de servicios finalizados y monto
@@ -136,8 +149,9 @@ Todos requieren rol `admin`:
 - `POST /staff` y `PATCH /staff/{numero}`.
 - `POST /services` y `PATCH /services/{id}`.
 
-Un especialista marcado manualmente como `ocupado`, `break` o `almorzando` no acepta
-nuevas asignaciones. Un servicio `en_atencion` ocupa al especialista; un servicio en
+Un especialista marcado manualmente como `break` o `almorzando` no acepta nuevas
+asignaciones. Uno `ocupado` puede recibirla únicamente tras la confirmación explícita
+del administrador. Un servicio `en_atencion` ocupa al especialista; un servicio en
 `reposo` permanece visible en su carga, pero lo libera para atender otra persona.
 
 La cola administrativa ordena primero los turnos con etiqueta `INT` y luego por nombre

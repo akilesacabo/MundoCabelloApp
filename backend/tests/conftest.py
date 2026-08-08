@@ -29,6 +29,7 @@ async def api() -> AsyncGenerator[dict, None]:
         db.add_all([
             Area(key=AreaKey.PELUQUERIA, name="Peluquería", color="#ffb4ab"),
             Area(key=AreaKey.HIDRATACION, name="Hidratación", color="#a3defe"),
+            Area(key=AreaKey.MANICURE, name="Manicure", color="#f6cc87"),
         ])
         # Catálogo mínimo
         corte = ServiceCatalog(nombre="CORTE DAMA", area_key=AreaKey.PELUQUERIA, precio_usd=15)
@@ -37,7 +38,8 @@ async def api() -> AsyncGenerator[dict, None]:
             area_key=AreaKey.HIDRATACION,
             precio_usd=25,
         )
-        db.add_all([corte, hidra])
+        unas = ServiceCatalog(nombre="MANICURE EXPRESS", area_key=AreaKey.MANICURE, precio_usd=10)
+        db.add_all([corte, hidra, unas])
 
         # 3 staff
         ana = Staff(
@@ -58,13 +60,14 @@ async def api() -> AsyncGenerator[dict, None]:
         # M:N: Ana cubre peluquería + hidratación; Beto sólo hidratación; Cami sólo peluquería
         for sn, ak in [
             (1, AreaKey.PELUQUERIA), (1, AreaKey.HIDRATACION),
+            (1, AreaKey.MANICURE),
             (2, AreaKey.HIDRATACION),
             (3, AreaKey.PELUQUERIA),
         ]:
             await db.execute(staff_area.insert().values(staff_numero=sn, area_key=ak))
 
         await db.commit()
-        ids = {"corte_id": corte.id, "hidra_id": hidra.id}
+        ids = {"corte_id": corte.id, "hidra_id": hidra.id, "unas_id": unas.id}
 
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://test") as ac:

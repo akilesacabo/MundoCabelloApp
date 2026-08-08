@@ -6,6 +6,7 @@ class ServicioEstado(StrEnum):
     EN_ATENCION = "en_atencion"
     REPOSO = "reposo"
     FINALIZADO = "finalizado"
+    CANCELADO = "cancelado"
 
 
 class TurnoEstado(StrEnum):
@@ -33,6 +34,7 @@ class EtiquetaCodigo(StrEnum):
     XL = "XL"
     CM = "CM"
     DC = "DC"
+    SOLO_UNAS = "SOLO UÑAS"
 
 
 ETIQUETA_LABELS = {
@@ -45,4 +47,5 @@ ETIQUETA_LABELS = {
     EtiquetaCodigo.XL: "Cabello largo",
     EtiquetaCodigo.CM: "Cabello maltratado",
     EtiquetaCodigo.DC: "Diseño de corte",
+    EtiquetaCodigo.SOLO_UNAS: "Solo uñas",
 }
