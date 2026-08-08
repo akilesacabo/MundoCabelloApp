@@ -541,3 +541,8 @@ Objetivo: **backend real que refleje la v2** y camino a deploy.
   fecha y administrador en `cambios`.
 - Estado: implementado y probado en local. **Requiere reiniciar el backend antes de
   probar.**
+
+### Legibilidad del estado del equipo (2026-08-08)
+
+- ✅ Las tarjetas del estado del equipo permiten que el nombre y las áreas de una
+  especialista se dividan en dos líneas en vez de truncarse con puntos suspensivos.

@@ -127,6 +127,9 @@ def test_admin_has_separate_assignment_team_and_client_database_screens():
     assert 'autocomplete="off"' in team
     assert "startsWith(term)" in team
     assert ".includes(term)" not in team
+    assert ".team-status-card .staff-copy b,.team-status-card .staff-copy span" in (
+        APP_DIR / "styles.css"
+    ).read_text()
     assert "/queue/clients" in clients
     assert "/queue/clients/${profileId}" in clients
     assert 'id="clientModal"' in clients
