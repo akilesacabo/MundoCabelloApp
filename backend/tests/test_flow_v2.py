@@ -223,6 +223,43 @@ async def test_assign_and_finish_flow(api):
     assert r.json()["status"] == "disponible"
 
 
+async def test_reassigning_through_assignment_records_the_change(api):
+    ac = api["ac"]
+    cli = await _checkin(ac, api)
+    service = next(s for s in cli["servicios"] if s["area_key"] == "peluqueria")
+
+    first = await ac.post(
+        f"/api/queue/{cli['id']}/services/{service['id']}/assign",
+        json={"staff_numero": 1},
+        headers=api["admin_headers"],
+    )
+    assert first.status_code == 200, first.text
+    first_service = next(item for item in first.json()["servicios"] if item["id"] == service["id"])
+    assert first_service["cambios"] == []
+
+    await ac.patch(
+        "/api/staff/3/manual-status",
+        json={"manual_status": "disponible"},
+        headers=api["admin_headers"],
+    )
+    changed = await ac.post(
+        f"/api/queue/{cli['id']}/services/{service['id']}/assign",
+        json={"staff_numero": 3},
+        headers=api["admin_headers"],
+    )
+    assert changed.status_code == 200, changed.text
+    changed_service = next(
+        item for item in changed.json()["servicios"] if item["id"] == service["id"]
+    )
+    assert changed_service["staff_numero"] == 3
+    assert len(changed_service["cambios"]) == 1
+    change = changed_service["cambios"][0]
+    assert change["de_staff"] == 1
+    assert change["a_staff"] == 3
+    assert change["motivo"] == "Cambio de especialista durante asignación"
+    assert change["cambiado_por_nombre"] == "Administración"
+
+
 async def test_assigning_same_client_does_not_require_busy_confirmation(api):
     ac = api["ac"]
     client = await _checkin(ac, api)

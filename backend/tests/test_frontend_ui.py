@@ -51,6 +51,8 @@ def test_admin_dashboard_prioritizes_status_and_assignment():
     assert "openPreferences" not in html
     assert "finishService" in html
     assert "SOLO UÑAS" in html
+    assert 'id="toast"' in html
+    assert "Especialista cambiada de" in html
 
 
 def test_public_queue_preserves_and_recognizes_team_session():
@@ -75,6 +77,8 @@ def test_checkin_uses_searchable_checkbox_picker_instead_of_native_multiselect()
     assert "group.area.key" in html
     assert 'id="preferenceSearch"' in html
     assert 'id="preferenceStaffList"' in html
+    assert 'id="preferenceStaffCount"' in html
+    assert "staffDirectory.length" in html
     assert "staff_numeros_preseleccion:preferenceSelection" in html
     assert "staff-preferences-picker" in html
     assert "multiple" not in html

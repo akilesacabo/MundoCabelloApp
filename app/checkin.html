@@ -73,7 +73,7 @@
             </fieldset>
             <fieldset class="staff-preferences-picker">
               <legend>Estilistas preseleccionadas <small>(máximo 3)</small></legend>
-              <p class="muted">Se guardan con este check-in y se priorizan al asignar los servicios.</p>
+              <p class="muted">Se guardan con este check-in y se priorizan al asignar los servicios. <span id="preferenceStaffCount"></span></p>
               <input id="preferenceSearch" type="search" placeholder="Buscar estilista" autocomplete="off">
               <div id="preferenceStaffList" class="preference-staff-list"></div>
               <label class="preference-other"><input id="acceptOther" type="checkbox"> Acepta ser atendida por otra estilista</label>
@@ -141,6 +141,7 @@
       const term=normalize(preferenceSearch.value);
       const selected=new Set(preferenceSelection);
       const rows=staffDirectory.filter(person=>normalize(`${person.alias} ${person.nombre}`).includes(term));
+      preferenceStaffCount.textContent=term?`${rows.length} de ${staffDirectory.length} especialistas coinciden.`:`${staffDirectory.length} especialistas disponibles para preseleccionar.`;
       preferenceStaffList.innerHTML=rows.map(person=>`<label class="preference-staff"><input type="checkbox" value="${person.numero}" ${selected.has(person.numero)?'checked':''}><span><b>#${person.numero} · ${escapeHtml(person.alias)}</b><small>${escapeHtml(person.areas.join(' · '))}</small></span></label>`).join('')||'<p class="muted">No se encontraron estilistas.</p>';
       preferenceStaffList.querySelectorAll('input').forEach(input=>input.onchange=()=>{
         const numero=+input.value;

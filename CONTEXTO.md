@@ -531,3 +531,13 @@ Objetivo: **backend real que refleje la v2** y camino a deploy.
   contengan esas letras en otra posición.
 - Estado: implementado y probado en local. **Requiere reiniciar el backend antes de
   probar.**
+
+### Preselección y trazabilidad de asignaciones (2026-08-08)
+
+- ✅ El check-in expone la nómina completa para preselección, con contador de resultados
+  y una lista desplazable más visible; se conserva el máximo de tres preferencias.
+- ✅ Asignar clientes ahora notifica la asignación o el cambio de especialista. Cuando un
+  servicio que ya tenía especialista se asigna a otra, el backend conserva la transición,
+  fecha y administrador en `cambios`.
+- Estado: implementado y probado en local. **Requiere reiniciar el backend antes de
+  probar.**

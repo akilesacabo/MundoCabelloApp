@@ -130,6 +130,8 @@ Todos requieren rol `admin`:
   `{ "confirmar_ocupado": true }`. Si la especialista está ocupada, sin esa
   confirmación responde `409`. No se solicita confirmación si la especialista ya atiende
   otro servicio de la misma cliente; `break` y `almorzando` siempre permanecen bloqueados.
+  La primera asignación identifica al operador; si el servicio ya tenía otra especialista,
+  además conserva un cambio con especialista anterior, nueva, fecha y operador.
 - `POST /queue/{cliente_id}/services/{servicio_id}/finish`: finaliza un servicio en
   atención y lo registra en historial.
 - `PATCH /queue/{cliente_id}/services/{servicio_id}` con

@@ -738,6 +738,18 @@ async def assign_service(
         cliente_id=cliente_id,
     )
     actor = _actor_fields(assigned_by)
+    previous_staff_numero = sv.staff_numero
+    if previous_staff_numero is not None and previous_staff_numero != payload.staff_numero:
+        sv.cambios.append(
+            ServicioCambio(
+                de_staff=previous_staff_numero,
+                a_staff=payload.staff_numero,
+                motivo="Cambio de especialista durante asignación",
+                cambiado_por_role=actor["role"],
+                cambiado_por_subject=actor["subject"],
+                cambiado_por_nombre=actor["nombre"],
+            )
+        )
     sv.staff_numero = payload.staff_numero
     sv.estado = ServicioEstado.EN_ATENCION
     sv.asignado_por_role = actor["role"]
