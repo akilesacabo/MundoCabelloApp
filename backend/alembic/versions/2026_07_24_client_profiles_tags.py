@@ -129,7 +129,7 @@ def upgrade() -> None:
     )
     connection.execute(
         sa.text(
-            "UPDATE cliente SET activo=0 WHERE situacion='estafa' OR NOT EXISTS ("
+            "UPDATE cliente SET activo=false WHERE situacion='estafa' OR NOT EXISTS ("
             "SELECT 1 FROM turno_servicio "
             "WHERE turno_servicio.cliente_id=cliente.id "
             "AND turno_servicio.estado!='finalizado')"
