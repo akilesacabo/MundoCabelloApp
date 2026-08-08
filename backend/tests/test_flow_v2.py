@@ -691,7 +691,8 @@ async def test_roles_public_queue_and_operational_situation(api):
         headers=api["admin_headers"],
     )
     public = await ac.get("/api/queue/public/status")
-    assert cli["turno"] in public.json()["atendiendo"]
+    assert {item["turno"] for item in public.json()["atendiendo"]} == {cli["turno"]}
+    assert public.json()["atendiendo"][0]["nombre"] == cli["nombre"]
     by_area = {area["area_key"]: area for area in public.json()["por_area"]}
     assert by_area["peluqueria"]["atendiendo"][0]["turno"] == cli["turno"]
 
@@ -701,7 +702,9 @@ async def test_roles_public_queue_and_operational_situation(api):
         headers=api["admin_headers"],
     )
     public = await ac.get("/api/queue/public/status")
-    assert cli["turno"] not in public.json()["atendiendo"]
+    assert cli["turno"] not in {
+        item["turno"] for item in public.json()["atendiendo"]
+    }
 
 
 async def test_public_queue_and_position_search_are_split_by_service_area(api):

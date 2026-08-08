@@ -167,11 +167,16 @@ class TurnoDetailsUpdate(BaseModel):
 
 
 class PublicQueueRead(BaseModel):
-    atendiendo: list[int]
-    en_reposo: list[int]
-    en_espera: list[int]
+    atendiendo: list["PublicQueueClientRead"]
+    en_reposo: list["PublicQueueClientRead"]
+    en_espera: list["PublicQueueClientRead"]
     ultimo_cambio: datetime | None
     por_area: list["AreaQueueRead"] = Field(default_factory=list)
+
+
+class PublicQueueClientRead(BaseModel):
+    turno: int
+    nombre: str
 
 
 class AreaQueueItemRead(BaseModel):

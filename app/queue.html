@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="es">
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>Cola pública · Mundo del Cabello</title><link rel="stylesheet" href="styles.css?v=20260812"></head>
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>Cola pública · Mundo del Cabello</title><link rel="stylesheet" href="styles.css?v=20260813"></head>
 <body class="modern-page queue-public-page">
   <header class="queue-topbar"><a class="dashboard-logo" href="checkin.html" aria-label="Mundo del Cabello"><span class="logo-mark">M</span><span><b>Mundo</b><small>del Cabello</small></span></a><nav class="site-nav" aria-label="Navegación principal"><a href="checkin.html">Registrar check-in</a><a id="sessionLink" href="login.html">Acceso del equipo</a></nav></header>
   <main class="public-shell">
@@ -16,15 +16,16 @@
   <script>
     const role=sessionRole();if(role){sessionLink.href=sessionHome();sessionLink.textContent=role==='admin'?'Volver a asignaciones':'Volver a mis clientes'}
     let previous='';
+    const escapeHtml=value=>String(value).replace(/[&<>'"]/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[char]));
     async function refresh(){
       try{
         const queue=await api('/queue/public/status');
-        const signature=queue.atendiendo.join(',');
-        current.innerHTML=queue.atendiendo.length?queue.atendiendo.map(number=>`<span class="queue-number-chip">#${number}</span>`).join(''):'<div class="empty-state"><b>No hay clientes en atención</b><p class="muted">El equipo está disponible.</p></div>';
+        const signature=queue.atendiendo.map(client=>`${client.turno}:${client.nombre}`).join(',');
+        current.innerHTML=queue.atendiendo.length?queue.atendiendo.map(client=>`<span class="queue-number-chip"><b>#${client.turno}</b><small>${escapeHtml(client.nombre)}</small></span>`).join(''):'<div class="empty-state"><b>No hay clientes en atención</b><p class="muted">El equipo está disponible.</p></div>';
         if(previous&&previous!==signature){current.classList.remove('queue-advance');void current.offsetWidth;current.classList.add('queue-advance')}
         previous=signature;
-        resting.innerHTML=queue.en_reposo.length?`<p><b>En reposo:</b> ${queue.en_reposo.map(number=>`#${number}`).join(', ')}</p>`:'';
-        waiting.innerHTML=queue.en_espera.length?queue.en_espera.map((number,index)=>`<span class="tag">${index+1}. Turno #${number}</span>`).join(''):'<div class="empty-state"><b>Sin turnos pendientes</b><p class="muted">La sala está al día.</p></div>';
+        resting.innerHTML=queue.en_reposo.length?`<p><b>En reposo:</b> ${queue.en_reposo.map(client=>`#${client.turno} · ${escapeHtml(client.nombre)}`).join(', ')}</p>`:'';
+        waiting.innerHTML=queue.en_espera.length?queue.en_espera.map((client,index)=>`<span class="tag">${index+1}. #${client.turno} · ${escapeHtml(client.nombre)}</span>`).join(''):'<div class="empty-state"><b>Sin turnos pendientes</b><p class="muted">La sala está al día.</p></div>';
         areaQueues.innerHTML=queue.por_area?.length?queue.por_area.map(renderAreaQueue).join(''):'<div class="empty-state"><b>Sin servicios pendientes por área</b><p class="muted">Cuando entren clientes aparecerán aquí.</p></div>';
       }catch(error){waiting.textContent=error.message}
     }

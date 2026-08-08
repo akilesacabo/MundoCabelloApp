@@ -35,6 +35,7 @@ from src.turnos.schemas import (
     ClienteProfileRead,
     ClienteProfileSummary,
     ClienteRead,
+    PublicQueueClientRead,
     PublicQueueRead,
     ServiceReplaceRequest,
     SituacionUpdate,
@@ -556,9 +557,21 @@ async def public_queue(db: AsyncSession) -> PublicQueueRead:
     visibles = [
         c for c in clientes if c.activo and c.situacion == SituacionTurno.PRESENTE
     ]
-    atendiendo = [c.turno for c in visibles if c.estado == TurnoEstado.EN_ATENCION]
-    en_reposo = [c.turno for c in visibles if c.estado == TurnoEstado.REPOSO]
-    en_espera = [c.turno for c in visibles if c.estado == TurnoEstado.EN_ESPERA]
+    atendiendo = [
+        PublicQueueClientRead(turno=c.turno, nombre=c.nombre)
+        for c in visibles
+        if c.estado == TurnoEstado.EN_ATENCION
+    ]
+    en_reposo = [
+        PublicQueueClientRead(turno=c.turno, nombre=c.nombre)
+        for c in visibles
+        if c.estado == TurnoEstado.REPOSO
+    ]
+    en_espera = [
+        PublicQueueClientRead(turno=c.turno, nombre=c.nombre)
+        for c in visibles
+        if c.estado == TurnoEstado.EN_ESPERA
+    ]
     ultimo = max((c.created_at for c in visibles), default=None)
     area_queues = _area_queues(visibles)
     return PublicQueueRead(
