@@ -21,7 +21,9 @@ def test_management_screens_use_search_and_pagination_for_large_catalogs():
     assert "function promotionSearchResults(term,preferredServices=new Set())" in service_html
     assert "leftName.startsWith(normalizedTerm)" in service_html
     assert "preferredServices.has(left.id)" in service_html
-    assert "promotionSearchResults(editPromotionSearch.value,editingPromotionServices)" in service_html
+    assert (
+        "promotionSearchResults(editPromotionSearch.value,editingPromotionServices)" in service_html
+    )
     assert "button.textContent='Guardando…'" in service_html
     assert "finally{promotionSubmitting=false" in service_html
     assert "finally{promotionEditSubmitting=false" in service_html
@@ -70,6 +72,8 @@ def test_public_queue_preserves_and_recognizes_team_session():
     assert "function sessionRole()" in api_js
     assert "sessionHome()" in queue_html
     assert "Volver a asignaciones" in queue_html
+    assert "quien se registró primero aparece primero" in queue_html
+    assert "dentro de cada nivel se ordena por nombre" not in queue_html
     assert "localStorage.setItem('peluq_role',x.role)" in login_html
     assert "localStorage.removeItem('peluq_role')" in api_js
 
@@ -132,13 +136,15 @@ def test_admin_has_separate_assignment_team_and_client_database_screens():
     assert "preseleccion_count" in team
     assert "preseleccion_por_area" in team
     assert "Preferida por" in team
-    assert "Head Spa" in team
+    assert "/services/areas" in team
+    assert "areaLabels=Object.fromEntries" in team
     assert 'autocomplete="off"' in team
     assert "startsWith(term)" in team
     assert ".includes(term)" not in team
-    assert ".team-status-card .staff-copy b,.team-status-card .staff-copy span" in (
-        APP_DIR / "styles.css"
-    ).read_text()
+    assert (
+        ".team-status-card .staff-copy b,.team-status-card .staff-copy span"
+        in (APP_DIR / "styles.css").read_text()
+    )
     assert "/queue/clients" in clients
     assert "/queue/clients/${profileId}" in clients
     assert 'id="clientModal"' in clients
@@ -218,6 +224,30 @@ def test_staff_areas_use_visual_multi_selection():
     assert "formData.getAll('areas')" in html
     assert "document.querySelectorAll('.edit-area:checked')" in html
     assert "Áreas, separadas por coma" not in html
+
+
+def test_dynamic_catalog_soft_delete_and_adjustment_controls_are_visible():
+    services = (APP_DIR / "admin-services.html").read_text()
+    staff = (APP_DIR / "admin-staff.html").read_text()
+    checkin = (APP_DIR / "checkin.html").read_text()
+    admin = (APP_DIR / "admin.html").read_text()
+    specialist = (APP_DIR / "specialist.html").read_text()
+    history = (APP_DIR / "admin-history.html").read_text()
+
+    assert 'id="areaForm"' in services
+    assert 'id="areaModal"' in services
+    assert "include_inactive=true" in services
+    assert "/restore" in services
+    assert "Archivar" not in services
+    assert "renderAreaPickers" in staff
+    assert "/staff?include_inactive=true" in staff
+    assert "restoreStaff" in staff
+    assert "selectedAdjustments" in checkin
+    assert "ajustes:" in checkin
+    assert "/adjustment" in admin
+    assert "precio_total_usd" in specialist
+    assert "precio_base_usd" in history
+    assert "precio_total_usd" in history
 
 
 def test_specialist_has_an_explicit_empty_state():

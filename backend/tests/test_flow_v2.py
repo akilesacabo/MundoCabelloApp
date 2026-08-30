@@ -1,4 +1,5 @@
 """Flujo v2: check-in → asignación por servicio → finalizar → historial."""
+
 from __future__ import annotations
 
 import json
@@ -32,9 +33,10 @@ async def test_master_roster_contains_excel_and_supplemental_staff():
     assert by_alias["aura"]["areas"] == ["maquillaje"]
     assert by_alias["day"]["areas"] == ["hidratacion"]
     assert "kendry" in by_alias  # incorporación existente conservada
-    assert next(area for area in data["areas"] if area["key"] == "cejas")[
-        "name"
-    ] == "Cejas y depilación"
+    assert (
+        next(area for area in data["areas"] if area["key"] == "cejas")["name"]
+        == "Cejas y depilación"
+    )
 
 
 async def test_health(api):
@@ -213,14 +215,10 @@ async def test_queue_reports_pending_clients_by_service_area(api):
     rows = queue.json()
     first_row = next(row for row in rows if row["id"] == first.json()["id"])
     corte = next(
-        service
-        for service in first_row["servicios"]
-        if service["area_key"] == "peluqueria"
+        service for service in first_row["servicios"] if service["area_key"] == "peluqueria"
     )
     hidra = next(
-        service
-        for service in first_row["servicios"]
-        if service["area_key"] == "hidratacion"
+        service for service in first_row["servicios"] if service["area_key"] == "hidratacion"
     )
     assert corte["pendientes_area"] == 2
     assert hidra["pendientes_area"] == 1
@@ -238,9 +236,7 @@ async def test_queue_reports_pending_clients_by_service_area(api):
         service for service in first_row["servicios"] if service["id"] == corte["id"]
     )
     second_corte = next(
-        service
-        for service in second_row["servicios"]
-        if service["area_key"] == "peluqueria"
+        service for service in second_row["servicios"] if service["area_key"] == "peluqueria"
     )
     assert assigned_corte["pendientes_area"] == 1
     assert second_corte["pendientes_area"] == 1
@@ -469,9 +465,7 @@ async def test_eligible_staff_excludes_break_and_wrong_area(api):
 
 async def test_toggle_en_prueba_and_manual_status(api):
     ac = api["ac"]
-    r = await ac.post(
-        "/api/staff/1/toggle-en-prueba", headers=api["admin_headers"]
-    )
+    r = await ac.post("/api/staff/1/toggle-en-prueba", headers=api["admin_headers"])
     assert r.json()["en_prueba"] is True
     r = await ac.patch(
         "/api/staff/1/manual-status",
@@ -496,9 +490,7 @@ async def test_manual_busy_status_is_selectable_and_excluded_from_eligible(api):
     assert 1 not in {row["numero"] for row in eligible.json()}
 
     client = await _checkin(ac, api)
-    service = next(
-        item for item in client["servicios"] if item["area_key"] == "peluqueria"
-    )
+    service = next(item for item in client["servicios"] if item["area_key"] == "peluqueria")
     rejected = await ac.post(
         f"/api/queue/{client['id']}/services/{service['id']}/assign",
         json={"staff_numero": 1},
@@ -539,9 +531,7 @@ async def test_progressive_profile_search_client_database_and_duplicate_guard(ap
     assert matches.json()[0]["active_turno_id"] == created.json()["id"]
     assert matches.json()[0]["active_turno"] == created.json()["turno"]
 
-    profiles = await ac.get(
-        "/api/queue/clients", headers=api["admin_headers"]
-    )
+    profiles = await ac.get("/api/queue/clients", headers=api["admin_headers"])
     assert profiles.status_code == 200
     profile = next(row for row in profiles.json() if row["cedula"] == "V-25482938")
     assert profile["visitas"] == 1
@@ -630,9 +620,7 @@ async def test_selected_profile_can_append_services_to_active_turn(api):
 
 async def test_admin_can_open_detailed_client_history(api):
     client = await _checkin(api["ac"], api)
-    service = next(
-        item for item in client["servicios"] if item["area_key"] == "peluqueria"
-    )
+    service = next(item for item in client["servicios"] if item["area_key"] == "peluqueria")
     assigned = await api["ac"].post(
         f"/api/queue/{client['id']}/services/{service['id']}/assign",
         json={"staff_numero": 1},
@@ -640,12 +628,8 @@ async def test_admin_can_open_detailed_client_history(api):
     )
     assert assigned.status_code == 200
 
-    profiles = await api["ac"].get(
-        "/api/queue/clients", headers=api["admin_headers"]
-    )
-    profile = next(
-        row for row in profiles.json() if row["cedula"] == client["cedula"]
-    )
+    profiles = await api["ac"].get("/api/queue/clients", headers=api["admin_headers"])
+    profile = next(row for row in profiles.json() if row["cedula"] == client["cedula"])
     detail = await api["ac"].get(
         f"/api/queue/clients/{profile['id']}", headers=api["admin_headers"]
     )
@@ -658,9 +642,7 @@ async def test_admin_can_open_detailed_client_history(api):
     assert visit["turno"] == client["turno"]
     assert visit["estado"] == "en_atencion"
     assert visit["situacion"] == "presente"
-    assigned_service = next(
-        item for item in visit["servicios"] if item["id"] == service["id"]
-    )
+    assigned_service = next(item for item in visit["servicios"] if item["id"] == service["id"])
     assert assigned_service["staff_numero"] == 1
     assert assigned_service["especialista"] == "Ana"
 
@@ -690,9 +672,7 @@ async def test_admin_can_open_detailed_client_history(api):
 
     denied = await api["ac"].get(f"/api/queue/clients/{profile['id']}")
     assert denied.status_code == 403
-    missing = await api["ac"].get(
-        "/api/queue/clients/999999", headers=api["admin_headers"]
-    )
+    missing = await api["ac"].get("/api/queue/clients/999999", headers=api["admin_headers"])
     assert missing.status_code == 404
 
 
@@ -762,9 +742,7 @@ async def test_roles_public_queue_and_operational_situation(api):
         headers=api["admin_headers"],
     )
     public = await ac.get("/api/queue/public/status")
-    assert cli["turno"] not in {
-        item["turno"] for item in public.json()["atendiendo"]
-    }
+    assert cli["turno"] not in {item["turno"] for item in public.json()["atendiendo"]}
 
 
 async def test_public_queue_and_position_search_are_split_by_service_area(api):
@@ -792,9 +770,7 @@ async def test_public_queue_and_position_search_are_split_by_service_area(api):
     first_body = first.json()
     second_body = second.json()
     first_corte = next(
-        service
-        for service in first_body["servicios"]
-        if service["area_key"] == "peluqueria"
+        service for service in first_body["servicios"] if service["area_key"] == "peluqueria"
     )
     await ac.post(
         f"/api/queue/{first_body['id']}/services/{first_corte['id']}/assign",
@@ -912,9 +888,7 @@ async def test_almorzando_is_not_eligible_or_assignable(api):
     assert 1 not in [row["numero"] for row in eligible.json()]
 
     client = await _checkin(ac, api)
-    service = next(
-        item for item in client["servicios"] if item["area_key"] == "peluqueria"
-    )
+    service = next(item for item in client["servicios"] if item["area_key"] == "peluqueria")
     rejected = await ac.post(
         f"/api/queue/{client['id']}/services/{service['id']}/assign",
         json={"staff_numero": 1},
@@ -923,7 +897,7 @@ async def test_almorzando_is_not_eligible_or_assignable(api):
     assert rejected.status_code == 400
 
 
-async def test_int_priority_name_order_position_and_registrar(api):
+async def test_int_priority_fifo_order_position_and_registrar(api):
     ac = api["ac"]
 
     async def create(cedula: str, nombre: str, tags: list[str]):
@@ -949,8 +923,8 @@ async def test_int_priority_name_order_position_and_registrar(api):
     queue = await ac.get("/api/queue", headers=api["admin_headers"])
     assert [row["nombre"] for row in queue.json()] == [
         "Beta Pérez",
-        "Ana Pérez",
         "Zeta Pérez",
+        "Ana Pérez",
     ]
     assert beta["registrado_por_nombre"] == "Administración"
     assert zeta["registrado_por_role"] == "admin"
@@ -961,8 +935,8 @@ async def test_int_priority_name_order_position_and_registrar(api):
         headers=api["admin_headers"],
     )
     assert position.status_code == 200
-    assert position.json()[0]["posicion"] == 3
-    assert position.json()[0]["personas_delante"] == 2
+    assert position.json()[0]["posicion"] == 2
+    assert position.json()[0]["personas_delante"] == 1
     assert position.json()[0]["prioridad_int"] is False
 
     updated = await ac.patch(
@@ -977,6 +951,197 @@ async def test_int_priority_name_order_position_and_registrar(api):
         "Beta Pérez",
         "Zeta Pérez",
     ]
+
+
+async def test_dynamic_areas_and_service_soft_delete(api):
+    ac = api["ac"]
+    headers = api["admin_headers"]
+    created_area = await ac.post(
+        "/api/services/areas",
+        json={"name": "Barbería Premium", "color": "#123ABC"},
+        headers=headers,
+    )
+    assert created_area.status_code == 201, created_area.text
+    area = created_area.json()
+    assert area == {
+        "key": "barberia_premium",
+        "name": "Barbería Premium",
+        "color": "#123abc",
+        "activo": True,
+    }
+
+    created_service = await ac.post(
+        "/api/services",
+        json={"nombre": "Corte barbería", "area_key": area["key"], "precio_usd": 18},
+        headers=headers,
+    )
+    assert created_service.status_code == 201, created_service.text
+    service = created_service.json()
+    blocked = await ac.delete(f"/api/services/areas/{area['key']}", headers=headers)
+    assert blocked.status_code == 409
+
+    deleted = await ac.delete(f"/api/services/{service['id']}", headers=headers)
+    assert deleted.status_code == 204
+    grouped = (await ac.get("/api/services")).json()
+    assert service["id"] not in {item["id"] for group in grouped for item in group["servicios"]}
+    area_deleted = await ac.delete(f"/api/services/areas/{area['key']}", headers=headers)
+    assert area_deleted.status_code == 204
+    assert (await ac.get("/api/services/areas")).json() == [
+        item
+        for item in (
+            await ac.get(
+                "/api/services/areas",
+                params={"include_inactive": True},
+                headers=headers,
+            )
+        ).json()
+        if item["activo"]
+    ]
+    blocked_restore = await ac.post(f"/api/services/{service['id']}/restore", headers=headers)
+    assert blocked_restore.status_code == 409
+    area_restored = await ac.post(f"/api/services/areas/{area['key']}/restore", headers=headers)
+    assert area_restored.status_code == 200
+    restored = await ac.post(f"/api/services/{service['id']}/restore", headers=headers)
+    assert restored.status_code == 200
+    assert restored.json()["activo"] is True
+
+    promotion = await ac.post(
+        "/api/services/promotions",
+        json={
+            "nombre": "Promo barbería",
+            "servicios": [{"service_id": service["id"], "precio_usd": 14}],
+        },
+        headers=headers,
+    )
+    assert promotion.status_code == 201
+    blocked_service_delete = await ac.delete(
+        f"/api/services/{service['id']}", headers=headers
+    )
+    assert blocked_service_delete.status_code == 409
+    await ac.delete(
+        f"/api/services/promotions/{promotion.json()['id']}", headers=headers
+    )
+    assert (await ac.delete(f"/api/services/{service['id']}", headers=headers)).status_code == 204
+    blocked_promotion_restore = await ac.post(
+        f"/api/services/promotions/{promotion.json()['id']}/restore", headers=headers
+    )
+    assert blocked_promotion_restore.status_code == 409
+    await ac.post(f"/api/services/{service['id']}/restore", headers=headers)
+    restored_promotion = await ac.post(
+        f"/api/services/promotions/{promotion.json()['id']}/restore", headers=headers
+    )
+    assert restored_promotion.status_code == 200
+
+
+async def test_staff_soft_delete_blocks_login_and_active_work(api):
+    ac = api["ac"]
+    headers = api["admin_headers"]
+    deleted = await ac.delete("/api/staff/3", headers=headers)
+    assert deleted.status_code == 204
+    assert 3 not in {item["numero"] for item in (await ac.get("/api/staff")).json()}
+    denied_list = await ac.get("/api/staff", params={"include_inactive": True})
+    assert denied_list.status_code == 403
+    all_staff = await ac.get("/api/staff", params={"include_inactive": True}, headers=headers)
+    assert next(item for item in all_staff.json() if item["numero"] == 3)["activo"] is False
+    denied_login = await ac.post(
+        "/api/auth/login",
+        json={"role": "especialista", "username": "3", "password": "V-3"},
+    )
+    assert denied_login.status_code == 404
+    assert (await ac.post("/api/staff/3/restore", headers=headers)).status_code == 200
+    assert (
+        await ac.post(
+            "/api/auth/login",
+            json={"role": "especialista", "username": "3", "password": "V-3"},
+        )
+    ).status_code == 200
+
+    client = await _checkin(ac, api)
+    service = client["servicios"][0]
+    await ac.post(
+        f"/api/queue/{client['id']}/services/{service['id']}/assign",
+        json={"staff_numero": 1},
+        headers=headers,
+    )
+    blocked = await ac.delete("/api/staff/1", headers=headers)
+    assert blocked.status_code == 409
+
+
+async def test_service_adjustments_are_audited_and_exclude_promotions(api):
+    ac = api["ac"]
+    headers = api["admin_headers"]
+    payload = {
+        "cedula": "V-17770001",
+        "nombre": "Cliente Ajuste",
+        "telefono": "04141234567",
+        "direccion": "Calle Ajuste",
+        "service_ids": [api["corte_id"]],
+        "ajustes": [{"service_id": api["corte_id"], "ajuste_usd": 10}],
+    }
+    assert (await ac.post("/api/queue/checkin", json=payload)).status_code == 403
+    created = await ac.post("/api/queue/checkin", json=payload, headers=headers)
+    assert created.status_code == 201, created.text
+    client = created.json()
+    service = client["servicios"][0]
+    assert service["precio_usd"] == "15.00"
+    assert service["ajuste_usd"] == "10"
+    assert service["precio_total_usd"] == "25.00"
+    assert service["ajuste_por_nombre"] == "Administración"
+
+    invalid = await ac.patch(
+        f"/api/queue/{client['id']}/services/{service['id']}/adjustment",
+        json={"ajuste_usd": 7},
+        headers=headers,
+    )
+    assert invalid.status_code == 422
+    adjusted = await ac.patch(
+        f"/api/queue/{client['id']}/services/{service['id']}/adjustment",
+        json={"ajuste_usd": 15},
+        headers=headers,
+    )
+    assert adjusted.status_code == 200
+    assert adjusted.json()["servicios"][0]["precio_total_usd"] == "30.00"
+
+    promotion = await ac.post(
+        "/api/services/promotions",
+        json={
+            "nombre": "Promo sin ajuste",
+            "servicios": [{"service_id": api["hidra_id"], "precio_usd": 12}],
+        },
+        headers=headers,
+    )
+    promo_client = await ac.post(
+        "/api/queue/checkin",
+        json={
+            "cedula": "V-17770002",
+            "nombre": "Cliente Promo Ajuste",
+            "telefono": "04141234567",
+            "direccion": "Calle Promo",
+            "promotion_ids": [promotion.json()["id"]],
+        },
+    )
+    promo_service = promo_client.json()["servicios"][0]
+    rejected = await ac.patch(
+        f"/api/queue/{promo_client.json()['id']}/services/{promo_service['id']}/adjustment",
+        json={"ajuste_usd": 5},
+        headers=headers,
+    )
+    assert rejected.status_code == 400
+
+    await ac.post(
+        f"/api/queue/{client['id']}/services/{service['id']}/assign",
+        json={"staff_numero": 1},
+        headers=headers,
+    )
+    await ac.post(
+        f"/api/queue/{client['id']}/services/{service['id']}/finish",
+        headers=headers,
+    )
+    history = (await ac.get("/api/historial", headers=headers)).json()[0]
+    assert history["precio_base_usd"] == "15.00"
+    assert history["ajuste_usd"] == "15.00"
+    assert history["precio_total_usd"] == "30.00"
+    assert history["precio_usd"] == "30.00"
 
 
 async def test_assignment_screen_controls_preferences_services_and_solo_unas(api):

@@ -23,6 +23,7 @@ curl -s -X POST http://localhost:8000/api/queue/checkin \
     "telefono":"04145551212",
     "direccion":"Los Palos Grandes",
     "service_ids":[<service-id>],
+    "ajustes":[{"service_id":<service-id>,"ajuste_usd":5}],
     "etiquetas":["XL","CM"],
     "observacion":"Usar producto suave",
     "staff_numeros_preseleccion":[<staff-numero-1>,<staff-numero-2>],
@@ -52,6 +53,52 @@ curl -s -X POST http://localhost:8000/api/queue/checkin \
 
 Resultado esperado: `201`, el mismo `id` y número de turno, con el servicio nuevo en
 estado `pendiente`.
+
+El campo `ajustes` requiere añadir `-H "Authorization: Bearer $TOKEN"`. Sin token
+administrativo responde `403`; si el servicio pertenece a una promoción o el valor no
+está entre `0, 5, 10, 15, 20, 25, 30`, la operación se rechaza.
+
+## Áreas dinámicas y eliminación lógica del catálogo
+
+```bash
+curl -s -X POST http://localhost:8000/api/services/areas \
+  -H "Authorization: Bearer $TOKEN" -H 'Content-Type: application/json' \
+  -d '{"name":"Trenzas","color":"#8B5CF6"}'
+
+curl -s -X POST http://localhost:8000/api/services \
+  -H "Authorization: Bearer $TOKEN" -H 'Content-Type: application/json' \
+  -d '{"nombre":"TRENZA ESPECIAL","area_key":"trenzas","precio_usd":20}'
+
+curl -s -X DELETE http://localhost:8000/api/services/<service-id> \
+  -H "Authorization: Bearer $TOKEN"
+
+curl -s 'http://localhost:8000/api/services?include_inactive=true' \
+  -H "Authorization: Bearer $TOKEN"
+
+curl -s -X POST http://localhost:8000/api/services/<service-id>/restore \
+  -H "Authorization: Bearer $TOKEN"
+```
+
+Resultados esperados: creación `201`, eliminación `204` y restauración `200`. El
+servicio eliminado no aparece en el catálogo operativo, pero sí con
+`include_inactive=true`. Un área con asociaciones activas y un servicio incluido en una
+promoción activa no se pueden eliminar.
+
+Promociones y especialistas siguen el mismo patrón:
+
+```bash
+curl -s -X DELETE http://localhost:8000/api/services/promotions/<promotion-id> \
+  -H "Authorization: Bearer $TOKEN"
+curl -s -X POST http://localhost:8000/api/services/promotions/<promotion-id>/restore \
+  -H "Authorization: Bearer $TOKEN"
+curl -s -X DELETE http://localhost:8000/api/staff/<numero> \
+  -H "Authorization: Bearer $TOKEN"
+curl -s -X POST http://localhost:8000/api/staff/<numero>/restore \
+  -H "Authorization: Bearer $TOKEN"
+```
+
+Una especialista eliminada no puede iniciar sesión ni recibir asignaciones. Si conserva
+trabajo activo, la eliminación responde `400`.
 
 ## Base de clientes y edición de visita
 
@@ -151,6 +198,12 @@ curl -s -X PATCH http://localhost:8000/api/queue/<cliente-id>/services/<servicio
 
 curl -s -X DELETE http://localhost:8000/api/queue/<cliente-id>/services/<servicio-id> \
   -H "Authorization: Bearer $TOKEN"
+
+# Aplicar o quitar el único ajuste monetario del servicio.
+curl -s -X PATCH \
+  http://localhost:8000/api/queue/<cliente-id>/services/<servicio-id>/adjustment \
+  -H "Authorization: Bearer $TOKEN" -H 'Content-Type: application/json' \
+  -d '{"ajuste_usd":10}'
 ```
 
 Resultado esperado: se aceptan hasta tres especialistas; al anular, el servicio deja de
@@ -180,6 +233,7 @@ curl -s 'http://localhost:8000/api/historial/summary?cliente=ambar' \
   -H "Authorization: Bearer $TOKEN"
 ```
 
-Resultado esperado: ambos `200`. `/historial` devuelve servicios finalizados y
+Resultado esperado: ambos `200`. `/historial` devuelve servicios finalizados con
+`precio_base_usd`, `ajuste_usd` y `precio_usd` total; y
 `/historial/summary` devuelve `total_servicios`, `total_usd` y `por_area`. Sin token,
 ambos endpoints responden `403`.

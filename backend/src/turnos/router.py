@@ -17,6 +17,7 @@ from src.turnos.schemas import (
     ClienteRead,
     PublicQueueRead,
     QueuePositionRead,
+    ServiceAdjustmentUpdate,
     ServiceReplaceRequest,
     SituacionUpdate,
     StaffPreferencesUpdate,
@@ -31,9 +32,7 @@ router = APIRouter(prefix="/queue", tags=["turnos"])
     response_model=ClienteRead,
     status_code=status.HTTP_201_CREATED,
 )
-async def check_in(
-    payload: CheckInRequest, db: DbSession, user: OptionalUser
-) -> ClienteRead:
+async def check_in(payload: CheckInRequest, db: DbSession, user: OptionalUser) -> ClienteRead:
     return await turnos_service.check_in(db, payload, registered_by=user)
 
 
@@ -41,9 +40,7 @@ async def check_in(
 async def list_turnos(
     db: DbSession,
     admin: AdminUser,
-    estado: Annotated[
-        str | None, Query(description="en_espera | en_atencion | finalizado")
-    ] = None,
+    estado: Annotated[str | None, Query(description="en_espera | en_atencion | finalizado")] = None,
 ) -> list[ClienteRead]:
     return await turnos_service.list_clientes(db, estado=estado)
 
@@ -79,9 +76,7 @@ async def search_clientes(
 
 
 @router.get("/clients", response_model=list[ClienteProfileSummary])
-async def list_client_profiles(
-    db: DbSession, admin: AdminUser
-) -> list[ClienteProfileSummary]:
+async def list_client_profiles(db: DbSession, admin: AdminUser) -> list[ClienteProfileSummary]:
     return await turnos_service.list_profiles(db)
 
 
@@ -126,13 +121,24 @@ async def replace_service(
     )
 
 
+@router.patch("/{cliente_id}/services/{servicio_id}/adjustment", response_model=ClienteRead)
+async def update_service_adjustment(
+    cliente_id: int,
+    servicio_id: int,
+    payload: ServiceAdjustmentUpdate,
+    db: DbSession,
+    admin: AdminUser,
+) -> ClienteRead:
+    return await turnos_service.update_service_adjustment(
+        db, cliente_id, servicio_id, payload, updated_by=admin
+    )
+
+
 @router.delete("/{cliente_id}/services/{servicio_id}", response_model=ClienteRead)
 async def cancel_service(
     cliente_id: int, servicio_id: int, db: DbSession, admin: AdminUser
 ) -> ClienteRead:
-    return await turnos_service.cancel_service(
-        db, cliente_id, servicio_id, updated_by=admin
-    )
+    return await turnos_service.cancel_service(db, cliente_id, servicio_id, updated_by=admin)
 
 
 @router.patch("/{cliente_id}/staff-preferences", response_model=ClienteRead)
@@ -142,9 +148,7 @@ async def update_staff_preferences(
     db: DbSession,
     admin: AdminUser,
 ) -> ClienteRead:
-    return await turnos_service.update_staff_preferences(
-        db, cliente_id, payload, updated_by=admin
-    )
+    return await turnos_service.update_staff_preferences(db, cliente_id, payload, updated_by=admin)
 
 
 @router.post("/{cliente_id}/services/assign-many", response_model=ClienteRead)
@@ -227,9 +231,7 @@ async def lookup_cliente(cedula: str, db: DbSession) -> ClienteProfileRead:
 async def set_situacion(
     cliente_id: int, payload: SituacionUpdate, db: DbSession, admin: AdminUser
 ) -> ClienteRead:
-    return await turnos_service.update_situacion(
-        db, cliente_id, payload, updated_by=admin
-    )
+    return await turnos_service.update_situacion(db, cliente_id, payload, updated_by=admin)
 
 
 @router.patch("/{cliente_id}/details", response_model=ClienteRead)

@@ -1,5 +1,5 @@
-"""Lógica de turnos: check-in, asignación por servicio y operación de visitas.
-"""
+"""Lógica de turnos: check-in, asignación por servicio y operación de visitas."""
+
 from __future__ import annotations
 
 from sqlalchemy import func, or_, select
@@ -7,7 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from src.auth.schemas import AuthUser
-from src.exceptions import BadRequest, Conflict, NotFound
+from src.exceptions import BadRequest, Conflict, NotFound, PermissionDenied
 from src.historial.models import Historial
 from src.services import service as services_service
 from src.staff import service as staff_service
@@ -37,6 +37,7 @@ from src.turnos.schemas import (
     ClienteRead,
     PublicQueueClientRead,
     PublicQueueRead,
+    ServiceAdjustmentUpdate,
     ServiceReplaceRequest,
     SituacionUpdate,
     StaffPreferencesUpdate,
@@ -109,21 +110,16 @@ def _profile_to_read(profile: ClienteProfile) -> ClienteProfileRead:
         direccion=profile.direccion,
         active_turno_id=active.id if active else None,
         active_turno=active.turno if active else None,
-        alerta_estafa=any(
-            visit.situacion == SituacionTurno.ESTAFA for visit in profile.turnos
-        ),
+        alerta_estafa=any(visit.situacion == SituacionTurno.ESTAFA for visit in profile.turnos),
     )
 
 
 def _sync_tags(cliente: Cliente, desired: list[str]) -> None:
     desired_codes = set(desired)
     current = {tag.codigo: tag for tag in cliente.etiquetas}
-    cliente.etiquetas[:] = [
-        tag for code, tag in current.items() if code in desired_codes
-    ]
+    cliente.etiquetas[:] = [tag for code, tag in current.items() if code in desired_codes]
     cliente.etiquetas.extend(
-        ClienteEtiqueta(codigo=code)
-        for code in sorted(desired_codes - current.keys())
+        ClienteEtiqueta(codigo=code) for code in sorted(desired_codes - current.keys())
     )
 
 
@@ -181,13 +177,13 @@ async def _active_for_cedula(
     if exclude_id is not None:
         stmt = stmt.where(Cliente.id != exclude_id)
     return (
-        await db.execute(stmt.order_by(Cliente.created_at.desc(), Cliente.id.desc()))
-    ).scalars().first()
+        (await db.execute(stmt.order_by(Cliente.created_at.desc(), Cliente.id.desc())))
+        .scalars()
+        .first()
+    )
 
 
-async def _upsert_profile(
-    db: AsyncSession, payload: CheckInRequest, cedula: str
-) -> ClienteProfile:
+async def _upsert_profile(db: AsyncSession, payload: CheckInRequest, cedula: str) -> ClienteProfile:
     profile = (
         await db.execute(select(ClienteProfile).where(ClienteProfile.cedula == cedula))
     ).scalar_one_or_none()
@@ -218,28 +214,41 @@ async def _apply_staff_preferences(
     if len(numbers) != len(staff_numeros):
         raise BadRequest("no se puede repetir un especialista en las preferencias")
     if numbers:
-        result = await db.execute(select(Staff.numero).where(Staff.numero.in_(numbers)))
+        result = await db.execute(
+            select(Staff.numero).where(Staff.numero.in_(numbers), Staff.activo.is_(True))
+        )
         if {row[0] for row in result.all()} != set(numbers):
             raise NotFound("uno o más especialistas no existen")
     cliente.preselecciones.clear()
     # Fuerza las eliminaciones antes de insertar los mismos números nuevamente.
     # La tabla prohíbe repetir (cliente_id, staff_numero).
     await db.flush()
-    cliente.preselecciones.extend(
-        ClientePreseleccion(staff_numero=numero) for numero in numbers
-    )
+    cliente.preselecciones.extend(ClientePreseleccion(staff_numero=numero) for numero in numbers)
     cliente.acepta_otro_estilista = acepta_otro_estilista
 
 
 async def _services_for_checkin(
-    db: AsyncSession, payload: CheckInRequest
+    db: AsyncSession, payload: CheckInRequest, registered_by: AuthUser | None
 ) -> list[TurnoServicio]:
+    adjustment_ids = [item.service_id for item in payload.ajustes]
+    if len(set(adjustment_ids)) != len(adjustment_ids):
+        raise BadRequest("no se puede repetir el ajuste de un servicio")
+    if not set(adjustment_ids).issubset(set(payload.service_ids)):
+        raise BadRequest("los ajustes solo pueden asociarse a servicios normales seleccionados")
+    adjustments = {item.service_id: item.ajuste_usd for item in payload.ajustes}
+    actor = _actor_fields(registered_by)
     catalog = await services_service.get_many_or_404(db, payload.service_ids)
     selected = [
         TurnoServicio(
             area_key=service.area_key,
             nombre=service.nombre,
             precio_usd=service.precio_usd,
+            ajuste_usd=adjustments.get(service.id, 0),
+            ajuste_por_role=actor["role"] if service.id in adjustments else None,
+            ajuste_por_subject=actor["subject"] if service.id in adjustments else None,
+            ajuste_por_nombre=actor["nombre"] if service.id in adjustments else None,
+            ajuste_at=func.now() if service.id in adjustments else None,
+            origen="catalogo",
             estado=ServicioEstado.PENDIENTE,
         )
         for service in catalog
@@ -252,6 +261,9 @@ async def _services_for_checkin(
                 area_key=item.servicio.area_key,
                 nombre=item.servicio.nombre,
                 precio_usd=item.precio_usd,
+                ajuste_usd=0,
+                origen="promocion",
+                promocion_id=promotion.id,
                 estado=ServicioEstado.PENDIENTE,
             )
             for item in promotion.servicios
@@ -262,9 +274,11 @@ async def _services_for_checkin(
 async def check_in(
     db: AsyncSession, payload: CheckInRequest, registered_by: AuthUser | None = None
 ) -> ClienteRead:
+    if payload.ajustes and (registered_by is None or registered_by.role != "admin"):
+        raise PermissionDenied("Solo administración puede agregar ajustes a servicios.")
     cedula = normalize_cedula(payload.cedula)
     active = await _active_for_cedula(db, cedula)
-    services = await _services_for_checkin(db, payload)
+    services = await _services_for_checkin(db, payload, registered_by)
     if active is not None:
         if payload.active_turno_id != active.id:
             raise Conflict(
@@ -304,9 +318,7 @@ async def check_in(
         activo=True,
         registrado_por_role=registered_by.role if registered_by else None,
         registrado_por_subject=registered_by.subject if registered_by else None,
-        registrado_por_nombre=(
-            registered_by.display_name if registered_by else "Autoservicio"
-        ),
+        registrado_por_nombre=(registered_by.display_name if registered_by else "Autoservicio"),
         etiquetas=[ClienteEtiqueta(codigo=tag.value) for tag in payload.etiquetas],
         preselecciones=[
             ClientePreseleccion(staff_numero=numero)
@@ -321,7 +333,9 @@ async def check_in(
     if len(numbers) != len(payload.staff_numeros_preseleccion):
         raise BadRequest("no se puede repetir un especialista en las preferencias")
     if numbers:
-        result = await db.execute(select(Staff.numero).where(Staff.numero.in_(numbers)))
+        result = await db.execute(
+            select(Staff.numero).where(Staff.numero.in_(numbers), Staff.activo.is_(True))
+        )
         if {row[0] for row in result.all()} != set(numbers):
             raise NotFound("uno o más especialistas no existen")
     _sync_solo_unas(cliente)
@@ -344,7 +358,6 @@ async def list_clientes(db: AsyncSession, estado: str | None = None) -> list[Cli
     all_c.sort(
         key=lambda client: (
             "INT" not in client.etiquetas,
-            client.nombre.casefold(),
             client.created_at,
             client.id,
         )
@@ -358,9 +371,7 @@ async def list_clientes(db: AsyncSession, estado: str | None = None) -> list[Cli
         for service in client.servicios:
             if service.estado == ServicioEstado.PENDIENTE and service.staff_numero is None:
                 area_pending_clients.setdefault(service.area_key, set()).add(client.id)
-    area_counts = {
-        area: len(client_ids) for area, client_ids in area_pending_clients.items()
-    }
+    area_counts = {area: len(client_ids) for area, client_ids in area_pending_clients.items()}
     for client in all_c:
         for service in client.servicios:
             service.pendientes_area = area_counts.get(service.area_key, 0)
@@ -419,14 +430,16 @@ async def search_profiles(db: AsyncSession, query: str) -> list[ClienteProfileRe
 
 async def list_profiles(db: AsyncSession) -> list[ClienteProfileSummary]:
     profiles = (
-        await db.execute(
-            select(ClienteProfile)
-            .options(
-                selectinload(ClienteProfile.turnos).selectinload(Cliente.etiquetas)
+        (
+            await db.execute(
+                select(ClienteProfile)
+                .options(selectinload(ClienteProfile.turnos).selectinload(Cliente.etiquetas))
+                .order_by(ClienteProfile.nombre)
             )
-            .order_by(ClienteProfile.nombre)
         )
-    ).scalars().all()
+        .scalars()
+        .all()
+    )
     rows: list[ClienteProfileSummary] = []
     for profile in profiles:
         visits = sorted(
@@ -452,9 +465,7 @@ async def list_profiles(db: AsyncSession) -> list[ClienteProfileSummary]:
     return rows
 
 
-async def get_profile_detail(
-    db: AsyncSession, profile_id: int
-) -> ClienteProfileDetail:
+async def get_profile_detail(db: AsyncSession, profile_id: int) -> ClienteProfileDetail:
     stmt = (
         select(ClienteProfile)
         .options(
@@ -497,6 +508,8 @@ async def get_profile_detail(
                         area_key=service.area_key,
                         nombre=service.nombre,
                         precio_usd=service.precio_usd,
+                        ajuste_usd=service.ajuste_usd,
+                        precio_total_usd=service.precio_total_usd,
                         staff_numero=service.staff_numero,
                         especialista=service.staff.alias if service.staff else None,
                         estado=service.estado,
@@ -542,9 +555,7 @@ async def update_situacion(
     if payload.situacion == SituacionTurno.ESTAFA:
         cliente.activo = False
     elif payload.situacion == SituacionTurno.PRESENTE:
-        duplicate = await _active_for_cedula(
-            db, cliente.cedula, exclude_id=cliente.id
-        )
+        duplicate = await _active_for_cedula(db, cliente.cedula, exclude_id=cliente.id)
         if duplicate is not None:
             raise Conflict(f"La cédula ya tiene el turno activo #{duplicate.turno}.")
         cliente.activo = _turno_estado(cliente) != TurnoEstado.FINALIZADO
@@ -554,9 +565,7 @@ async def update_situacion(
 
 async def public_queue(db: AsyncSession) -> PublicQueueRead:
     clientes = await list_clientes(db)
-    visibles = [
-        c for c in clientes if c.activo and c.situacion == SituacionTurno.PRESENTE
-    ]
+    visibles = [c for c in clientes if c.activo and c.situacion == SituacionTurno.PRESENTE]
     atendiendo = [
         PublicQueueClientRead(turno=c.turno, nombre=c.nombre)
         for c in visibles
@@ -699,8 +708,7 @@ async def assigned_to_staff(db: AsyncSession, staff_numero: int) -> list[Cliente
         own_services = [
             service
             for service in client.servicios
-            if service.staff_numero == staff_numero
-            and service.estado != ServicioEstado.FINALIZADO
+            if service.staff_numero == staff_numero and service.estado != ServicioEstado.FINALIZADO
         ]
         if own_services:
             assigned.append(client.model_copy(update={"servicios": own_services}))
@@ -718,13 +726,9 @@ async def _validate_staff_for_area(
     st = await staff_service.get_or_404(db, staff_numero)
     effective = await staff_service.get_read_or_404(db, staff_numero)
     if not any(a.key == area_key for a in st.areas):
-        raise BadRequest(
-            f"el especialista {st.alias} no cubre el área {area_key!r}"
-        )
+        raise BadRequest(f"el especialista {st.alias} no cubre el área {area_key!r}")
     if effective.status in {EffectiveStatus.BREAK, EffectiveStatus.ALMORZANDO}:
-        raise BadRequest(
-            f"el especialista {st.alias} no está disponible para nuevas asignaciones"
-        )
+        raise BadRequest(f"el especialista {st.alias} no está disponible para nuevas asignaciones")
     atendiendo_este_cliente = any(
         item.estado == ServicioEstado.EN_ATENCION and item.cliente_id == cliente_id
         for item in effective.activos
@@ -799,9 +803,7 @@ async def assign_many(
     st = await staff_service.get_or_404(db, payload.staff_numero)
     effective = await staff_service.get_read_or_404(db, payload.staff_numero)
     if effective.status != EffectiveStatus.DISPONIBLE:
-        raise BadRequest(
-            f"el especialista {st.alias} no está disponible para nuevas asignaciones"
-        )
+        raise BadRequest(f"el especialista {st.alias} no está disponible para nuevas asignaciones")
     staff_areas = {a.key for a in st.areas}
     for sv in target.values():
         if sv.estado == ServicioEstado.FINALIZADO:
@@ -822,14 +824,10 @@ async def assign_many(
     return _to_read(await _load_cliente(db, cliente_id))
 
 
-async def finish_service(
-    db: AsyncSession, cliente_id: int, servicio_id: int
-) -> ClienteRead:
+async def finish_service(db: AsyncSession, cliente_id: int, servicio_id: int) -> ClienteRead:
     c, sv = await _get_servicio(db, cliente_id, servicio_id)
     if sv.estado != ServicioEstado.EN_ATENCION:
-        raise BadRequest(
-            f"solo se finaliza un servicio EN_ATENCION (estado actual: {sv.estado})"
-        )
+        raise BadRequest(f"solo se finaliza un servicio EN_ATENCION (estado actual: {sv.estado})")
     if sv.staff_numero is None:
         raise BadRequest("el servicio no tiene especialista asignado")
 
@@ -842,23 +840,22 @@ async def finish_service(
             cliente_cedula=c.cedula,
             servicio_nombre=sv.nombre,
             area_key=sv.area_key,
-            precio_usd=sv.precio_usd,
+            precio_base_usd=sv.precio_usd,
+            ajuste_usd=sv.ajuste_usd,
+            precio_usd=sv.precio_total_usd,
             staff_numero=staff.numero,
             staff_nombre=staff.alias,
         )
     )
     if all(
-        item.estado in {ServicioEstado.FINALIZADO, ServicioEstado.CANCELADO}
-        for item in c.servicios
+        item.estado in {ServicioEstado.FINALIZADO, ServicioEstado.CANCELADO} for item in c.servicios
     ):
         c.activo = False
     await db.commit()
     return _to_read(await _load_cliente(db, cliente_id))
 
 
-async def rest_service(
-    db: AsyncSession, cliente_id: int, servicio_id: int
-) -> ClienteRead:
+async def rest_service(db: AsyncSession, cliente_id: int, servicio_id: int) -> ClienteRead:
     _, service = await _get_servicio(db, cliente_id, servicio_id)
     if service.estado != ServicioEstado.EN_ATENCION:
         raise BadRequest("solo un servicio EN_ATENCION puede pasar a reposo")
@@ -867,9 +864,7 @@ async def rest_service(
     return _to_read(await _load_cliente(db, cliente_id))
 
 
-async def resume_service(
-    db: AsyncSession, cliente_id: int, servicio_id: int
-) -> ClienteRead:
+async def resume_service(db: AsyncSession, cliente_id: int, servicio_id: int) -> ClienteRead:
     _, service = await _get_servicio(db, cliente_id, servicio_id)
     if service.estado != ServicioEstado.REPOSO:
         raise BadRequest("solo un servicio EN_REPOSO puede reanudarse")
@@ -877,9 +872,7 @@ async def resume_service(
         raise BadRequest("el servicio no tiene especialista asignado")
     staff = await staff_service.get_or_404(db, service.staff_numero)
     if staff.manual_status != ManualStatus.DISPONIBLE:
-        raise BadRequest(
-            f"el especialista {staff.alias} no está disponible para reanudar"
-        )
+        raise BadRequest(f"el especialista {staff.alias} no está disponible para reanudar")
     service.estado = ServicioEstado.EN_ATENCION
     await db.commit()
     return _to_read(await _load_cliente(db, cliente_id))
@@ -934,12 +927,46 @@ async def replace_service(
     service.area_key = replacement.area_key
     service.nombre = replacement.nombre
     service.precio_usd = replacement.precio_usd
+    service.origen = "catalogo"
+    service.promocion_id = None
+    service.ajuste_usd = 0
+    service.ajuste_por_role = None
+    service.ajuste_por_subject = None
+    service.ajuste_por_nombre = None
+    service.ajuste_at = None
     actor = _actor_fields(updated_by)
     service.modificado_por_role = actor["role"]
     service.modificado_por_subject = actor["subject"]
     service.modificado_por_nombre = actor["nombre"]
     service.modificado_at = func.now()
     _sync_solo_unas(cliente)
+    await db.commit()
+    return _to_read(await _load_cliente(db, cliente_id))
+
+
+async def update_service_adjustment(
+    db: AsyncSession,
+    cliente_id: int,
+    servicio_id: int,
+    payload: ServiceAdjustmentUpdate,
+    updated_by: AuthUser,
+) -> ClienteRead:
+    _, service = await _get_servicio(db, cliente_id, servicio_id)
+    if service.estado in {ServicioEstado.FINALIZADO, ServicioEstado.CANCELADO}:
+        raise BadRequest("no se puede ajustar un servicio finalizado o eliminado")
+    if service.origen == "promocion":
+        raise BadRequest("los servicios de una promoción no admiten ajustes")
+    if service.origen == "legacy":
+        raise BadRequest(
+            "el origen de este servicio anterior no puede verificarse; reemplázalo "
+            "por un servicio del catálogo antes de ajustarlo"
+        )
+    actor = _actor_fields(updated_by)
+    service.ajuste_usd = payload.ajuste_usd
+    service.ajuste_por_role = actor["role"]
+    service.ajuste_por_subject = actor["subject"]
+    service.ajuste_por_nombre = actor["nombre"]
+    service.ajuste_at = func.now()
     await db.commit()
     return _to_read(await _load_cliente(db, cliente_id))
 

@@ -8,7 +8,7 @@
     <div class="queue-explanation"><b>¿Cómo leer esta pantalla?</b> Busca tu número en “Atendiendo ahora”. Si aparece en “Después siguen”, todavía estás en espera. Abajo también puedes revisar la cola por área/servicio.</div>
     <div class="queue-stage">
       <section class="card queue-now"><span class="section-kicker">CLIENTES EN ATENCIÓN</span><h2>Atendiendo ahora</h2><div id="current" class="queue-number-list"><span class="muted">Cargando…</span></div><p class="muted">Cada número puede estar con un especialista diferente.</p></section>
-      <section class="card queue-next"><span class="section-kicker">ORDEN DE ATENCIÓN</span><h2>Después siguen</h2><div id="resting" class="queue-resting"></div><div id="waiting" class="queue-number-list"><span class="muted">Cargando…</span></div><p class="muted">La prioridad INT aparece primero; dentro de cada nivel se ordena por nombre. Esta pantalla se actualiza cada 5 segundos.</p></section>
+      <section class="card queue-next"><span class="section-kicker">ORDEN DE ATENCIÓN</span><h2>Después siguen</h2><div id="resting" class="queue-resting"></div><div id="waiting" class="queue-number-list"><span class="muted">Cargando…</span></div><p class="muted">La prioridad INT aparece primero; dentro de cada nivel, quien se registró primero aparece primero. Esta pantalla se actualiza cada 5 segundos.</p></section>
     </div>
     <section class="card area-queue-card"><span class="section-kicker">COLA POR SERVICIO</span><h2>Espera por área</h2><div id="areaQueues" class="area-queue-grid"><span class="muted">Cargando áreas…</span></div></section>
   </main>
@@ -19,7 +19,7 @@
     const escapeHtml=value=>String(value).replace(/[&<>'"]/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[char]));
     async function refresh(){
       try{
-        const queue=await api('/queue/public/status');
+        const [queue,areas]=await Promise.all([api('/queue/public/status'),api('/services/areas')]);areaDirectory=Object.fromEntries(areas.map(area=>[area.key,area]));
         const signature=queue.atendiendo.map(client=>`${client.turno}:${client.nombre}`).join(',');
         current.innerHTML=queue.atendiendo.length?queue.atendiendo.map(client=>`<span class="queue-number-chip"><b>#${client.turno}</b><small>${escapeHtml(client.nombre)}</small></span>`).join(''):'<div class="empty-state"><b>No hay clientes en atención</b><p class="muted">El equipo está disponible.</p></div>';
         if(previous&&previous!==signature){current.classList.remove('queue-advance');void current.offsetWidth;current.classList.add('queue-advance')}
@@ -33,8 +33,10 @@
       const prefix=kind==='wait'&&item.posicion?`${item.posicion}. `:'';
       return `<span class="area-queue-chip"><b>${prefix}#${item.turno}</b><small>${item.servicio_nombre}</small></span>`;
     }
+    let areaDirectory={};
     function renderAreaQueue(area){
-      return `<article class="area-queue-section"><header><b>${area.area_key}</b><span>${area.en_espera.length} en espera</span></header>
+      const meta=areaDirectory[area.area_key]||{name:area.area_key,color:'#dc6fa8'};
+      return `<article class="area-queue-section" style="--area-color:${escapeHtml(meta.color)}"><header><b>${escapeHtml(meta.name)}</b><span>${area.en_espera.length} en espera</span></header>
         <div><small>Atendiendo</small><div class="area-queue-row">${area.atendiendo.length?area.atendiendo.map(item=>chip(item,'now')).join(''):'<span class="muted">—</span>'}</div></div>
         <div><small>En reposo</small><div class="area-queue-row">${area.en_reposo.length?area.en_reposo.map(item=>chip(item,'rest')).join(''):'<span class="muted">—</span>'}</div></div>
         <div><small>Después siguen</small><div class="area-queue-row">${area.en_espera.length?area.en_espera.map(item=>chip(item,'wait')).join(''):'<span class="muted">Sin espera</span>'}</div></div>

@@ -31,6 +31,7 @@ class Staff(Base):
         String(16), default=ManualStatus.DISPONIBLE, index=True
     )
     en_prueba: Mapped[bool] = mapped_column(Boolean, default=False)
+    activo: Mapped[bool] = mapped_column(Boolean, default=True, index=True)
     created_at: Mapped[datetime] = mapped_column(server_default=func.now())
 
     areas: Mapped[list[Area]] = relationship(secondary=staff_area, lazy="selectin")

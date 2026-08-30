@@ -28,8 +28,8 @@
       <section class="client-table-card" aria-live="polite">
         <div class="client-table-scroll">
           <table class="client-table">
-            <thead><tr><th>Fecha</th><th>Cliente</th><th>Servicio</th><th>Área</th><th>Especialista</th><th>Monto</th></tr></thead>
-            <tbody id="historyList"><tr><td colspan="6">Cargando historial…</td></tr></tbody>
+            <thead><tr><th>Fecha</th><th>Cliente</th><th>Servicio</th><th>Área</th><th>Especialista</th><th>Base</th><th>Ajuste</th><th>Total</th></tr></thead>
+            <tbody id="historyList"><tr><td colspan="8">Cargando historial…</td></tr></tbody>
           </table>
         </div>
       </section>
@@ -56,7 +56,9 @@
         <td>${escapeHtml(item.servicio_nombre)}</td>
         <td>${escapeHtml(item.area_key)}</td>
         <td>${item.staff_numero?`#${item.staff_numero} ${escapeHtml(item.staff_nombre)}`:'—'}</td>
-        <td><b>${money(item.precio_usd)}</b></td>
+        <td>${money(item.precio_base_usd)}</td>
+        <td>${money(item.ajuste_usd)}</td>
+        <td><b>${money(item.precio_total_usd)}</b></td>
       </tr>`;
     }
     function renderSummary(summary){
@@ -67,7 +69,7 @@
       areaSummary.innerHTML=summary.por_area.length?summary.por_area.map(row=>`<span class="status-pill"><b>${escapeHtml(row.area_key)}</b> · ${row.total_servicios} · ${money(row.total_usd)}</span>`).join(''):'<p class="muted">Sin servicios finalizados para estos filtros.</p>';
     }
     async function loadHistory(){
-      historyList.innerHTML='<tr><td colspan="6">Cargando historial…</td></tr>';
+      historyList.innerHTML='<tr><td colspan="8">Cargando historial…</td></tr>';
       const query=params();
       try{
         const [items,summary]=await Promise.all([
@@ -75,9 +77,9 @@
           api(`/historial/summary${query?`?${query}`:''}`),
         ]);
         renderSummary(summary);
-        historyList.innerHTML=items.length?items.map(rowHtml).join(''):'<tr><td colspan="6"><div class="empty-state"><b>No hay resultados</b><p class="muted">Prueba con otros filtros.</p></div></td></tr>';
+        historyList.innerHTML=items.length?items.map(rowHtml).join(''):'<tr><td colspan="8"><div class="empty-state"><b>No hay resultados</b><p class="muted">Prueba con otros filtros.</p></div></td></tr>';
       }catch(error){
-        historyList.innerHTML=`<tr><td colspan="6"><div class="empty-state"><b>No fue posible cargar el historial</b><p>${escapeHtml(error.message)}</p></div></td></tr>`;
+        historyList.innerHTML=`<tr><td colspan="8"><div class="empty-state"><b>No fue posible cargar el historial</b><p>${escapeHtml(error.message)}</p></div></td></tr>`;
       }
     }
     function clearFilters(){filterClient.value='';filterStaff.value='';filterService.value='';filterArea.value='';loadHistory()}

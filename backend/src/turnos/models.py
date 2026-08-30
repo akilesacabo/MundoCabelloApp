@@ -22,9 +22,7 @@ class ClienteProfile(Base):
     telefono: Mapped[str] = mapped_column(String(25))
     direccion: Mapped[str] = mapped_column(String(255))
     created_at: Mapped[datetime] = mapped_column(server_default=func.now())
-    updated_at: Mapped[datetime] = mapped_column(
-        server_default=func.now(), onupdate=func.now()
-    )
+    updated_at: Mapped[datetime] = mapped_column(server_default=func.now(), onupdate=func.now())
 
     turnos: Mapped[list[Cliente]] = relationship(back_populates="perfil")
 
@@ -44,9 +42,7 @@ class Cliente(Base):
     telefono: Mapped[str] = mapped_column(String(20))
     direccion: Mapped[str] = mapped_column(String(255))
     observacion: Mapped[str] = mapped_column(Text, default="")
-    situacion: Mapped[str] = mapped_column(
-        String(16), default=SituacionTurno.PRESENTE, index=True
-    )
+    situacion: Mapped[str] = mapped_column(String(16), default=SituacionTurno.PRESENTE, index=True)
     activo: Mapped[bool] = mapped_column(Boolean, default=True, index=True)
     registrado_por_role: Mapped[str | None] = mapped_column(String(20), nullable=True)
     registrado_por_subject: Mapped[str | None] = mapped_column(String(64), nullable=True)
@@ -115,17 +111,22 @@ class TurnoServicio(Base):
     cliente_id: Mapped[int] = mapped_column(
         ForeignKey("cliente.id", ondelete="CASCADE"), index=True
     )
-    area_key: Mapped[str] = mapped_column(
-        ForeignKey("area.key", ondelete="RESTRICT"), index=True
-    )
+    area_key: Mapped[str] = mapped_column(ForeignKey("area.key", ondelete="RESTRICT"), index=True)
     nombre: Mapped[str] = mapped_column(String(128))
     precio_usd: Mapped[Decimal] = mapped_column(Numeric(10, 2))
+    origen: Mapped[str] = mapped_column(String(16), default="legacy", index=True)
+    promocion_id: Mapped[int | None] = mapped_column(
+        ForeignKey("promocion.id", ondelete="RESTRICT"), nullable=True, index=True
+    )
+    ajuste_usd: Mapped[Decimal] = mapped_column(Numeric(10, 2), default=0)
+    ajuste_por_role: Mapped[str | None] = mapped_column(String(20), nullable=True)
+    ajuste_por_subject: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    ajuste_por_nombre: Mapped[str | None] = mapped_column(String(128), nullable=True)
+    ajuste_at: Mapped[datetime | None] = mapped_column(nullable=True)
     staff_numero: Mapped[int | None] = mapped_column(
         ForeignKey("staff.numero", ondelete="SET NULL"), nullable=True, index=True
     )
-    estado: Mapped[str] = mapped_column(
-        String(16), default=ServicioEstado.PENDIENTE, index=True
-    )
+    estado: Mapped[str] = mapped_column(String(16), default=ServicioEstado.PENDIENTE, index=True)
     asignado_por_role: Mapped[str | None] = mapped_column(String(20), nullable=True)
     asignado_por_subject: Mapped[str | None] = mapped_column(String(64), nullable=True)
     asignado_por_nombre: Mapped[str | None] = mapped_column(String(128), nullable=True)
@@ -142,6 +143,10 @@ class TurnoServicio(Base):
         order_by="ServicioCambio.ts",
     )
 
+    @property
+    def precio_total_usd(self) -> Decimal:
+        return self.precio_usd + self.ajuste_usd
+
 
 class ServicioCambio(Base):
     """Log de reasignaciones de un servicio autorizadas por rol administrador."""
@@ -156,9 +161,7 @@ class ServicioCambio(Base):
     de_staff: Mapped[int | None] = mapped_column(
         ForeignKey("staff.numero", ondelete="SET NULL"), nullable=True
     )
-    a_staff: Mapped[int] = mapped_column(
-        ForeignKey("staff.numero", ondelete="RESTRICT")
-    )
+    a_staff: Mapped[int] = mapped_column(ForeignKey("staff.numero", ondelete="RESTRICT"))
     motivo: Mapped[str] = mapped_column(Text)
     cambiado_por_role: Mapped[str | None] = mapped_column(String(20), nullable=True)
     cambiado_por_subject: Mapped[str | None] = mapped_column(String(64), nullable=True)

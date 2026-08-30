@@ -24,6 +24,7 @@ class StaffRead(BaseModel):
     areas: list[str]
     manual_status: ManualStatus
     en_prueba: bool
+    activo: bool
     # Campos derivados (los llena el service layer):
     status: EffectiveStatus
     activos: list[StaffActivo] = Field(default_factory=list)

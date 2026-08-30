@@ -2,8 +2,9 @@ from typing import Annotated
 
 from fastapi import APIRouter, Query
 
-from src.auth.dependencies import AdminUser
+from src.auth.dependencies import AdminUser, OptionalUser
 from src.dependencies import DbSession
+from src.exceptions import PermissionDenied
 from src.staff import service as staff_service
 from src.staff.schemas import ManualStatusUpdate, StaffCreate, StaffRead, StaffUpdate
 
@@ -13,12 +14,18 @@ router = APIRouter(prefix="/staff", tags=["staff"])
 @router.get("", response_model=list[StaffRead])
 async def list_staff(
     db: DbSession,
+    user: OptionalUser,
     area: Annotated[str | None, Query(description="Filtra por área (peluqueria, etc.)")] = None,
     status: Annotated[
         str | None, Query(description="Filtra por estado efectivo: disponible|ocupado|break")
     ] = None,
+    include_inactive: bool = False,
 ) -> list[StaffRead]:
-    return await staff_service.list_staff(db, area=area, status=status)
+    if include_inactive and (user is None or user.role != "admin"):
+        raise PermissionDenied("Solo administración puede consultar especialistas eliminadas.")
+    return await staff_service.list_staff(
+        db, area=area, status=status, include_inactive=include_inactive
+    )
 
 
 @router.get("/eligible", response_model=list[StaffRead])
@@ -45,14 +52,20 @@ async def toggle_en_prueba(numero: int, db: DbSession, admin: AdminUser) -> Staf
 
 
 @router.post("", response_model=StaffRead, status_code=201)
-async def create_staff(
-    data: StaffCreate, db: DbSession, admin: AdminUser
-) -> StaffRead:
+async def create_staff(data: StaffCreate, db: DbSession, admin: AdminUser) -> StaffRead:
     return await staff_service.create_staff(db, data)
 
 
 @router.patch("/{numero}", response_model=StaffRead)
-async def edit_staff(
-    numero: int, data: StaffUpdate, db: DbSession, admin: AdminUser
-) -> StaffRead:
+async def edit_staff(numero: int, data: StaffUpdate, db: DbSession, admin: AdminUser) -> StaffRead:
     return await staff_service.update_staff(db, numero, data)
+
+
+@router.delete("/{numero}", status_code=204)
+async def delete_staff(numero: int, db: DbSession, admin: AdminUser) -> None:
+    await staff_service.archive_staff(db, numero)
+
+
+@router.post("/{numero}/restore", response_model=StaffRead)
+async def restore_staff(numero: int, db: DbSession, admin: AdminUser) -> StaffRead:
+    return await staff_service.restore_staff(db, numero)

@@ -1,9 +1,17 @@
 from datetime import datetime
 from decimal import Decimal
+from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from src.turnos.constants import EtiquetaCodigo, ServicioEstado, SituacionTurno, TurnoEstado
+
+AdjustmentAmount = Literal[0, 5, 10, 15, 20, 25, 30]
+
+
+class ServiceAdjustmentInput(BaseModel):
+    service_id: int = Field(gt=0)
+    ajuste_usd: AdjustmentAmount
 
 
 class CheckInRequest(BaseModel):
@@ -22,6 +30,7 @@ class CheckInRequest(BaseModel):
     etiquetas: list[EtiquetaCodigo] = Field(default_factory=list, max_length=9)
     service_ids: list[int] = Field(default_factory=list)
     promotion_ids: list[int] = Field(default_factory=list)
+    ajustes: list[ServiceAdjustmentInput] = Field(default_factory=list)
     staff_numeros_preseleccion: list[int] = Field(default_factory=list, max_length=3)
     acepta_otro_estilista: bool = False
     active_turno_id: int | None = Field(
@@ -56,6 +65,12 @@ class TurnoServicioRead(BaseModel):
     area_key: str
     nombre: str
     precio_usd: Decimal
+    ajuste_usd: Decimal
+    precio_total_usd: Decimal
+    origen: str
+    promocion_id: int | None
+    ajuste_por_nombre: str | None = None
+    ajuste_at: datetime | None = None
     staff_numero: int | None
     estado: ServicioEstado
     pendientes_area: int = 0
@@ -108,6 +123,10 @@ class ServiceReplaceRequest(BaseModel):
     catalog_service_id: int = Field(gt=0)
 
 
+class ServiceAdjustmentUpdate(BaseModel):
+    ajuste_usd: AdjustmentAmount
+
+
 class StaffPreferencesUpdate(BaseModel):
     staff_numeros: list[int] = Field(default_factory=list, max_length=3)
     acepta_otro_estilista: bool = False
@@ -139,6 +158,8 @@ class ClienteHistoryServiceRead(BaseModel):
     area_key: str
     nombre: str
     precio_usd: Decimal
+    ajuste_usd: Decimal
+    precio_total_usd: Decimal
     staff_numero: int | None
     especialista: str | None
     estado: ServicioEstado

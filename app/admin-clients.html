@@ -80,7 +80,7 @@
         :'<span class="muted">Sin asignar</span>';
       return `<li class="history-service">
         <div><b>${escapeHtml(service.nombre)}</b><small>${escapeHtml(service.area_key)} · ${specialist}</small></div>
-        <div class="history-service-state"><span class="status-pill">${escapeHtml(stateLabels[service.estado]||service.estado)}</span><b>$${Number(service.precio_usd).toFixed(2)}</b></div>
+        <div class="history-service-state"><span class="status-pill">${escapeHtml(stateLabels[service.estado]||service.estado)}</span><b>$${Number(service.precio_total_usd).toFixed(2)}${Number(service.ajuste_usd)?` <small>(base $${Number(service.precio_usd).toFixed(2)} + $${Number(service.ajuste_usd).toFixed(2)})</small>`:''}</b></div>
       </li>`;
     }
     function renderVisit(visit){

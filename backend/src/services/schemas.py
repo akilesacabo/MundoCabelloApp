@@ -8,6 +8,17 @@ class AreaRead(BaseModel):
     key: str
     name: str
     color: str
+    activo: bool
+
+
+class AreaCreate(BaseModel):
+    name: str = Field(min_length=2, max_length=64)
+    color: str = Field(pattern=r"^#[0-9A-Fa-f]{6}$")
+
+
+class AreaUpdate(BaseModel):
+    name: str | None = Field(default=None, min_length=2, max_length=64)
+    color: str | None = Field(default=None, pattern=r"^#[0-9A-Fa-f]{6}$")
 
 
 class ServiceRead(BaseModel):
@@ -16,6 +27,7 @@ class ServiceRead(BaseModel):
     nombre: str
     area_key: str
     precio_usd: Decimal
+    activo: bool
 
 
 class ServicesGrouped(BaseModel):
@@ -64,4 +76,5 @@ class PromotionRead(BaseModel):
     id: int
     nombre: str
     precio_usd: Decimal
+    activo: bool
     servicios: list[PromotionServiceRead]

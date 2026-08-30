@@ -21,11 +21,16 @@ class Historial(Base):
     cliente_nombre: Mapped[str] = mapped_column(String(128), index=True)
     cliente_cedula: Mapped[str] = mapped_column(String(20), index=True)
     servicio_nombre: Mapped[str] = mapped_column(String(128), index=True)
-    area_key: Mapped[str] = mapped_column(
-        ForeignKey("area.key", ondelete="RESTRICT"), index=True
-    )
+    area_key: Mapped[str] = mapped_column(ForeignKey("area.key", ondelete="RESTRICT"), index=True)
+    precio_base_usd: Mapped[Decimal] = mapped_column(Numeric(10, 2))
+    ajuste_usd: Mapped[Decimal] = mapped_column(Numeric(10, 2), default=0)
+    # Compatibilidad: precio_usd continúa siendo el total cobrado.
     precio_usd: Mapped[Decimal] = mapped_column(Numeric(10, 2))
     staff_numero: Mapped[int | None] = mapped_column(
         ForeignKey("staff.numero", ondelete="SET NULL"), nullable=True, index=True
     )
     staff_nombre: Mapped[str] = mapped_column(String(128))
+
+    @property
+    def precio_total_usd(self) -> Decimal:
+        return self.precio_usd

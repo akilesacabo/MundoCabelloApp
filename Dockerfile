@@ -26,4 +26,5 @@ USER appuser
 
 EXPOSE 8000
 
-CMD ["sh", "-c", "alembic upgrade head && python -m src.seed && gunicorn src.main:app -k uvicorn.workers.UvicornWorker -w 1 -b 0.0.0.0:${PORT:-8000}"]
+# Las migraciones se ejecutan en el Pre-Deploy de Railway y el seed solo de forma manual.
+CMD ["sh", "-c", "exec gunicorn src.main:app -k uvicorn.workers.UvicornWorker -w 1 -b 0.0.0.0:${PORT:-8000}"]

@@ -1,11 +1,23 @@
 .DS_Store
 **/.DS_Store
 
-backend/.env
+# Secretos locales. Los archivos de ejemplo sí se versionan.
+**/.env
+**/.env.*
+!**/.env.example
+
+# Bases y respaldos locales/de producción.
+*.db
+*.sqlite
+*.sqlite3
+*.dump
+*.dump.sha256
+
+# Exportaciones de auditoría con datos operativos o personales.
+auditorias/
+
 backend/.venv/
-backend/peluq.db
 backend/.pytest_cache/
 backend/.ruff_cache/
 **/__pycache__/
 *.py[cod]
-

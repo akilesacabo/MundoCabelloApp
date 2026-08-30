@@ -3,6 +3,7 @@
 El panel guarda DISPONIBLE, OCUPADO, BREAK o ALMORZANDO. Un servicio EN_ATENCION
 tiene prioridad y mantiene el estado efectivo OCUPADO.
 """
+
 from __future__ import annotations
 
 from sqlalchemy import select
@@ -30,9 +31,7 @@ async def _active_by_staff(db: AsyncSession) -> dict[int, list[StaffActivo]]:
         select(TurnoServicio, Cliente)
         .join(Cliente, Cliente.id == TurnoServicio.cliente_id)
         .where(
-            TurnoServicio.estado.in_(
-                [ServicioEstado.EN_ATENCION, ServicioEstado.REPOSO]
-            ),
+            TurnoServicio.estado.in_([ServicioEstado.EN_ATENCION, ServicioEstado.REPOSO]),
             TurnoServicio.staff_numero.is_not(None),
         )
     )
@@ -69,6 +68,7 @@ def _to_read(
         areas=[a.key for a in s.areas],
         manual_status=ManualStatus(s.manual_status),
         en_prueba=s.en_prueba,
+        activo=s.activo,
         status=status,
         activos=activos,
         preseleccion_count=preselection_counts.get(s.numero, 0),
@@ -119,9 +119,7 @@ async def _preselection_counts(
     area_client_ids: dict[int, dict[str, set[int]]] = {}
     for staff_numero, cliente_id, area_key in result.all():
         client_ids.setdefault(staff_numero, set()).add(cliente_id)
-        area_client_ids.setdefault(staff_numero, {}).setdefault(area_key, set()).add(
-            cliente_id
-        )
+        area_client_ids.setdefault(staff_numero, {}).setdefault(area_key, set()).add(cliente_id)
     return (
         {staff_numero: len(ids) for staff_numero, ids in client_ids.items()},
         {
@@ -131,7 +129,7 @@ async def _preselection_counts(
     )
 
 
-async def get_or_404(db: AsyncSession, numero: int) -> Staff:
+async def get_record_or_404(db: AsyncSession, numero: int) -> Staff:
     stmt = select(Staff).options(selectinload(Staff.areas)).where(Staff.numero == numero)
     result = await db.execute(stmt)
     st = result.scalar_one_or_none()
@@ -140,12 +138,22 @@ async def get_or_404(db: AsyncSession, numero: int) -> Staff:
     return st
 
 
+async def get_or_404(db: AsyncSession, numero: int) -> Staff:
+    st = await get_record_or_404(db, numero)
+    if not st.activo:
+        raise NotFound(f"especialista {numero} no existe o está eliminada")
+    return st
+
+
 async def list_staff(
     db: AsyncSession,
     area: str | None = None,
     status: str | None = None,
+    include_inactive: bool = False,
 ) -> list[StaffRead]:
     stmt = select(Staff).options(selectinload(Staff.areas)).order_by(Staff.numero)
+    if not include_inactive:
+        stmt = stmt.where(Staff.activo.is_(True))
     result = await db.execute(stmt)
     all_staff = list(result.scalars().all())
 
@@ -154,18 +162,13 @@ async def list_staff(
 
     active = await _active_by_staff(db)
     preselection_counts, preselection_by_area = await _preselection_counts(db)
-    reads = [
-        _to_read(s, active, preselection_counts, preselection_by_area)
-        for s in all_staff
-    ]
+    reads = [_to_read(s, active, preselection_counts, preselection_by_area) for s in all_staff]
     if status is not None:
         reads = [r for r in reads if r.status == status]
     return reads
 
 
-async def set_manual_status(
-    db: AsyncSession, numero: int, data: ManualStatusUpdate
-) -> StaffRead:
+async def set_manual_status(db: AsyncSession, numero: int, data: ManualStatusUpdate) -> StaffRead:
     st = await get_or_404(db, numero)
     st.manual_status = data.manual_status
     await db.commit()
@@ -199,7 +202,7 @@ async def eligible_for(db: AsyncSession, area: str) -> list[StaffRead]:
 
 
 async def _get_areas(db: AsyncSession, keys: list[str]) -> list[Area]:
-    result = await db.execute(select(Area).where(Area.key.in_(keys)))
+    result = await db.execute(select(Area).where(Area.key.in_(keys), Area.activo.is_(True)))
     areas = list(result.scalars().all())
     missing = set(keys) - {area.key for area in areas}
     if missing:
@@ -241,5 +244,36 @@ async def update_staff(db: AsyncSession, numero: int, data: StaffUpdate) -> Staf
         staff.initials = _initials(staff.nombre)
     if area_keys is not None:
         staff.areas = await _get_areas(db, area_keys)
+    await db.commit()
+    return await get_read_or_404(db, numero)
+
+
+async def archive_staff(db: AsyncSession, numero: int) -> None:
+    staff = await get_or_404(db, numero)
+    active_service = await db.scalar(
+        select(TurnoServicio.id)
+        .where(
+            TurnoServicio.staff_numero == numero,
+            TurnoServicio.estado.not_in([ServicioEstado.FINALIZADO, ServicioEstado.CANCELADO]),
+        )
+        .limit(1)
+    )
+    if active_service is not None:
+        raise Conflict("la especialista tiene servicios activos; termínalos o reasígnalos primero")
+    staff.activo = False
+    await db.commit()
+
+
+async def restore_staff(db: AsyncSession, numero: int) -> StaffRead:
+    staff = await get_record_or_404(db, numero)
+    if staff.activo:
+        raise Conflict("la especialista ya está activa")
+    inactive_areas = [area.name for area in staff.areas if not area.activo]
+    if inactive_areas:
+        raise Conflict(
+            "restaura primero las áreas de la especialista: " + ", ".join(inactive_areas)
+        )
+    staff.activo = True
+    staff.manual_status = ManualStatus.DISPONIBLE
     await db.commit()
     return await get_read_or_404(db, numero)

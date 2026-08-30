@@ -104,6 +104,7 @@
     let serviceCatalog=[],promotions=[],staffDirectory=[],currentStep=1,lookupTimer,submitting=false,selectedProfile=null,preferenceSelection=[];
     const selectedIds=new Set();
     const selectedPromotionIds=new Set();
+    const selectedAdjustments=new Map();
     const normalize=value=>String(value).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
     const escapeHtml=value=>String(value).replace(/[&<>'"]/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[char]));
 
@@ -131,12 +132,12 @@
       const selectedStaff=staffDirectory.filter(person=>preferenceSelection.includes(person.numero)).map(person=>person.alias);
       const preferences=selectedStaff.length?`Preferencias: ${selectedStaff.join(', ')}${acceptOther.checked?' · Acepta otra estilista':''}`:acceptOther.checked?'Acepta otra estilista':'Sin preferencias de estilista';
       const totalItems=selected.length+selectedPromotions.length;
-      checkinSummary.innerHTML=`<b>Resumen del turno</b><span>${escapeHtml(nombre.value)} · ${totalItems} selección${totalItems===1?'':'es'}</span><div>${selected.map(service=>`<span class="tag">${escapeHtml(service.nombre)}</span>`).join('')}${selectedPromotions.map(promotion=>`<span class="tag">Promo: ${escapeHtml(promotion.nombre)}</span>`).join('')}</div><small>${tags.length?`Etiquetas: ${tags.join(', ')}`:'Sin etiquetas'} · ${escapeHtml(preferences)}</small>`;
+      checkinSummary.innerHTML=`<b>Resumen del turno</b><span>${escapeHtml(nombre.value)} · ${totalItems} selección${totalItems===1?'':'es'}</span><div>${selected.map(service=>`<span class="tag">${escapeHtml(service.nombre)}${selectedAdjustments.get(service.id)?` + $${selectedAdjustments.get(service.id)}`:''}</span>`).join('')}${selectedPromotions.map(promotion=>`<span class="tag">Promo: ${escapeHtml(promotion.nombre)}</span>`).join('')}</div><small>${tags.length?`Etiquetas: ${tags.join(', ')}`:'Sin etiquetas'} · ${escapeHtml(preferences)}</small>`;
     }
 
     async function loadServices(){
       const [groups,promotionRows]=await Promise.all([api('/services'),api('/services/promotions')]);
-      serviceCatalog=groups.map(group=>({area_key:group.area.key,servicios:group.servicios}));
+      serviceCatalog=groups.map(group=>({area_key:group.area.key,area_name:group.area.name,area_color:group.area.color,servicios:group.servicios}));
       promotions=promotionRows;
       renderServices();
     }
@@ -162,9 +163,9 @@
       const groups=serviceCatalog.map(group=>({...group,servicios:group.servicios.filter(service=>normalize(service.nombre).includes(term))})).filter(group=>group.servicios.length);
       const matchingPromotions=promotions.filter(promotion=>normalize(`${promotion.nombre} ${promotion.servicios.map(service=>service.nombre).join(' ')}`).includes(term));
       const promotionsMarkup=matchingPromotions.length?`<section class="service-group promotion-group"><h3>Promociones</h3>${matchingPromotions.map(promotion=>`<label class="service-option"><input type="checkbox" data-promotion="true" value="${promotion.id}" ${selectedPromotionIds.has(promotion.id)?'checked':''}><span><span>${escapeHtml(promotion.nombre)} <small>Incluye: ${escapeHtml(promotion.servicios.map(service=>service.nombre).join(' · '))}</small></span><b>$${promotion.precio_usd}</b></span></label>`).join('')}</section>`:'';
-      const servicesMarkup=groups.map(group=>`<section class="service-group"><h3>${escapeHtml(group.area_key)}</h3>${group.servicios.map(service=>`<label class="service-option"><input type="checkbox" value="${service.id}" ${selectedIds.has(service.id)?'checked':''}><span><span>${escapeHtml(service.nombre)}</span><b>$${service.precio_usd}</b></span></label>`).join('')}</section>`).join('');
+      const servicesMarkup=groups.map(group=>`<section class="service-group" style="--area-color:${escapeHtml(group.area_color)}"><h3>${escapeHtml(group.area_name)}</h3>${group.servicios.map(service=>`<label class="service-option"><input type="checkbox" value="${service.id}" ${selectedIds.has(service.id)?'checked':''}><span><span>${escapeHtml(service.nombre)}</span><b>$${service.precio_usd}</b></span></label>`).join('')}</section>`).join('');
       serviceGroups.innerHTML=promotionsMarkup||servicesMarkup?`${promotionsMarkup}${servicesMarkup}`:'<p class="muted">No se encontraron servicios o promociones.</p>';
-      serviceGroups.querySelectorAll('input[type="checkbox"]').forEach(input=>input.onchange=()=>{const id=+input.value;const set=input.dataset.promotion?selectedPromotionIds:selectedIds;input.checked?set.add(id):set.delete(id);updateSelection()});
+      serviceGroups.querySelectorAll('input[type="checkbox"]').forEach(input=>input.onchange=()=>{const id=+input.value;const set=input.dataset.promotion?selectedPromotionIds:selectedIds;if(input.checked)set.add(id);else{set.delete(id);selectedAdjustments.delete(id)}updateSelection()});
       updateSelection();
     }
 
@@ -174,7 +175,8 @@
       const total=selected.length+selectedPromotions.length;
       selectionCount.textContent=total?`${total} selección${total===1?'':'es'} realizada${total===1?'':'s'}`:'Ningún servicio o promoción seleccionado';
       clearServices.disabled=!total;
-      selectedServices.innerHTML=`${selected.map(service=>`<span class="tag">${escapeHtml(service.nombre)}</span>`).join('')}${selectedPromotions.map(promotion=>`<span class="tag">Promo: ${escapeHtml(promotion.nombre)}</span>`).join('')}`;
+      selectedServices.innerHTML=`${selected.map(service=>`<span class="selected-service-adjustment"><span class="tag">${escapeHtml(service.nombre)}</span>${sessionRole()==='admin'?`<label>Recargo <select data-adjustment-id="${service.id}">${[0,5,10,15,20,25,30].map(value=>`<option value="${value}" ${Number(selectedAdjustments.get(service.id)||0)===value?'selected':''}>$${value}</option>`).join('')}</select></label>`:''}</span>`).join('')}${selectedPromotions.map(promotion=>`<span class="tag">Promo: ${escapeHtml(promotion.nombre)}</span>`).join('')}`;
+      selectedServices.querySelectorAll('[data-adjustment-id]').forEach(select=>select.onchange=()=>selectedAdjustments.set(+select.dataset.adjustmentId,+select.value));
       serviceError.classList.toggle('hidden',total>0);
     }
 
@@ -206,10 +208,10 @@
     document.addEventListener('click',event=>{if(!event.target.closest('.autocomplete-field'))clientMatches.hidden=true});
     serviceSearch.oninput=renderServices;
     serviceSearch.onkeydown=event=>{if(event.key==='Enter'){event.preventDefault();renderServices();serviceGroups.querySelector('input')?.focus()}};
-    clearServices.onclick=()=>{selectedIds.clear();selectedPromotionIds.clear();renderServices()};
+    clearServices.onclick=()=>{selectedIds.clear();selectedPromotionIds.clear();selectedAdjustments.clear();renderServices()};
 
     function resetCheckin(){
-      form.reset();selectedIds.clear();selectedPromotionIds.clear();selectedProfile=null;preferenceSelection=[];activeTurnNotice.hidden=true;activeTurnNotice.textContent='';message.textContent='';clientMessage.textContent='';preferencesMessage.textContent='';renderServices();renderPreferenceStaff();
+      form.reset();selectedIds.clear();selectedPromotionIds.clear();selectedAdjustments.clear();selectedProfile=null;preferenceSelection=[];activeTurnNotice.hidden=true;activeTurnNotice.textContent='';message.textContent='';clientMessage.textContent='';preferencesMessage.textContent='';renderServices();renderPreferenceStaff();
       checkinSuccess.hidden=true;form.hidden=false;wizardProgress.hidden=false;goToStep(1);cedula.focus();
     }
 
@@ -218,7 +220,7 @@
       if(submitting)return;
       if(currentStep!==3){goToStep(currentStep+1);return}
       const data=new FormData(form);
-      const payload={cedula:data.get('cedula'),nombre:data.get('nombre'),telefono:data.get('telefono'),direccion:data.get('direccion'),observacion:data.get('observacion'),etiquetas:data.getAll('etiquetas'),service_ids:[...selectedIds],promotion_ids:[...selectedPromotionIds],staff_numeros_preseleccion:preferenceSelection,acepta_otro_estilista:acceptOther.checked,active_turno_id:selectedProfile?.active_turno_id||null};
+      const payload={cedula:data.get('cedula'),nombre:data.get('nombre'),telefono:data.get('telefono'),direccion:data.get('direccion'),observacion:data.get('observacion'),etiquetas:data.getAll('etiquetas'),service_ids:[...selectedIds],promotion_ids:[...selectedPromotionIds],ajustes:[...selectedAdjustments].filter(([,ajuste_usd])=>ajuste_usd>0).map(([service_id,ajuste_usd])=>({service_id,ajuste_usd})),staff_numeros_preseleccion:preferenceSelection,acepta_otro_estilista:acceptOther.checked,active_turno_id:selectedProfile?.active_turno_id||null};
       submitting=true;submitButton.disabled=true;submitButton.textContent='Creando turno…';message.textContent='';
       try{
         const client=await api('/queue/checkin',{method:'POST',body:JSON.stringify(payload)});

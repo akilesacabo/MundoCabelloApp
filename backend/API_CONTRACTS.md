@@ -13,6 +13,10 @@ Base local: `http://localhost:8000/api`. Los endpoints protegidos reciben
   de sus servicios.
 - **Estado del especialista:** `disponible`, `ocupado`, `break` (En pausa) o
   `almorzando`.
+- **Área/categoría:** un único nivel configurable (por ejemplo, Peluquería o Uñas) que
+  agrupa servicios y define las áreas que puede atender cada especialista.
+- **Eliminación lógica:** áreas, servicios, promociones y especialistas se marcan como
+  inactivos; conservan su historial y pueden restaurarse.
 
 ## Autenticación
 
@@ -55,6 +59,8 @@ realizó el registro:
   "telefono": "04145551212",
   "direccion": "Los Palos Grandes",
   "service_ids": [1, 8],
+  "promotion_ids": [],
+  "ajustes": [{"service_id": 1, "ajuste_usd": 5}],
   "etiquetas": ["XL", "CM"],
   "observacion": "Usar producto suave",
   "staff_numeros_preseleccion": [1, 2],
@@ -68,6 +74,10 @@ Responde `201`. Para un cliente sin visita activa crea un turno nuevo. Si la bú
 devolvió un `active_turno_id`, enviarlo agrega los servicios al mismo turno y combina
 las etiquetas sin duplicarlas. Si la cédula ya posee un turno activo y el identificador
 no fue enviado o no coincide, responde `409`.
+
+`ajustes` es opcional y requiere token de administrador. Cada ajuste debe corresponder
+a un servicio normal incluido en `service_ids` y ser uno de `0`, `5`, `10`, `15`, `20`,
+`25` o `30`. Los componentes de una promoción no admiten ajustes.
 
 ### `POST /queue/lookup?cedula=<cedula>`
 
@@ -141,6 +151,11 @@ Todos requieren rol `admin`:
   nunca tuvo especialista, lo elimina físicamente sin dejar anulación ni historial. Si ya
   fue asignado, lo anula y conserva quién lo modificó. Servicios finalizados no se editan
   ni anulan.
+- `PATCH /queue/{cliente_id}/services/{servicio_id}/adjustment` con
+  `{ "ajuste_usd": 5 }`: cambia el único recargo del servicio. Solo admite incrementos
+  de USD 5 entre 0 y 30, requiere admin y rechaza servicios de promoción, heredados o
+  finalizados. La respuesta expone `precio_usd` (base), `ajuste_usd`,
+  `precio_total_usd`, `ajuste_por_nombre` y `ajuste_at`.
 - `POST /queue/checkin` admite opcionalmente
   `{ "staff_numeros_preseleccion": [1,2,3], "acepta_otro_estilista": true }` para
   guardar durante el registro de llegada hasta tres estilistas preferidas y la opción
@@ -151,7 +166,8 @@ Todos requieren rol `admin`:
 - `POST /queue/{cliente_id}/services/{servicio_id}/change-specialist`: conserva
   especialista anterior/nuevo y `cambiado_por_nombre`; requiere rol admin, no PIN.
 - `GET /historial`: servicios finalizados filtrables por cliente, especialista,
-  servicio y área. Requiere admin.
+  servicio y área. Cada registro conserva `precio_base_usd`, `ajuste_usd` y
+  `precio_usd` como total cobrado. Requiere admin.
 - `GET /historial/summary`: totales administrativos de servicios finalizados y monto
   en USD, con desglose por área. Requiere admin y acepta los mismos filtros de
   `/historial`.
@@ -162,17 +178,32 @@ Todos requieren rol `admin`:
   sin asignar en un área que la especialista cubre; una misma clienta cuenta una vez por
   especialista. También expone las áreas, por ejemplo `head_spa`, y su carga activa para
   permitir varias atenciones en paralelo.
-- `POST /staff` y `PATCH /staff/{numero}`.
-- `POST /services` y `PATCH /services/{id}`.
+- `POST /staff` y `PATCH /staff/{numero}`. `DELETE /staff/{numero}` lo inactiva y
+  `POST /staff/{numero}/restore` lo restaura. Una especialista inactiva no inicia
+  sesión, no aparece en operación ni recibe asignaciones. La eliminación se bloquea
+  mientras tenga un servicio activo asignado.
+- `GET /services/areas`, `POST /services/areas`, `PATCH /services/areas/{key}`,
+  `DELETE /services/areas/{key}` y `POST /services/areas/{key}/restore`: administran
+  las áreas dinámicas. La clave se genera desde el nombre. No se puede eliminar un área
+  con servicios o especialistas activos asociados.
+- `POST /services` y `PATCH /services/{id}`. `DELETE /services/{id}` lo inactiva y
+  `POST /services/{id}/restore` lo restaura. La eliminación se bloquea si participa en
+  una promoción activa.
+- `DELETE /services/promotions/{id}` inactiva la promoción y
+  `POST /services/promotions/{id}/restore` la restaura. La restauración requiere que
+  todos sus servicios estén activos.
+- Los listados de áreas, servicios, promociones y especialistas ocultan inactivos por
+  defecto. `?include_inactive=true` los incluye y solo está autorizado para admin.
 
 Un especialista marcado manualmente como `break` o `almorzando` no acepta nuevas
 asignaciones. Uno `ocupado` puede recibirla únicamente tras la confirmación explícita
 del administrador. Un servicio `en_atencion` ocupa al especialista; un servicio en
 `reposo` permanece visible en su carga, pero lo libera para atender otra persona.
 
-La cola administrativa ordena primero los turnos con etiqueta `INT` y luego por nombre
-del cliente, con fecha e identificador como desempate estable. El número de turno se
-conserva como identificador, pero no define la prioridad.
+Todas las vistas de cola ordenan primero los turnos con etiqueta `INT` y, dentro de cada
+grupo, por fecha de registro ascendente e identificador: quien se registró primero se ve
+y se atiende primero. Agregar otro servicio a una visita conserva la fecha original del
+turno. El número de turno se conserva como identificador, pero no define la prioridad.
 
 Ejemplo abreviado de la ficha:
 

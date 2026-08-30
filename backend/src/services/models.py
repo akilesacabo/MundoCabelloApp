@@ -15,6 +15,7 @@ class Area(Base):
     key: Mapped[str] = mapped_column(String(32), primary_key=True)
     name: Mapped[str] = mapped_column(String(64))
     color: Mapped[str] = mapped_column(String(16))
+    activo: Mapped[bool] = mapped_column(Boolean, default=True, index=True)
 
     services: Mapped[list[ServiceCatalog]] = relationship(back_populates="area")
 
@@ -26,10 +27,9 @@ class ServiceCatalog(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     nombre: Mapped[str] = mapped_column(String(128), index=True)
-    area_key: Mapped[str] = mapped_column(
-        ForeignKey("area.key", ondelete="RESTRICT"), index=True
-    )
+    area_key: Mapped[str] = mapped_column(ForeignKey("area.key", ondelete="RESTRICT"), index=True)
     precio_usd: Mapped[Decimal] = mapped_column(Numeric(10, 2))
+    activo: Mapped[bool] = mapped_column(Boolean, default=True, index=True)
     created_at: Mapped[datetime] = mapped_column(server_default=func.now())
 
     area: Mapped[Area] = relationship(back_populates="services")
