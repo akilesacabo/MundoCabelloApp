@@ -60,6 +60,15 @@
 - Plantillas.
 - Peinado especial con ajuste propio.
 
+## Flujo Git para una etapa futura
+
+- Decisión de Juan Pablo, 2026-08-29: mientras sea el único desarrollador, se permite
+  integrar una rama verificada mediante merge directo con `--ff-only` y un gate separado
+  antes del push a `master`.
+- Cuando haya más desarrolladores, validaciones automáticas o cambios que requieran una
+  revisión formal, usar GitHub CLI (`gh`) y Pull Requests antes del merge.
+- Comandos útiles: `gh pr create`, `gh pr status` y `gh pr view --web`.
+
 ## Deuda técnica observada
 
 - La cola pública carga `/services/areas` enviando el token local cuando existe. Si ese
